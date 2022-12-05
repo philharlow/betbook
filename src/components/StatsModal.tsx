@@ -91,11 +91,14 @@ function StatsModal() {
 
   const winningTickets = tickets.filter((t) => t.status === TicketStatus.Won);
   const losingTickets = tickets.filter((t) => t.status === TicketStatus.Lost);
+  const drawingTickets = tickets.filter((t) => t.status === TicketStatus.Draw);
   const openTickets = tickets.filter((t) => t.status === TicketStatus.Opened);
   const totalWagered = tickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.TicketCost ?? "0"), 0);
   const totalLost = losingTickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.TicketCost ?? "0"), 0);
   const totalWon = winningTickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.ToPay ?? "0"), 0);
-  const maxRemainingWin = tickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.ToPay ?? "0"), 0) - totalWon;
+  const totalDrawn = drawingTickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.ToPay ?? "0"), 0);
+  const totalReceived = totalWon + totalDrawn;
+  const maxRemainingWin = tickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.ToPay ?? "0"), 0) - totalReceived;
 
   const getStatDiv = (label: string, value: any) => {
     return (
@@ -114,20 +117,22 @@ function StatsModal() {
       ["Total Tickets", tickets.length],
       ["Tickets Won",  winningTickets.length],
       ["Tickets Lost",  losingTickets.length],
+      ["Tickets Drawn",  drawingTickets.length],
       ["Tickets Open",  openTickets.length],
     ],[
       ["Total Wagered", toCurrencyFormat(totalWagered)],
       ["Total Won", toCurrencyFormat(totalWon)],
       ["Total Lost", toCurrencyFormat(totalLost)],
+      ["Total Drawn", toCurrencyFormat(totalDrawn)],
     ],
     [
-      ["Current profit/loss", toCurrencyFormat(totalWon - totalWagered)],
-      ["Current profit/loss %", `${parseFloat((((totalWon / totalWagered) - 1) * 100).toFixed(2))}%`],
+      ["Current profit/loss", toCurrencyFormat(totalReceived - totalWagered)],
+      ["Current profit/loss %", `${parseFloat((((totalReceived / totalWagered) - 1) * 100).toFixed(2))}%`],
     ],
     [
       ["Max potential win", toCurrencyFormat(maxRemainingWin)],
-      ["Max profit/loss", toCurrencyFormat((maxRemainingWin + totalWon) - totalWagered)],
-      ["Max profit/loss %", `${parseFloat(((((maxRemainingWin + totalWon) / totalWagered) - 1) * 100).toFixed(2))}%`],
+      ["Max profit/loss", toCurrencyFormat((maxRemainingWin + totalReceived) - totalWagered)],
+      ["Max profit/loss %", `${parseFloat(((((maxRemainingWin + totalReceived) / totalWagered) - 1) * 100).toFixed(2))}%`],
     ],
     [
       ["Archived Tickets", tickets.filter((t) => t.archived).length],

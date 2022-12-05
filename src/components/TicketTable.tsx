@@ -49,7 +49,7 @@ const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTi
   if (filter === FilterLevel.Open) return ticket.status === TicketStatus.Opened;
   if (filter === FilterLevel.Won) return ticket.status === TicketStatus.Won;
   if (filter === FilterLevel.Lost) return ticket.status === TicketStatus.Lost;
-  if (filter === FilterLevel.Settled) return ticket.status === TicketStatus.Lost || ticket.status === TicketStatus.Won;
+  if (filter === FilterLevel.Settled) return ticket.status === TicketStatus.Lost || ticket.status === TicketStatus.Won || ticket.status === TicketStatus.Draw;
   return true;
 }
 
@@ -71,7 +71,6 @@ function TicketTable() {
     setCurrentTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Current));
     setFutureTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Future));
     setHasTickets(filteredTickets.length > 0);
-    console.log("tickets in table", tickets);
   }, [tickets, filterLevel, showArchivedTickets])
 
   // TODO remove hard coded time periods

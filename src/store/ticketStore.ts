@@ -7,7 +7,7 @@ export enum TicketStatus {
 	Refreshing = "Refreshing",
 	Opened = "Opened",
 	Lost = "Lost",
-	Push = "Push",
+	Draw = "Draw",
 	Won = "Won",
 }
 export const TicketStatuses = Object.values(TicketStatus);
@@ -64,7 +64,7 @@ export const getStatusColor = (status: TicketStatus) => {
     if (status === TicketStatus.Opened) return 'orange';
     if (status === TicketStatus.Lost) return 'red';
     if (status === TicketStatus.Won) return 'green';
-    if (status === TicketStatus.Push) return 'white';
+    if (status === TicketStatus.Draw) return 'white';
     if (status === TicketStatus.Refreshing) return 'lightgrey';
     return 'white';
 };
