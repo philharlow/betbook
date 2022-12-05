@@ -47,8 +47,8 @@ export interface SelectionResult {
 	EventTypeName: string;
 	LineTypeName: string;
 	Odds: string;
-	Score1: string;
-	Score2: string;
+	MatchScore1: string;
+	MatchScore2: string;
 	YourBetPrefix: string;
 	Yourbet: string;
 	Status: TicketStatus;

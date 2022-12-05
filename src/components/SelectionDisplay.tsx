@@ -45,6 +45,7 @@ interface Props {
 }
 
 function SelectionDisplay({selection} : Props) {
+  const score = `${selection.MatchScore1}-${selection.MatchScore2}`;
 
   return (
     <SelectionDisplayDiv>
@@ -66,7 +67,7 @@ function SelectionDisplay({selection} : Props) {
         </GreyLabel>
       </Column>
       <Column>
-        {selection.Odds || "--"}
+        {selection.Odds || score}
       </Column>
     </SelectionDisplayDiv>
   );
