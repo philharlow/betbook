@@ -16,6 +16,9 @@ const TicketDisplayDiv = styled.div`
 const Title = styled.div`
   font-size: 18px;
   font-weight: 500;
+  &.archived {
+    color: var(--blue);
+  }
 `;
 
 const SubTitle = styled.div`
@@ -71,20 +74,21 @@ function TicketDisplay({ticket, onClick} : Props) {
       <ResultRow style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }}>
         {ticket.status}
       </ResultRow>
+      {ticket.ticketResult === undefined && <Title>Loading...</Title>}
 
-      <Title>
-        {ticket.ticketResult?.Title}
+      <Title className={ticket.archived ? "archived" : ""}>
+        {ticket.ticketResult?.Title}{ticket.archived ? " (Archived)" : ""}
       </Title>
       <SubTitle>
         {ticket.ticketResult?.SubTitle}
       </SubTitle>
       <CellContent>
         <GreyLabel>Wager:</GreyLabel>
-        {ticket.ticketResult?.TicketCost}
+        ${ticket.ticketResult?.TicketCost}
       </CellContent>
       <CellContent>
         <GreyLabel>To Pay:</GreyLabel>
-        {ticket.ticketResult?.ToPay}
+        ${ticket.ticketResult?.ToPay}
       </CellContent>
       <CellContent>
         <TimeLabel>{ticket.ticketResult?.EventDate.toLocaleString()}</TimeLabel>

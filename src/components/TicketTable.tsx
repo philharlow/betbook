@@ -37,7 +37,8 @@ const TimePeriodLabel = styled.div`
   align-self: start;
 `;
 
-const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel) => {
+const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTickets: boolean) => {
+  if (ticket.archived && !showArchivedTickets) return false;
   if (filter === FilterLevel.Open) return ticket.status === TicketStatus.Opened;
   if (filter === FilterLevel.Won) return ticket.status === TicketStatus.Won;
   if (filter === FilterLevel.Lost) return ticket.status === TicketStatus.Lost;
@@ -49,18 +50,22 @@ function TicketTable() {
   const tickets = useTicketState(state => state.tickets);
   const filterLevel = useUIState(state => state.filterLevel);
   const setViewingTicket = useUIState(state => state.setViewingTicket);
+  const showArchivedTickets = useUIState(state => state.showArchivedTickets);
   const [hasTickets, setHasTickets] = useState(false);
+  const [pendingTickets, setPendingTickets] = useState<TicketRecord[]>([]);
   const [pastTickets, setPastTickets] = useState<TicketRecord[]>([]);
   const [currentTickets, setCurrentTickets] = useState<TicketRecord[]>([]);
   const [futureTickets, setFutureTickets] = useState<TicketRecord[]>([]);
 
   useEffect(() => {
-    const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel));
+    const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel, showArchivedTickets));
+    setPendingTickets(filteredTickets.filter((ticket) => ticket.ticketResult === undefined));
     setPastTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Past));
     setCurrentTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Current));
     setFutureTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Future));
-    setHasTickets(filteredTickets.length > 0)
-  }, [tickets, filterLevel])
+    setHasTickets(filteredTickets.length > 0);
+    console.log("tickets in table", tickets);
+  }, [tickets, filterLevel, showArchivedTickets])
 
   // TODO remove hard coded time periods
 
@@ -69,6 +74,13 @@ function TicketTable() {
   return (
     <TableDiv>
       <Content>
+        {/* Pending */}
+        <Accordian
+          dontDrawIfNoChildren={true}
+          label={<TimePeriodLabel>Pending ({pendingTickets.length})</TimePeriodLabel>}>
+            {pendingTickets.map(getTicketDisplay)}
+        </Accordian>
+
         {/* Past */}
         <Accordian
           dontDrawIfNoChildren={true}

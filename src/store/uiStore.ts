@@ -18,6 +18,10 @@ interface UIState {
 	addTicketModalOpen: boolean;
 	setAddTicketModalOpen: (addTicketModalOpen: boolean) => void;
 	toggleAddTicketModalOpen: () => void;
+	statsModalOpen: boolean;
+	setStatsModalOpen: (statsModalOpen: boolean) => void;
+	showArchivedTickets: boolean;
+	setShowArchivedTickets: (showArchivedTickets: boolean) => void;
 }
 
 export const useUIState = create<UIState>((set, get) => ({
@@ -35,5 +39,13 @@ export const useUIState = create<UIState>((set, get) => ({
 	},
 	toggleAddTicketModalOpen: () => {
 		set({ addTicketModalOpen: !get().addTicketModalOpen });
+	},
+	statsModalOpen: false,
+	setStatsModalOpen: (statsModalOpen: boolean) => {
+		set({ statsModalOpen });
+	},
+	showArchivedTickets: false,
+	setShowArchivedTickets: (showArchivedTickets: boolean) => {
+		set({ showArchivedTickets });
 	},
 }));

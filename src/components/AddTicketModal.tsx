@@ -124,10 +124,10 @@ function AddTicketModal() {
         status: TicketStatus.Refreshing,
       };
       updateTicket(ticket);
-      
+
       fetchUpdatedTicket(ticket);
-      //closeModal();
-      setTimeout(closeModal, 100);
+      
+      closeModal();
     } else {
       showToast("Ticket number invalid");
     }
@@ -140,7 +140,8 @@ function AddTicketModal() {
         if (ticketNumber && listening) {
           console.log('listening false', listening);
           listening = false;
-          addTicket(ticketNumber);
+          // Show the qr code outline for a smidge
+          setTimeout(() => addTicket(ticketNumber), 100);
         }
       }
 

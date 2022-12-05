@@ -23,6 +23,7 @@ export enum TimePeriod {
 export interface TicketRecord {
 	ticketNumber: number;
 	status: TicketStatus;
+	archived?: boolean;
 	ticketResult?: TicketResult;
 }
 
@@ -99,8 +100,10 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 
 interface TicketState {
 	tickets: TicketRecord[];
+	setTickets: (tickets: TicketRecord[]) => void;
 	updateTicket: (ticket: TicketRecord) => void;
 	removeTicket: (ticketNumber: number) => void;
+	archiveTicket: (ticketNumber: number, archived?: boolean) => void;
 }
 
 export const fetchUpdatedTicket = async (ticket: TicketRecord) => {
@@ -115,8 +118,10 @@ const getTickets = () => {
 	if (!ticketsStr) return [];
 	const tickets = JSON.parse(ticketsStr) as TicketRecord[];
 	for (const ticket of tickets) {
-		ticket.status = TicketStatus.Refreshing;
-		if (ticket.ticketResult) calculateTicketValues(ticket.ticketResult);
+		if (!ticket.archived) {
+			ticket.status = TicketStatus.Refreshing;
+			if (ticket.ticketResult) calculateTicketValues(ticket.ticketResult);
+		}
 	}
 	
 	// Fetch updates
@@ -127,6 +132,10 @@ const getTickets = () => {
 
 export const useTicketState = create<TicketState>((set, get) => ({
 	tickets: getTickets(),
+	setTickets: (tickets: TicketRecord[]) => {
+		localStorageSet(TICKETS_KEY, JSON.stringify(tickets));
+		set({ tickets });
+	},
 	updateTicket: (ticket: TicketRecord) => {
 		const tickets = [...get().tickets];
 		const existingTicket = tickets.find((t) => t.ticketNumber === ticket.ticketNumber);
@@ -134,14 +143,20 @@ export const useTicketState = create<TicketState>((set, get) => ({
 			Object.assign(existingTicket, ticket);
 		}
 		else tickets.push(ticket);
-		localStorageSet(TICKETS_KEY, JSON.stringify(tickets));
-		tickets.sort((a, b) => a.ticketResult && b.ticketResult ? a.ticketResult.EventDate.getDate() - b.ticketResult.EventDate.getDate() : 0)
-		set({ tickets });
+		tickets.sort((a, b) => a.ticketResult && b.ticketResult ? a.ticketResult.EventDate.getDate() - b.ticketResult.EventDate.getDate() : 0);
+
+		get().setTickets(tickets);
 	},
 	removeTicket: (ticketNumber: number) => {
 		const tickets = [...get().tickets].filter((t) => t.ticketNumber !== ticketNumber);
-		console.log(tickets);
-		localStorageSet(TICKETS_KEY, JSON.stringify(tickets));
-		set({ tickets });
+		
+		get().setTickets(tickets);
+	},
+	archiveTicket: (ticketNumber: number, archived = true) => {
+		const tickets = [...get().tickets];
+		const ticket = tickets.find((ticket) => ticket.ticketNumber === ticketNumber);
+		if (ticket) ticket.archived = archived;
+		
+		get().setTickets(tickets);
 	},
 }));

@@ -22,13 +22,25 @@ const AddTicketButton = styled(Button)`
 
 function TopBar() {
   const toggleAddTicketModalOpen = useUIState(state => state.toggleAddTicketModalOpen);
+  const setStatsModalOpen = useUIState(state => state.setStatsModalOpen);
   
   const addTicket = () => {
     toggleAddTicketModalOpen();
   };
 
+  const openSettings = () => {
+    setStatsModalOpen(true);
+  };
+
   return (
     <TopBarDiv>
+      <Title onClick={openSettings}>
+        <svg fill='white' viewBox="0 0 100 80" width="25" height="30">
+          <rect y="0" width="80" height="10" rx="5"></rect>
+          <rect y="30" width="80" height="10" rx="5"></rect>
+          <rect y="60" width="80" height="10" rx="5"></rect>
+        </svg>
+      </Title>
       <Title>My Bets Viewer</Title>
       <AddTicketButton onClick={() => addTicket()}>+</AddTicketButton>
     </TopBarDiv>

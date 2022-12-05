@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useTicketState } from '../store/ticketStore';
+import { TicketStatus, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import SelectionDisplay from './SelectionDisplay';
@@ -50,8 +50,26 @@ const Selections = styled.div`
 
 const RemoveButton = styled(Button)`
   background: var(--red);
-  margin-top: 50px;
   padding: 10px 20px;
+`;
+
+const ArchiveButton = styled(Button)`
+  background: var(--blue);
+  padding: 10px 20px;
+`;
+
+const ButtonRow = styled.div`
+  margin-top: 50px;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-around;
+`;
+
+const FooterRow = styled.div`
+  margin-bottom: 50px;
+  color: #666;
+  max-width: 75%;
 `;
 
 const CloseButton = styled(Button)``;
@@ -60,6 +78,7 @@ function ViewTicketModal() {
   const viewingTicket = useUIState(state => state.viewingTicket);
   const setViewingTicket = useUIState(state => state.setViewingTicket);
   const removeTicket = useTicketState(state => state.removeTicket);
+  const archiveTicket = useTicketState(state => state.archiveTicket);
   
   const closeModal = () => {
     setViewingTicket(undefined);
@@ -71,13 +90,22 @@ function ViewTicketModal() {
     removeTicket(viewingTicket.ticketNumber);
     setViewingTicket(undefined);
   };
+  
+  const onArchiveTicket = () => {
+    if (!viewingTicket) return;
+    if (!window.confirm(`Are you sure you want to ${archiveLabel} ticket ${viewingTicket.ticketNumber}?`)) return;
+    archiveTicket(viewingTicket.ticketNumber, !viewingTicket.archived);
+    setViewingTicket(undefined);
+  };
 
   if (!viewingTicket) return null;
 
   const selections = viewingTicket.ticketResult?.Selections ?? [];
   const firstSelection = selections[0];
-  const title = selections.length > 1 ? `${selections.length} Pick Parlay` : firstSelection.EventName;
+  const title = selections.length > 1 ? `${selections.length} Pick Parlay` : firstSelection?.EventName ?? "Loading...";
   const odds = viewingTicket.ticketResult?.TotalOdds;
+  const archivable = viewingTicket.status === TicketStatus.Lost || viewingTicket.status === TicketStatus.Won;
+  const archiveLabel = viewingTicket.archived ? "Unarchive" : "Archive";
 
   return (
     <ViewTicketDiv>
@@ -91,11 +119,17 @@ function ViewTicketModal() {
         <Title>{title} {odds}</Title>
         <Selections>
           {viewingTicket.ticketResult?.Selections.map((selection, i) => (
-            <SelectionDisplay selection={selection} />
+            <SelectionDisplay key={i} selection={selection} />
           )) ?? 'Loading...'}
         </Selections>
-
-        <RemoveButton onClick={deleteTicket}>Remove</RemoveButton>
+      
+      <ButtonRow>
+        {archivable && <ArchiveButton onClick={onArchiveTicket}>{archiveLabel} Ticket</ArchiveButton>}
+        <RemoveButton onClick={deleteTicket}>Remove Ticket</RemoveButton>
+      </ButtonRow>
+      {archivable && <FooterRow>
+        Archiving tickets will remove them from the main screen but keep them for stats.
+      </FooterRow>}
       </Content>
     </ViewTicketDiv>
   );

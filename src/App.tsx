@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import AddTicketModal from './components/AddTicketModal';
 import FilterBar from './components/FilterBar';
+import StatsModal from './components/StatsModal';
 import TicketTable from './components/TicketTable';
 import Toast from './components/Toast';
 import TopBar from './components/TopBar';
@@ -26,6 +27,7 @@ const App = () => {
       <TicketTable />
       <ViewTicketModal />
       <AddTicketModal />
+      <StatsModal />
       <Toast />
       <VersionDisplay />
     </AppDiv>
