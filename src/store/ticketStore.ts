@@ -54,7 +54,8 @@ export interface SelectionResult {
 	Status: TicketStatus;
 	
 	// Calculated
-	Team: string;
+	Teams: string[];
+	WinningTeam: string;
 }
 
 export const getStatusColor = (status: TicketStatus) => {
@@ -71,23 +72,29 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 	const selections = ticketResult.Selections;
 	const firstSelection = selections[0];
 
+	ticketResult.EventDate = new Date(firstSelection.EventDate);
+	const set = new Set();
+	for (const selection of selections) {
+		const split = selection.Yourbet.split(" - ");
+		const eventName = split[0];
+		
+		if (split.length > 1) selection.WinningTeam = split[1]; // Winning team
+
+		selection.Teams = eventName.split(" vs ");
+		selection.Teams.forEach((team) => set.add(team));
+
+		const eventDate = new Date(selection.EventDate);
+		if (eventDate < ticketResult.EventDate) ticketResult.EventDate = eventDate;
+	}
+	ticketResult.SubTitle = Array.from(set.values()).join(", ");
+
 	ticketResult.Title = firstSelection.YourBetPrefix;
 	if(selections.length > 1) ticketResult.Title = `Parlay (${selections.length} pick)`;
-	ticketResult.EventDate = new Date(firstSelection.EventDate);
 
 	ticketResult.TimePeriod = now > ticketResult.EventDate ? TimePeriod.Past : TimePeriod.Future;
 	if (ticketResult.TimePeriod === TimePeriod.Past && ticketResult.Status === TicketStatus.Opened)
 		ticketResult.TimePeriod = TimePeriod.Current;
 
-	const set = new Set();
-	for (const selection of selections) {
-		const split = selection.Yourbet.split(" - ");
-		const eventName = split[0];
-		if (split.length > 1) selection.Team = split[1]; // Winning team
-		const teams = eventName.split(" vs ");
-		teams.forEach((team) => set.add(team));	
-	}
-	ticketResult.SubTitle = Array.from(set.values()).join(", ");
 };
 
 interface TicketState {
