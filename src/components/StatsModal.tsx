@@ -123,7 +123,7 @@ function StatsModal() {
       ["Current profit/loss %", `${parseFloat((((totalWon / totalWagered) - 1) * 100).toFixed(2))}%`],
     ],
     [
-      ["Max remaining win", toCurrencyFormat(maxRemainingWin)],
+      ["Max potential win", toCurrencyFormat(maxRemainingWin)],
       ["Max profit/loss", toCurrencyFormat((maxRemainingWin + totalWon) - totalWagered)],
       ["Max profit/loss %", `${parseFloat(((((maxRemainingWin + totalWon) / totalWagered) - 1) * 100).toFixed(2))}%`],
     ],
