@@ -16,6 +16,12 @@ const StatsModalDiv = styled.div`
   flex-direction: column;
 `;
 
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+`;
+
 const StatGroup = styled.div`
   display: flex;
   flex-direction: row;
@@ -24,7 +30,6 @@ const StatGroup = styled.div`
   gap: 10px;
   padding: 15px;
   justify-content: center;
-  overflow-y: auto;
 `;
 
 const Stat = styled.div`
@@ -123,12 +128,14 @@ function StatsModal() {
         Stats
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
-      {statGroups.map((stats, i) =>
-        <StatGroup key={i}>
-          {stats.map((stat) => getStatDiv(stat[0], stat[1]))}
-        </StatGroup>
-      )}
-      <ArchiveButton onClick={onToggleArchives}>{showArchivedTickets ? "Hide" : "Show"} Archived Tickets</ArchiveButton>
+      <Content>
+        {statGroups.map((stats, i) =>
+          <StatGroup key={i}>
+            {stats.map((stat) => getStatDiv(stat[0], stat[1]))}
+          </StatGroup>
+        )}
+        <ArchiveButton onClick={onToggleArchives}>{showArchivedTickets ? "Hide" : "Show"} Archived Tickets</ArchiveButton>
+      </Content>
     </StatsModalDiv>
   );
 }
