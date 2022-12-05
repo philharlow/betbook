@@ -71,21 +71,21 @@ function TicketTable() {
         {/* Past */}
         <Accordian
           dontDrawIfNoChildren={true}
-          label={<TimePeriodLabel>Past</TimePeriodLabel>}>
+          label={<TimePeriodLabel>Past ({pastTickets.length})</TimePeriodLabel>}>
             {pastTickets.map(getTicketDisplay)}
         </Accordian>
 
         {/* Current */}
         <Accordian
           dontDrawIfNoChildren={true}
-          label={<TimePeriodLabel>Current</TimePeriodLabel>}>
+          label={<TimePeriodLabel>Current ({currentTickets.length})</TimePeriodLabel>}>
             {currentTickets.map(getTicketDisplay)}
         </Accordian>
 
         {/* Future */}
         <Accordian
           dontDrawIfNoChildren={true}
-          label={<TimePeriodLabel>Future</TimePeriodLabel>}>
+          label={<TimePeriodLabel>Future ({futureTickets.length})</TimePeriodLabel>}>
             {futureTickets.map(getTicketDisplay)}
         </Accordian>
 
