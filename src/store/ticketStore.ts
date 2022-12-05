@@ -52,6 +52,9 @@ export interface SelectionResult {
 	YourBetPrefix: string;
 	Yourbet: string;
 	Status: TicketStatus;
+	
+	// Calculated
+	Team: string;
 }
 
 export const getStatusColor = (status: TicketStatus) => {
@@ -76,7 +79,9 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 
 	const set = new Set();
 	for (const selection of selections) {
-		const eventName = selection.Yourbet.split(" - ")[0];
+		const split = selection.Yourbet.split(" - ");
+		const eventName = split[0];
+		if (split.length > 1) selection.Team = split[1]; // Winning team
 		const teams = eventName.split(" vs ");
 		teams.forEach((team) => set.add(team));	
 	}

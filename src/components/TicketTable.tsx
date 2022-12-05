@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import {  TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
+import {  TicketRecord, TicketStatus, TimePeriod, useTicketState } from '../store/ticketStore';
 import { FilterLevel, useUIState } from '../store/uiStore';
+import Accordian from './Accordian';
 import TicketDisplay from './TicketDisplay';
 
 const TableDiv = styled.div`
@@ -13,6 +14,7 @@ const TableDiv = styled.div`
   padding: 15px;
   overflow-y: auto;
 `;
+
 const AddTicketsMessage = styled.div`
   font-size: 16px;
   display: flex;
@@ -20,6 +22,12 @@ const AddTicketsMessage = styled.div`
   justify-content: center;
   flex-direction: column;
   color: #999;
+`;
+
+const TimePeriodLabel = styled.div`
+  font-size: 12px;
+  color: #666;
+  align-self: start;
 `;
 
 const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel) => {
@@ -34,18 +42,48 @@ function TicketTable() {
   const tickets = useTicketState(state => state.tickets);
   const filterLevel = useUIState(state => state.filterLevel);
   const setViewingTicket = useUIState(state => state.setViewingTicket);
-  const [displayedTickets, setDisplayedTickets] = useState<TicketRecord[]>([]);
+  const [hasTickets, setHasTickets] = useState(false);
+  const [pastTickets, setPastTickets] = useState<TicketRecord[]>([]);
+  const [currentTickets, setCurrentTickets] = useState<TicketRecord[]>([]);
+  const [futureTickets, setFutureTickets] = useState<TicketRecord[]>([]);
 
   useEffect(() => {
-    setDisplayedTickets(tickets.filter((ticket) => shouldDisplay(ticket, filterLevel)))
+    const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel));
+    setPastTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Past));
+    setCurrentTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Current));
+    setFutureTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Future));
+    setHasTickets(filteredTickets.length > 0)
   }, [tickets, filterLevel])
+
+  // TODO remove hard coded time periods
+
+  const getTicketDisplay = (ticket: TicketRecord) => <TicketDisplay ticket={ticket} key={ticket.ticketNumber} onClick={() => setViewingTicket(ticket)} />
 
   return (
     <TableDiv>
-      {displayedTickets.map(ticket => 
-        <TicketDisplay ticket={ticket} key={ticket.ticketNumber} onClick={() => setViewingTicket(ticket)} />
-      )}
-      {displayedTickets.length === 0 &&
+      {/* Past */}
+      <Accordian
+        dontDrawIfNoChildren={true}
+        label={<TimePeriodLabel>Past</TimePeriodLabel>}>
+          {pastTickets.map(getTicketDisplay)}
+      </Accordian>
+
+      {/* Current */}
+      <Accordian
+        dontDrawIfNoChildren={true}
+        label={<TimePeriodLabel>Current</TimePeriodLabel>}>
+          {currentTickets.map(getTicketDisplay)}
+      </Accordian>
+
+      {/* Future */}
+      <Accordian
+        dontDrawIfNoChildren={true}
+        label={<TimePeriodLabel>Future</TimePeriodLabel>}>
+          {futureTickets.map(getTicketDisplay)}
+      </Accordian>
+
+      {/* No tickets */}
+      {!hasTickets &&
         <AddTicketsMessage>
           <div>No tickets found</div>
           {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}

@@ -118,11 +118,13 @@ function AddTicketModal() {
       setValue(ticketNumber);
       if (tickets.find((ticket) => ticket.ticketNumber === asNumber)) showToast("Ticket already added");
       else showToast("Ticket added!");
+
       const ticket: TicketRecord = {
         ticketNumber: asNumber,
         status: TicketStatus.Refreshing,
       };
       updateTicket(ticket);
+      
       fetchUpdatedTicket(ticket);
       //closeModal();
       setTimeout(closeModal, 100);
