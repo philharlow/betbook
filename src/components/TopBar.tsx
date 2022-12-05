@@ -20,6 +20,11 @@ const AddTicketButton = styled(Button)`
   padding: 0px 8px;
 `;
 
+const Logo = styled.img`
+  height: 22px;
+  padding-right: 10px;
+`;
+
 function TopBar() {
   const toggleAddTicketModalOpen = useUIState(state => state.toggleAddTicketModalOpen);
   const setStatsModalOpen = useUIState(state => state.setStatsModalOpen);
@@ -41,7 +46,10 @@ function TopBar() {
           <rect y="60" width="80" height="10" rx="5"></rect>
         </svg>
       </Title>
-      <Title>BetBook</Title>
+      <Title>
+        <Logo src="logo192.png" alt="logo" />
+        BetBook
+      </Title>
       <AddTicketButton onClick={() => addTicket()}>+</AddTicketButton>
     </TopBarDiv>
   );
