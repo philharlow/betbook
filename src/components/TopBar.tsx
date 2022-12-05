@@ -17,7 +17,7 @@ const Title = styled.div`
 
 const AddTicketButton = styled(Button)`
   font-size: var(--topbar-font-size);
-  padding: 0px 8px;
+  padding: 0px 12px;
 `;
 
 const Logo = styled.img`

@@ -13,7 +13,14 @@ const TableDiv = styled.div`
   gap: 10px;
   padding: 15px;
   overflow-y: auto;
-  justify-content: center;
+`;
+
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 10px;
+  padding-bottom: 70px; // Hack for iphones not scrolling to bottomw
 `;
 
 const AddTicketsMessage = styled.div`
@@ -22,13 +29,7 @@ const AddTicketsMessage = styled.div`
   flex: 1;
   flex-direction: column;
   color: #999;
-`;
-
-const Content = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-bottom: 60px; // Hack for iphones not scrolling to bottomw
+  justify-content: center;
 `;
 
 const TimePeriodLabel = styled.div`
