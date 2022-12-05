@@ -63,7 +63,7 @@ export const GlobalStyles = createGlobalStyle`
 
   a {
     text-decoration: none;
-    color: var(--black);
+    color: var(--link);
     transition: var(--transition);
 
     :hover {

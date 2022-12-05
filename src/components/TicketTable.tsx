@@ -20,7 +20,7 @@ const Content = styled.div`
   flex-direction: column;
   flex: 1;
   gap: 10px;
-  padding-bottom: 70px; // Hack for iphones not scrolling to bottomw
+  margin-bottom: 70px; // Hack for iphones not scrolling to bottomw
 `;
 
 const AddTicketsMessage = styled.div`
@@ -30,6 +30,12 @@ const AddTicketsMessage = styled.div`
   flex-direction: column;
   color: #999;
   justify-content: center;
+`;
+
+const Disclaimer = styled.div`
+  font-size: 14px;
+  color: #666;
+  justify-content: end;
 `;
 
 const TimePeriodLabel = styled.div`
@@ -105,10 +111,17 @@ function TicketTable() {
 
         {/* No tickets */}
         {!hasTickets &&
-          <AddTicketsMessage>
-            <div>No tickets found</div>
-            {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
-          </AddTicketsMessage>
+          <>
+            <AddTicketsMessage>
+              <div>No tickets found</div>
+              {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
+            </AddTicketsMessage>
+            <Disclaimer>
+              Disclaimer: All data is stored on your device. No data ever leaves your device.
+              <br/>
+              <a href="https://github.com/philharlow/betbook">Open source: https://github.com/philharlow/betbook</a>
+            </Disclaimer>
+          </>
         }
       </Content>
     </TableDiv>

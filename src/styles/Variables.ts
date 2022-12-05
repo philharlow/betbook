@@ -27,6 +27,7 @@ const Variables = css`
     --red: #a33;
     --green: #5ccc3b;
     --orange: #f0a907;
+    --link: #888;
 
     // Other
     --max-width: 1500px;
