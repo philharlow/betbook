@@ -16,13 +16,17 @@ const Variables = css`
     --fz-xl: 20px;
     --fz-xxl: 22px;
 
+    --topbar-font-size: 24px;
+
     // Colors
     --white: #fff;
     --black: #000;
-    --gray: #7f7f7f;
+    --grey: #242424;
+    --lightgrey: #999999;
     --blue: #057dcd;
-
-    --background: #242424;
+    --red: #a33;
+    --green: #5ccc3b;
+    --orange: #f0a907;
 
     // Other
     --max-width: 1500px;

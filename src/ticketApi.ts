@@ -1,4 +1,4 @@
-import { TicketRecord, TicketResult, TicketStatus, TicketStatuses } from "./store/ticketStore";
+import { calculateTicketValues, TicketRecord, TicketResult, TicketStatus, TicketStatuses } from "./store/ticketStore";
 
 const corsRouter = "https://sfs-cors.herokuapp.com/";
 const ticketDetailsEndpoint = "https://cashier-dkuswaretail-ticket-details.sbtech.com/async/ticketdetails.ashx/GetPublicTicket";
@@ -14,12 +14,14 @@ export const fetchTicketStatus = async (ticketNumber: number) => {
 
 const parseTicket = (ticketNumber: number, ticketResult: TicketResult) => {
 	if (ticketResult.ToPay) {
+		// Update calculated values
+		calculateTicketValues(ticketResult);
+
 		const ticket: TicketRecord = {
 			ticketNumber,
 			status: getStatus(ticketResult),
 			ticketResult,
 		}
-		console.log("ticket response", ticketResult);
 		return ticket;
 	} else {
 		console.error("failed to parse ticket", ticketResult, ticketNumber);

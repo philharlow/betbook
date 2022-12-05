@@ -1,125 +1,55 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { TicketStatus, useTicketState } from '../store/ticketStore';
-import { fetchTicketStatus } from '../ticketApi';
+import {  TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
+import { FilterLevel, useUIState } from '../store/uiStore';
+import TicketDisplay from './TicketDisplay';
 
-const Square = styled.div`
-  width: 20px;
-  height: 20px;
-`;
-
-const TableDiv = styled.table`
+const TableDiv = styled.div`
   width: 100%;
-  border-collapse: collapse;
-  td,
-  th {
-    border: 1px solid white;
-  }
-`;
-
-const CellContent = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  overflow-y: auto;
+`;
+const AddTicketsMessage = styled.div`
+  font-size: 16px;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  flex-direction: column;
+  color: #999;
 `;
 
-const ResultRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-`;
+const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel) => {
+  if (filter === FilterLevel.Open) return ticket.status === TicketStatus.Opened;
+  if (filter === FilterLevel.Won) return ticket.status === TicketStatus.Won;
+  if (filter === FilterLevel.Lost) return ticket.status === TicketStatus.Lost;
+  if (filter === FilterLevel.Settled) return ticket.status === TicketStatus.Lost || ticket.status === TicketStatus.Won;
+  return true;
+}
 
 function TicketTable() {
   const tickets = useTicketState(state => state.tickets);
-  const updateTicket = useTicketState(state => state.updateTicket);
-  const removeTicket = useTicketState(state => state.removeTicket);
+  const filterLevel = useUIState(state => state.filterLevel);
+  const setViewingTicket = useUIState(state => state.setViewingTicket);
+  const [displayedTickets, setDisplayedTickets] = useState<TicketRecord[]>([]);
 
   useEffect(() => {
-    const update = async () => {
-      for (const ticket of tickets) {
-        if (ticket.status === TicketStatus.Stale) {
-          const refreshingTicket = {
-            ...ticket,
-            status: TicketStatus.Refreshing,
-          };
-          updateTicket(refreshingTicket);
-          console.log('fetching ticket', ticket.ticketNumber);
-          const newTicket = await fetchTicketStatus(ticket.ticketNumber);
-          if (newTicket) updateTicket(newTicket);
-        }
-      }
-    };
-    update();
-  }, [tickets, updateTicket]);
-
-  const getStatusColor = (status: TicketStatus) => {
-    if (status === TicketStatus.Opened) return 'orange';
-    if (status === TicketStatus.Lost) return 'red';
-    if (status === TicketStatus.Won) return 'green';
-    if (status === TicketStatus.Push) return 'grey';
-    return 'white';
-  };
-
-  const remove = (ticketNumber: number) => {
-    // eslint-disable-next-line no-restricted-globals
-    if (confirm('Are you sure you want to delete ticket: ' + ticketNumber))
-      removeTicket(ticketNumber);
-  };
+    setDisplayedTickets(tickets.filter((ticket) => shouldDisplay(ticket, filterLevel)))
+  }, [tickets, filterLevel])
 
   return (
     <TableDiv>
-      <tbody>
-        <tr>
-          <th>Status</th>
-          <th>Ticket Number</th>
-          <th>Bet</th>
-          <th>Ticket Cost</th>
-          <th>To Pay</th>
-          <th>Remove</th>
-        </tr>
-        {tickets.map(ticket => (
-          <tr key={ticket.ticketNumber}>
-            <td>
-              <CellContent>
-                <ResultRow>
-                  <Square
-                    style={{ backgroundColor: getStatusColor(ticket.status) }}
-                  />
-                  {ticket.status}
-                </ResultRow>
-              </CellContent>
-            </td>
-            <td>
-              <CellContent>{ticket.ticketNumber}</CellContent>
-            </td>
-            <td>
-              <CellContent>
-                {ticket.ticketResult?.Selections.map((s: any, i: number) => (
-                  <ResultRow key={i}>
-                    <Square
-                      style={{ backgroundColor: getStatusColor(s.Status) }}
-                    />
-                    {s.YourBetPrefix + ' : ' + s.Yourbet}
-                  </ResultRow>
-                )) ?? 'Loading...'}
-              </CellContent>
-            </td>
-            <td>
-              <div>{ticket.ticketResult?.TicketCost}</div>
-            </td>
-            <td>
-              <CellContent>{ticket.ticketResult?.ToPay}</CellContent>
-            </td>
-            <td>
-              <CellContent>
-                <button onClick={() => remove(ticket.ticketNumber)}>
-                  Remove
-                </button>
-              </CellContent>
-            </td>
-          </tr>
-        ))}
-      </tbody>
+      {displayedTickets.map(ticket => 
+        <TicketDisplay ticket={ticket} key={ticket.ticketNumber} onClick={() => setViewingTicket(ticket)} />
+      )}
+      {displayedTickets.length === 0 &&
+        <AddTicketsMessage>
+          <div>No tickets found</div>
+          {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
+        </AddTicketsMessage>}
     </TableDiv>
   );
 }

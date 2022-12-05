@@ -1,5 +1,13 @@
-import { createGlobalStyle } from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import Variables from './Variables';
+
+export const Button = styled.button`
+  background: #ccc3;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 2px 12px;
+`;
 
 export const GlobalStyles = createGlobalStyle`
   ${Variables};
@@ -16,6 +24,7 @@ export const GlobalStyles = createGlobalStyle`
     scroll-behavior: smooth;
     box-sizing: inherit;
     width: 100%;
+    background-color: var(--black);
   }
 
   // Scrollbar styles 
@@ -36,7 +45,6 @@ export const GlobalStyles = createGlobalStyle`
   body {
     margin: 0 auto;
     font-family: var(--font-main);
-    background-color: var(--background);
     color: var(--white);
     width: 100vw;
     height: 100vh;
