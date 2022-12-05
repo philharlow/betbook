@@ -75,7 +75,9 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 	if(selections.length > 1) ticketResult.Title = `Parlay (${selections.length} pick)`;
 	ticketResult.EventDate = new Date(firstSelection.EventDate);
 
-	ticketResult.TimePeriod = now > ticketResult.EventDate ? TimePeriod.Past : now < ticketResult.EventDate ? TimePeriod.Future : TimePeriod.Current;
+	ticketResult.TimePeriod = now > ticketResult.EventDate ? TimePeriod.Past : TimePeriod.Future;
+	if (ticketResult.TimePeriod === TimePeriod.Past && ticketResult.Status === TicketStatus.Opened)
+		ticketResult.TimePeriod = TimePeriod.Current;
 
 	const set = new Set();
 	for (const selection of selections) {
