@@ -6,13 +6,14 @@ const AccordianDiv = styled.div`
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  gap: 10px;
   overflow: hidden;
 `;
 
 const Title = styled.div`
+  background: #0a0a0a;
   display: flex;
   justify-content: space-between;
+  padding: 5px 10px;
 `;
 
 const Arrow = styled.div`
@@ -23,6 +24,12 @@ const Arrow = styled.div`
   &.open {
     transform: rotate(90deg);
   }
+`;
+
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 `;
 
 interface Props {
@@ -43,7 +50,7 @@ function Accordian({ label, startOpen, children, dontDrawIfNoChildren } : Props)
         {label}
         <Arrow className={isOpen ? "open" : ""}>&gt;</Arrow>
       </Title>
-      {isOpen && children}
+      {isOpen && <Content>{children}</Content>}
     </AccordianDiv>
   );
 }

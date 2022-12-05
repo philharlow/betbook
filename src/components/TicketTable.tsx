@@ -24,6 +24,12 @@ const AddTicketsMessage = styled.div`
   color: #999;
 `;
 
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
 const TimePeriodLabel = styled.div`
   font-size: 12px;
   color: #666;
@@ -61,33 +67,36 @@ function TicketTable() {
 
   return (
     <TableDiv>
-      {/* Past */}
-      <Accordian
-        dontDrawIfNoChildren={true}
-        label={<TimePeriodLabel>Past</TimePeriodLabel>}>
-          {pastTickets.map(getTicketDisplay)}
-      </Accordian>
+      <Content>
+        {/* Past */}
+        <Accordian
+          dontDrawIfNoChildren={true}
+          label={<TimePeriodLabel>Past</TimePeriodLabel>}>
+            {pastTickets.map(getTicketDisplay)}
+        </Accordian>
 
-      {/* Current */}
-      <Accordian
-        dontDrawIfNoChildren={true}
-        label={<TimePeriodLabel>Current</TimePeriodLabel>}>
-          {currentTickets.map(getTicketDisplay)}
-      </Accordian>
+        {/* Current */}
+        <Accordian
+          dontDrawIfNoChildren={true}
+          label={<TimePeriodLabel>Current</TimePeriodLabel>}>
+            {currentTickets.map(getTicketDisplay)}
+        </Accordian>
 
-      {/* Future */}
-      <Accordian
-        dontDrawIfNoChildren={true}
-        label={<TimePeriodLabel>Future</TimePeriodLabel>}>
-          {futureTickets.map(getTicketDisplay)}
-      </Accordian>
+        {/* Future */}
+        <Accordian
+          dontDrawIfNoChildren={true}
+          label={<TimePeriodLabel>Future</TimePeriodLabel>}>
+            {futureTickets.map(getTicketDisplay)}
+        </Accordian>
 
-      {/* No tickets */}
-      {!hasTickets &&
-        <AddTicketsMessage>
-          <div>No tickets found</div>
-          {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
-        </AddTicketsMessage>}
+        {/* No tickets */}
+        {!hasTickets &&
+          <AddTicketsMessage>
+            <div>No tickets found</div>
+            {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
+          </AddTicketsMessage>
+        }
+      </Content>
     </TableDiv>
   );
 }
