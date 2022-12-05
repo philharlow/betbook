@@ -13,13 +13,13 @@ const TableDiv = styled.div`
   gap: 10px;
   padding: 15px;
   overflow-y: auto;
+  justify-content: center;
 `;
 
 const AddTicketsMessage = styled.div`
   font-size: 16px;
   display: flex;
   flex: 1;
-  justify-content: center;
   flex-direction: column;
   color: #999;
 `;
