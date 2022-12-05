@@ -28,6 +28,7 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-bottom: 50px;
 `;
 
 const TimePeriodLabel = styled.div`
