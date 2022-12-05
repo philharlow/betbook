@@ -91,6 +91,7 @@ function StatsModal() {
 
   const winningTickets = tickets.filter((t) => t.status === TicketStatus.Won);
   const losingTickets = tickets.filter((t) => t.status === TicketStatus.Lost);
+  const openTickets = tickets.filter((t) => t.status === TicketStatus.Opened);
   const totalWagered = tickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.TicketCost ?? "0"), 0);
   const totalLost = losingTickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.TicketCost ?? "0"), 0);
   const totalWon = winningTickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.ToPay ?? "0"), 0);
@@ -113,6 +114,7 @@ function StatsModal() {
       ["Total Tickets", tickets.length],
       ["Tickets Won",  winningTickets.length],
       ["Tickets Lost",  losingTickets.length],
+      ["Tickets Open",  openTickets.length],
     ],[
       ["Total Wagered", toCurrencyFormat(totalWagered)],
       ["Total Won", toCurrencyFormat(totalWon)],
