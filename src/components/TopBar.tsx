@@ -41,7 +41,7 @@ function TopBar() {
           <rect y="60" width="80" height="10" rx="5"></rect>
         </svg>
       </Title>
-      <Title>My Bets Viewer</Title>
+      <Title>BetBook</Title>
       <AddTicketButton onClick={() => addTicket()}>+</AddTicketButton>
     </TopBarDiv>
   );

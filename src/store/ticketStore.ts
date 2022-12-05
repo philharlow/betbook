@@ -23,6 +23,7 @@ export enum TimePeriod {
 export interface TicketRecord {
 	ticketNumber: number;
 	status: TicketStatus;
+	sportsbook: string;
 	archived?: boolean;
 	ticketResult?: TicketResult;
 }

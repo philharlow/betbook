@@ -19,6 +19,7 @@ const parseTicket = (ticketNumber: number, ticketResult: TicketResult) => {
 
 		const ticket: TicketRecord = {
 			ticketNumber,
+			sportsbook: "draftkings",
 			status: getStatus(ticketResult),
 			ticketResult,
 		}

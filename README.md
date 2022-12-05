@@ -1,4 +1,4 @@
-# My Bets Viewer
+# BetBook
 
 Single page webapp to collect various bet tickets and keep them in one place for easy viewing.
 Uses local storage to keep the ticket numbers, and a qrcode sanner to allow for easy addition of new tickets.
