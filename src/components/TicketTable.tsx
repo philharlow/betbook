@@ -28,7 +28,7 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-bottom: 50px;
+  padding-bottom: 60px; // Hack for iphones not scrolling to bottomw
 `;
 
 const TimePeriodLabel = styled.div`
