@@ -9,6 +9,7 @@ import TopBar from './components/TopBar';
 import VersionDisplay from './components/VersionDisplay';
 import ViewTicketModal from './components/ViewTicketModal';
 import { GlobalStyles } from './styles/GlobalStyles';
+import { HashRouter, Route, Routes } from 'react-router-dom';
 
 const AppDiv = styled.div`
   height: 100vh;
@@ -21,15 +22,26 @@ const AppDiv = styled.div`
 const App = () => {
   return (
     <AppDiv>
-      <GlobalStyles />
-      <TopBar />
-      <FilterBar />
-      <TicketTable />
-      <StatsModal />
-      <ViewTicketModal />
-      <AddTicketModal />
-      <Toast />
-      <VersionDisplay />
+      <HashRouter>
+        <GlobalStyles />
+          <Routes>
+            <Route
+              path='/stats'
+              element={<StatsModal />}
+            />
+            <Route
+              path='/:ticketNumber'
+              element={<ViewTicketModal />}
+            />
+            <Route path="*" element={<></>} />
+          </Routes>
+        <TopBar />
+        <FilterBar />
+        <TicketTable />
+        <AddTicketModal />
+        <Toast />
+        <VersionDisplay />
+      </HashRouter>
     </AppDiv>
   );
 }

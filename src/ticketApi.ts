@@ -4,7 +4,7 @@ const corsRouter = "https://sfs-cors.herokuapp.com/";
 const ticketDetailsEndpoint = "https://cashier-dkuswaretail-ticket-details.sbtech.com/async/ticketdetails.ashx/GetPublicTicket";
 const request: RequestInit = { headers: { "requesttarget": "AJAXService" } };
 
-export const fetchTicketStatus = async (ticketNumber: number) => {
+export const fetchTicketStatus = async (ticketNumber: string) => {
 	const url = `${corsRouter}${ticketDetailsEndpoint}?barcode=${ticketNumber}`;
 	const response = await fetch(url, request);
 	const responseJson = await response.json();
@@ -12,7 +12,7 @@ export const fetchTicketStatus = async (ticketNumber: number) => {
 	return ticket;
 };
 
-const parseTicket = (ticketNumber: number, ticketResult: TicketResult) => {
+const parseTicket = (ticketNumber: string, ticketResult: TicketResult) => {
 	if (ticketResult.ToPay) {
 		// Update calculated values
 		calculateTicketValues(ticketResult);

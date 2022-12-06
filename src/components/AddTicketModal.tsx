@@ -116,11 +116,11 @@ function AddTicketModal() {
     const asNumber = parseInt(ticketNumber);
     if (asNumber && !isNaN(asNumber)) {
       setValue(ticketNumber);
-      if (tickets.find((ticket) => ticket.ticketNumber === asNumber)) showToast("Ticket already added");
+      if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) showToast("Ticket already added");
       else showToast("Ticket added!");
 
       const ticket: TicketRecord = {
-        ticketNumber: asNumber,
+        ticketNumber,
         sportsbook: "draftkings",
         status: TicketStatus.Refreshing,
       };

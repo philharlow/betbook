@@ -21,7 +21,7 @@ export enum TimePeriod {
 }
 
 export interface TicketRecord {
-	ticketNumber: number;
+	ticketNumber: string;
 	status: TicketStatus;
 	sportsbook: string;
 	archived?: boolean;
@@ -120,8 +120,8 @@ interface TicketState {
 	tickets: TicketRecord[];
 	setTickets: (tickets: TicketRecord[]) => void;
 	updateTicket: (ticket: TicketRecord) => void;
-	removeTicket: (ticketNumber: number) => void;
-	archiveTicket: (ticketNumber: number, archived?: boolean) => void;
+	removeTicket: (ticketNumber: string) => void;
+	archiveTicket: (ticketNumber: string, archived?: boolean) => void;
 }
 
 export const fetchUpdatedTicket = async (ticket: TicketRecord) => {
@@ -131,11 +131,12 @@ export const fetchUpdatedTicket = async (ticket: TicketRecord) => {
 	if (newTicket) useTicketState.getState().updateTicket(newTicket);
 };
 
-const getTickets = () => {
+const getTicketsFromStorage = () => {
 	const ticketsStr = localStorageGet(TICKETS_KEY);
 	if (!ticketsStr) return [];
 	const tickets = JSON.parse(ticketsStr) as TicketRecord[];
 	for (const ticket of tickets) {
+		if (typeof ticket.ticketNumber === "number") ticket.ticketNumber = `${ticket.ticketNumber}`;
 		if (!ticket.archived) {
 			ticket.status = TicketStatus.Refreshing;
 			if (ticket.ticketResult) calculateTicketValues(ticket.ticketResult);
@@ -149,7 +150,7 @@ const getTickets = () => {
 }
 
 export const useTicketState = create<TicketState>((set, get) => ({
-	tickets: getTickets(),
+	tickets: getTicketsFromStorage(),
 	setTickets: (tickets: TicketRecord[]) => {
 		localStorageSet(TICKETS_KEY, JSON.stringify(tickets));
 		set({ tickets });
@@ -165,12 +166,12 @@ export const useTicketState = create<TicketState>((set, get) => ({
 
 		get().setTickets(tickets);
 	},
-	removeTicket: (ticketNumber: number) => {
+	removeTicket: (ticketNumber: string) => {
 		const tickets = [...get().tickets].filter((t) => t.ticketNumber !== ticketNumber);
 		
 		get().setTickets(tickets);
 	},
-	archiveTicket: (ticketNumber: number, archived = true) => {
+	archiveTicket: (ticketNumber: string, archived = true) => {
 		const tickets = [...get().tickets];
 		const ticket = tickets.find((ticket) => ticket.ticketNumber === ticketNumber);
 		if (ticket) ticket.archived = archived;

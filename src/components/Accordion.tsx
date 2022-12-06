@@ -34,6 +34,12 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: flex 0.3s ease;
+  overflow: hidden;
+  flex: 0;
+  &.open {
+    flex: 1;
+  }
 `;
 
 interface Props {
@@ -57,7 +63,7 @@ function Accordion({ label, startOpen, children, dontDrawIfNoChildren } : Props)
         <TitleLabel>{label}</TitleLabel>
         <Arrow className={isOpen ? "open" : ""}>&gt;</Arrow>
       </Title>
-      {isOpen && <Content>{children}</Content>}
+      <Content className={isOpen ? "open" : ""}>{children}</Content>
     </AccordionDiv>
   );
 }

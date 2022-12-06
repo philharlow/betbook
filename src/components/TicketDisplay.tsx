@@ -1,7 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { getStatusColor, TicketRecord, TicketStatus } from '../store/ticketStore';
-import { useUIState } from '../store/uiStore';
 
 const TicketDisplayDiv = styled.div`
   width: 100%;
@@ -69,11 +69,11 @@ interface Props {
 }
 
 function TicketDisplay({ticket, hideArrow} : Props) {
-  const setViewingTicket = useUIState((state) => state.setViewingTicket);
+  const navigate = useNavigate();
   const resultClassName = ticket.status === TicketStatus.Refreshing ? "scrolling-gradient" : "";
 
   return (
-    <TicketDisplayDiv onClick={() => setViewingTicket(ticket)}>
+    <TicketDisplayDiv onClick={() => navigate("/" + ticket.ticketNumber)}>
       {!hideArrow && <ClickArrow>&gt;</ClickArrow>}
       <ResultRow style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={resultClassName}>
         {ticket.status}

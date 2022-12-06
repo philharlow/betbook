@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
@@ -26,15 +27,16 @@ const Logo = styled.img`
 `;
 
 function TopBar() {
+  const navigate = useNavigate();
   const toggleAddTicketModalOpen = useUIState(state => state.toggleAddTicketModalOpen);
-  const setStatsModalOpen = useUIState(state => state.setStatsModalOpen);
   
   const addTicket = () => {
     toggleAddTicketModalOpen();
   };
 
   const openSettings = () => {
-    setStatsModalOpen(true);
+    // setStatsModalOpen(true);
+    navigate("/stats");
   };
 
   return (

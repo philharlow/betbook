@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
@@ -77,6 +78,7 @@ const dollarUSLocale = Intl.NumberFormat("en-US", { minimumFractionDigits: 2, ma
 export const toCurrencyFormat = (val: number) => "$" + dollarUSLocale.format(val);
 
 function StatsModal() {
+  const navigate = useNavigate();
   const statsModalOpen = useUIState(state => state.statsModalOpen);
   const setStatsModalOpen = useUIState(state => state.setStatsModalOpen);
   const showArchivedTickets = useUIState(state => state.showArchivedTickets);
@@ -85,12 +87,18 @@ function StatsModal() {
   
   const closeModal = () => {
     setStatsModalOpen(false);
+    navigate("/");
   };
 
   const onToggleArchives = () => {
     setShowArchivedTickets(!showArchivedTickets);
     closeModal();
   }
+  
+  useEffect(() => {
+    setStatsModalOpen(true);
+  }, [setStatsModalOpen]);
+  
 
   if (!statsModalOpen) return null;
 

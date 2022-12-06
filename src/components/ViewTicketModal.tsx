@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { TicketStatus, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import SelectionDisplay from './SelectionDisplay';
 import TicketDisplay from './TicketDisplay';
+
+const easeTime = 500;
 
 const ViewTicketDiv = styled.div`
   position: absolute;
@@ -16,6 +19,11 @@ const ViewTicketDiv = styled.div`
   z-index: 10;
   display: flex;
   flex-direction: column;
+  left: 100%;
+  transition: left ${easeTime}ms ease;
+  &.open {
+    left: 0%;
+  }
 `;
 
 const Content = styled.div`
@@ -75,14 +83,34 @@ const FooterRow = styled.div`
 const CloseButton = styled(Button)``;
 
 function ViewTicketModal() {
+	const { ticketNumber } = useParams<{ ticketNumber: string }>();
+  const navigate = useNavigate();
   const viewingTicket = useUIState(state => state.viewingTicket);
   const setViewingTicket = useUIState(state => state.setViewingTicket);
+  const tickets = useTicketState(state => state.tickets);
   const removeTicket = useTicketState(state => state.removeTicket);
   const archiveTicket = useTicketState(state => state.archiveTicket);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (ticketNumber && viewingTicket?.ticketNumber !== ticketNumber) {
+      const ticket = tickets.find((t) => t.ticketNumber === ticketNumber);
+      console.log("setting ticket" , { ticketNumber, ticket });
+      setViewingTicket(ticket);
+    }
+  }, [ticketNumber, viewingTicket, setViewingTicket, tickets]);
   
   const closeModal = () => {
-    setViewingTicket(undefined);
+    setOpen(false);
+    setTimeout(() => {
+      navigate("/");
+    }, easeTime);
   };
+  
+  useEffect(() => {
+    setOpen(viewingTicket !== undefined);
+    console.log("viewing ticket useeffect", viewingTicket);
+  }, [viewingTicket]);
   
   const deleteTicket = () => {
     if (!viewingTicket) return;
@@ -98,7 +126,7 @@ function ViewTicketModal() {
     setViewingTicket(undefined);
   };
 
-  if (!viewingTicket) return null;
+  if (!viewingTicket) return <ViewTicketDiv />;
 
   const selections = viewingTicket.ticketResult?.Selections ?? [];
   const firstSelection = selections[0];
@@ -108,7 +136,7 @@ function ViewTicketModal() {
   const archiveLabel = viewingTicket.archived ? "Unarchive" : "Archive";
 
   return (
-    <ViewTicketDiv>
+    <ViewTicketDiv className={open ? "open" : ""}>
       <TopBar>
         Ticket number {viewingTicket.ticketNumber}
         <CloseButton onClick={closeModal}>X</CloseButton>
