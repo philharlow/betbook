@@ -4,7 +4,7 @@ import { TicketStatus, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import SelectionDisplay from './SelectionDisplay';
-import TicketTableRow from './TicketDisplay';
+import TicketDisplay from './TicketDisplay';
 
 const ViewTicketDiv = styled.div`
   position: absolute;
@@ -114,7 +114,7 @@ function ViewTicketModal() {
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
       <Content>
-        <TicketTableRow ticket={viewingTicket} />
+        <TicketDisplay ticket={viewingTicket} hideArrow={true} />
 
         <Title>{title} {odds}</Title>
         <Selections>

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { getStatusColor, TicketRecord, TicketStatus } from '../store/ticketStore';
+import { useUIState } from '../store/uiStore';
 
 const TicketDisplayDiv = styled.div`
   width: 100%;
@@ -64,15 +65,16 @@ const ClickArrow = styled.div`
 
 interface Props {
   ticket: TicketRecord;
-  onClick?: () => void;
+  hideArrow?: boolean;
 }
 
-function TicketDisplay({ticket, onClick} : Props) {
+function TicketDisplay({ticket, hideArrow} : Props) {
+  const setViewingTicket = useUIState((state) => state.setViewingTicket);
   const resultClassName = ticket.status === TicketStatus.Refreshing ? "scrolling-gradient" : "";
 
   return (
-    <TicketDisplayDiv onClick={onClick}>
-      {onClick && <ClickArrow>&gt;</ClickArrow>}
+    <TicketDisplayDiv onClick={() => setViewingTicket(ticket)}>
+      {!hideArrow && <ClickArrow>&gt;</ClickArrow>}
       <ResultRow style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={resultClassName}>
         {ticket.status}
       </ResultRow>

@@ -50,7 +50,6 @@ const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTi
 function TicketTable() {
   const tickets = useTicketState(state => state.tickets);
   const filterLevel = useUIState(state => state.filterLevel);
-  const setViewingTicket = useUIState(state => state.setViewingTicket);
   const showArchivedTickets = useUIState(state => state.showArchivedTickets);
   const [hasTickets, setHasTickets] = useState(false);
   const [pendingTickets, setPendingTickets] = useState<TicketRecord[]>([]);
@@ -69,7 +68,7 @@ function TicketTable() {
 
   // TODO remove hard coded time periods
 
-  const getTicketDisplay = (ticket: TicketRecord) => <TicketDisplay ticket={ticket} key={ticket.ticketNumber} onClick={() => setViewingTicket(ticket)} />
+  const getTicketDisplay = (ticket: TicketRecord) => <TicketDisplay ticket={ticket} key={ticket.ticketNumber} />
 
   return (
     <TableDiv>

@@ -25,9 +25,9 @@ const App = () => {
       <TopBar />
       <FilterBar />
       <TicketTable />
+      <StatsModal />
       <ViewTicketModal />
       <AddTicketModal />
-      <StatsModal />
       <Toast />
       <VersionDisplay />
     </AppDiv>
