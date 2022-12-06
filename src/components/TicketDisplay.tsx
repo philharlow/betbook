@@ -79,10 +79,10 @@ function TicketDisplay({ticket, onClick} : Props) {
       {ticket.ticketResult === undefined && <Title>Loading...</Title>}
 
       <Title className={ticket.archived ? "archived " : "" + resultClassName}>
-        {ticket.ticketResult?.Title}{ticket.archived ? " (Archived)" : ""}
+        {ticket.ticketResult?.calculated.Title}{ticket.archived ? " (Archived)" : ""}
       </Title>
       <SubTitle className={resultClassName}>
-        {ticket.ticketResult?.SubTitle}
+        {ticket.ticketResult?.calculated.SubTitle}
       </SubTitle>
       <CellContent className={resultClassName}>
         <GreyLabel>Wager:</GreyLabel>
@@ -93,7 +93,7 @@ function TicketDisplay({ticket, onClick} : Props) {
         ${ticket.ticketResult?.ToPay}
       </CellContent>
       <CellContent className={resultClassName}>
-        <TimeLabel>{ticket.ticketResult?.EventDate.toLocaleString()}</TimeLabel>
+        <TimeLabel>{ticket.ticketResult?.calculated.EventDate.toLocaleString()}</TimeLabel>
       </CellContent>
     </TicketDisplayDiv>
   );

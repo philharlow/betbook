@@ -1,8 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
-import { TicketStatus, useTicketState } from '../store/ticketStore';
+import { TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
+import Accordion from './Accordion';
+import TicketDisplay from './TicketDisplay';
 
 const StatsModalDiv = styled.div`
   position: absolute;
@@ -20,6 +22,8 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  padding: 15px;
+  gap: 10px;
 `;
 
 const StatGroup = styled.div`
@@ -56,7 +60,7 @@ const TopBar = styled.div`
   width: 100%;
   display: flex;
   justify-content: space-between;
-  padding: 5px 15px;
+  padding: 10px 15px;
 `;
 
 const CloseButton = styled(Button)``;
@@ -104,12 +108,8 @@ function StatsModal() {
   const getStatDiv = (label: string, value: any) => {
     return (
     <Stat key={label}>
-      <StatLabel>
-        {label}
-      </StatLabel>
-      <StatValue>
-        {value}
-      </StatValue>
+      <StatLabel>{label}</StatLabel>
+      <StatValue>{value}</StatValue>
     </Stat>);
   }
 
@@ -140,6 +140,18 @@ function StatsModal() {
     ],
   ];
 
+  const ticketsToShow: [string, TicketRecord][] = [];
+  let bestOddsWin = winningTickets[0];
+  let bestPayWin = winningTickets[0];
+  for (const ticket of winningTickets) {
+    if (!ticket.ticketResult) break;
+    if (ticket.ticketResult.calculated.TotalOdds > (bestOddsWin.ticketResult?.calculated.TotalOdds ?? 0)) bestOddsWin = ticket;
+    if (ticket.ticketResult.calculated.ToPay > (bestPayWin.ticketResult?.calculated.ToPay ?? 0)) bestPayWin = ticket;
+  }
+  ticketsToShow.push(["Best Odds Win", bestOddsWin]);
+  ticketsToShow.push(["Best Pay Win", bestPayWin]);
+
+
   return (
     <StatsModalDiv>
       <TopBar>
@@ -151,6 +163,14 @@ function StatsModal() {
           <StatGroup key={i}>
             {stats.map((stat) => getStatDiv(stat[0], stat[1]))}
           </StatGroup>
+        )}
+        {ticketsToShow.map(([label, ticket]) =>
+          <Accordion
+            key={label}
+            label={label}
+            >
+              {ticket && <TicketDisplay ticket={ticket} />}
+          </Accordion>
         )}
         <ArchiveButton onClick={onToggleArchives}>{showArchivedTickets ? "Hide" : "Show"} Archived Tickets</ArchiveButton>
       </Content>

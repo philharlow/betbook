@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
-const AccordianDiv = styled.div`
+const AccordionDiv = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow: hidden;
 `;
 
 const Title = styled.div`
@@ -14,6 +12,12 @@ const Title = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 5px 10px;
+`;
+
+const TitleLabel = styled.div`
+  font-size: 12px;
+  color: #666;
+  align-self: start;
 `;
 
 const Arrow = styled.div`
@@ -33,26 +37,29 @@ const Content = styled.div`
 `;
 
 interface Props {
-  label: JSX.Element,
+  label: string,
   startOpen?: boolean,
-  children?: JSX.Element[];
-  dontDrawIfNoChildren: boolean;
+  children?: JSX.Element | JSX.Element[];
+  dontDrawIfNoChildren?: boolean;
 }
 
-function Accordian({ label, startOpen, children, dontDrawIfNoChildren } : Props) {
+function Accordion({ label, startOpen, children, dontDrawIfNoChildren } : Props) {
   const [isOpen, setIsOpen] = useState(startOpen ?? true);
 
-  if (dontDrawIfNoChildren && !children?.length) return null;
+  if (dontDrawIfNoChildren) {
+    if (Array.isArray(children) && !children?.length) return null;
+    if (!children) return null;
+  }
 
   return (
-    <AccordianDiv>
+    <AccordionDiv>
       <Title onClick={() => setIsOpen(!isOpen)}>
-        {label}
+        <TitleLabel>{label}</TitleLabel>
         <Arrow className={isOpen ? "open" : ""}>&gt;</Arrow>
       </Title>
       {isOpen && <Content>{children}</Content>}
-    </AccordianDiv>
+    </AccordionDiv>
   );
 }
 
-export default Accordian;
+export default Accordion;

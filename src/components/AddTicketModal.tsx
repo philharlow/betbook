@@ -31,7 +31,7 @@ const TopBar = styled.div`
   width: 100%;
   display: flex;
   justify-content: space-between;
-  padding: 5px 15px;
+  padding: 10px 15px;
 `;
 
 const VideoContainer = styled.div`

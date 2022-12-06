@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import {  TicketRecord, TicketStatus, TimePeriod, useTicketState } from '../store/ticketStore';
 import { FilterLevel, useUIState } from '../store/uiStore';
-import Accordian from './Accordian';
+import Accordion from './Accordion';
 import TicketDisplay from './TicketDisplay';
 
 const TableDiv = styled.div`
@@ -38,12 +38,6 @@ const Disclaimer = styled.div`
   justify-content: end;
 `;
 
-const TimePeriodLabel = styled.div`
-  font-size: 12px;
-  color: #666;
-  align-self: start;
-`;
-
 const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTickets: boolean) => {
   if (ticket.archived && !showArchivedTickets) return false;
   if (filter === FilterLevel.Open) return ticket.status === TicketStatus.Opened;
@@ -67,9 +61,9 @@ function TicketTable() {
   useEffect(() => {
     const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel, showArchivedTickets));
     setPendingTickets(filteredTickets.filter((ticket) => ticket.ticketResult === undefined));
-    setPastTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Past));
-    setCurrentTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Current));
-    setFutureTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.TimePeriod === TimePeriod.Future));
+    setPastTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Past));
+    setCurrentTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current));
+    setFutureTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Future));
     setHasTickets(filteredTickets.length > 0);
   }, [tickets, filterLevel, showArchivedTickets])
 
@@ -81,32 +75,32 @@ function TicketTable() {
     <TableDiv>
       <Content>
         {/* Pending */}
-        <Accordian
+        <Accordion
           dontDrawIfNoChildren={true}
-          label={<TimePeriodLabel>Pending ({pendingTickets.length})</TimePeriodLabel>}>
+          label={`Pending (${pendingTickets.length})`}>
             {pendingTickets.map(getTicketDisplay)}
-        </Accordian>
+        </Accordion>
 
         {/* Past */}
-        <Accordian
+        <Accordion
           dontDrawIfNoChildren={true}
-          label={<TimePeriodLabel>Past ({pastTickets.length})</TimePeriodLabel>}>
+          label={`Past (${pastTickets.length})`}>
             {pastTickets.map(getTicketDisplay)}
-        </Accordian>
+        </Accordion>
 
         {/* Current */}
-        <Accordian
+        <Accordion
           dontDrawIfNoChildren={true}
-          label={<TimePeriodLabel>Current ({currentTickets.length})</TimePeriodLabel>}>
+          label={`Current (${currentTickets.length})`}>
             {currentTickets.map(getTicketDisplay)}
-        </Accordian>
+        </Accordion>
 
         {/* Future */}
-        <Accordian
+        <Accordion
           dontDrawIfNoChildren={true}
-          label={<TimePeriodLabel>Future ({futureTickets.length})</TimePeriodLabel>}>
+          label={`Future (${futureTickets.length})`}>
             {futureTickets.map(getTicketDisplay)}
-        </Accordian>
+        </Accordion>
 
         {/* No tickets */}
         {!hasTickets &&

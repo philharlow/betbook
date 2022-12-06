@@ -35,12 +35,18 @@ export interface TicketResult {
 	TotalOdds: string;
 	Selections: SelectionResult[];
 	Status: TicketStatus;
-	
+
 	// Calculated
-	Title: String;
-	SubTitle: String;
-	EventDate: Date;
-	TimePeriod: TimePeriod;
+	calculated: {
+		TicketCost: number;
+		ToPay: number;
+		ToWin: number;
+		TotalOdds: number;
+		Title: String;
+		SubTitle: String;
+		EventDate: Date;
+		TimePeriod: TimePeriod;
+	};
 }
 
 export interface SelectionResult {
@@ -74,7 +80,7 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 	const selections = ticketResult.Selections;
 	const firstSelection = selections[0];
 
-	ticketResult.EventDate = new Date(firstSelection.EventDate);
+	let EventDate = new Date(firstSelection.EventDate);
 	const set = new Set();
 	for (const selection of selections) {
 		const split = selection.Yourbet.split(" - ");
@@ -86,17 +92,28 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 		selection.Teams.forEach((team) => set.add(team));
 
 		const eventDate = new Date(selection.EventDate);
-		if (eventDate < ticketResult.EventDate) ticketResult.EventDate = eventDate;
+		if (eventDate < EventDate) EventDate = eventDate;
 	}
-	ticketResult.SubTitle = Array.from(set.values()).join(", ");
+	const SubTitle = Array.from(set.values()).join(", ");
 
-	ticketResult.Title = firstSelection.YourBetPrefix;
-	if(selections.length > 1) ticketResult.Title = `Parlay (${selections.length} pick)`;
+	let Title = firstSelection.YourBetPrefix;
+	if(selections.length > 1) Title = `Parlay (${selections.length} pick)`;
 
-	ticketResult.TimePeriod = now > ticketResult.EventDate ? TimePeriod.Past : TimePeriod.Future;
-	if (ticketResult.TimePeriod === TimePeriod.Past && ticketResult.Status === TicketStatus.Opened)
-		ticketResult.TimePeriod = TimePeriod.Current;
-
+	let timePeriod = now > EventDate ? TimePeriod.Past : TimePeriod.Future;
+	if (timePeriod === TimePeriod.Past && ticketResult.Status === TicketStatus.Opened)
+		timePeriod = TimePeriod.Current;
+	
+	ticketResult.calculated = {
+		Title,
+		SubTitle,
+		EventDate,
+		TimePeriod: timePeriod,
+		TicketCost: parseFloat(ticketResult.TicketCost),
+		ToPay: parseFloat(ticketResult.ToPay),
+		ToWin: parseFloat(ticketResult.ToWin),
+		TotalOdds: parseFloat(ticketResult.TotalOdds),
+		
+	};
 };
 
 interface TicketState {
@@ -144,7 +161,7 @@ export const useTicketState = create<TicketState>((set, get) => ({
 			Object.assign(existingTicket, ticket);
 		}
 		else tickets.push(ticket);
-		tickets.sort((a, b) => a.ticketResult && b.ticketResult ? a.ticketResult.EventDate.getDate() - b.ticketResult.EventDate.getDate() : 0);
+		tickets.sort((a, b) => a.ticketResult && b.ticketResult ? a.ticketResult.calculated.EventDate.getDate() - b.ticketResult.calculated.EventDate.getDate() : 0);
 
 		get().setTickets(tickets);
 	},
