@@ -85,6 +85,7 @@ function StatsModal() {
 
   const onToggleArchives = () => {
     setShowArchivedTickets(!showArchivedTickets);
+    closeModal();
   }
 
   if (!statsModalOpen) return null;

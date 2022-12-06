@@ -64,8 +64,8 @@ export const getStatusColor = (status: TicketStatus) => {
     if (status === TicketStatus.Opened) return 'orange';
     if (status === TicketStatus.Lost) return 'red';
     if (status === TicketStatus.Won) return 'green';
-    if (status === TicketStatus.Draw) return 'white';
-    if (status === TicketStatus.Refreshing) return 'lightgrey';
+    if (status === TicketStatus.Draw) return 'lightgrey';
+    if (status === TicketStatus.Refreshing) return 'transparent';
     return 'white';
 };
 

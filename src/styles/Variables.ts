@@ -28,6 +28,7 @@ const Variables = css`
     --green: #5ccc3b;
     --orange: #f0a907;
     --link: #888;
+    --transparent: transparent;
 
     // Other
     --max-width: 1500px;

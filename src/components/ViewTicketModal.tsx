@@ -124,8 +124,8 @@ function ViewTicketModal() {
         </Selections>
       
       <ButtonRow>
-        {archivable && <ArchiveButton onClick={onArchiveTicket}>{archiveLabel} Ticket</ArchiveButton>}
         <RemoveButton onClick={deleteTicket}>Remove Ticket</RemoveButton>
+        {archivable && <ArchiveButton onClick={onArchiveTicket}>{archiveLabel} Ticket</ArchiveButton>}
       </ButtonRow>
       {archivable && <FooterRow>
         Archiving tickets will remove them from the main screen but keep them for stats.

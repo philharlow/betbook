@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { getStatusColor, TicketRecord } from '../store/ticketStore';
+import { getStatusColor, TicketRecord, TicketStatus } from '../store/ticketStore';
 
 const TicketDisplayDiv = styled.div`
   width: 100%;
@@ -68,29 +68,31 @@ interface Props {
 }
 
 function TicketDisplay({ticket, onClick} : Props) {
+  const resultClassName = ticket.status === TicketStatus.Refreshing ? "scrolling-gradient" : "";
+
   return (
     <TicketDisplayDiv onClick={onClick}>
       {onClick && <ClickArrow>&gt;</ClickArrow>}
-      <ResultRow style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }}>
+      <ResultRow style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={resultClassName}>
         {ticket.status}
       </ResultRow>
       {ticket.ticketResult === undefined && <Title>Loading...</Title>}
 
-      <Title className={ticket.archived ? "archived" : ""}>
+      <Title className={ticket.archived ? "archived " : "" + resultClassName}>
         {ticket.ticketResult?.Title}{ticket.archived ? " (Archived)" : ""}
       </Title>
-      <SubTitle>
+      <SubTitle className={resultClassName}>
         {ticket.ticketResult?.SubTitle}
       </SubTitle>
-      <CellContent>
+      <CellContent className={resultClassName}>
         <GreyLabel>Wager:</GreyLabel>
         ${ticket.ticketResult?.TicketCost}
       </CellContent>
-      <CellContent>
+      <CellContent className={resultClassName}>
         <GreyLabel>To Pay:</GreyLabel>
         ${ticket.ticketResult?.ToPay}
       </CellContent>
-      <CellContent>
+      <CellContent className={resultClassName}>
         <TimeLabel>{ticket.ticketResult?.EventDate.toLocaleString()}</TimeLabel>
       </CellContent>
     </TicketDisplayDiv>
