@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { getStatusColor, TicketRecord, TicketStatus } from '../store/ticketStore';
+import { getStatusColor, TicketRecord } from '../store/ticketStore';
 
 const TicketDisplayDiv = styled.div`
   width: 100%;
@@ -70,7 +70,7 @@ interface Props {
 
 function TicketDisplay({ticket, hideArrow} : Props) {
   const navigate = useNavigate();
-  const resultClassName = ticket.status === TicketStatus.Refreshing ? "scrolling-gradient" : "";
+  const resultClassName = ticket.refreshing ? "scrolling-gradient" : "";
 
   return (
     <TicketDisplayDiv onClick={() => navigate("/" + ticket.ticketNumber)}>

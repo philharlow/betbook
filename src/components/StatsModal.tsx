@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
+import { fetchUpdatedTicket, TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import Accordion from './Accordion';
@@ -74,6 +74,14 @@ const ArchiveButton = styled(Button)`
   align-self: center;
 `;
 
+const RefreshButton = styled(Button)`
+  margin-top: 50px;
+  margin-bottom: 50px;
+  background: var(--green);
+  padding: 10px 20px;
+  align-self: center;
+`;
+
 const dollarUSLocale = Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const toCurrencyFormat = (val: number) => "$" + dollarUSLocale.format(val);
 
@@ -84,6 +92,7 @@ function StatsModal() {
   const showArchivedTickets = useUIState(state => state.showArchivedTickets);
   const setShowArchivedTickets = useUIState(state => state.setShowArchivedTickets);
   const tickets = useTicketState(state => state.tickets);
+  const setTickets = useTicketState(state => state.setTickets);
   
   const closeModal = () => {
     setStatsModalOpen(false);
@@ -93,6 +102,11 @@ function StatsModal() {
   const onToggleArchives = () => {
     setShowArchivedTickets(!showArchivedTickets);
     closeModal();
+  }
+
+  const onRefresh = () => {
+    tickets.forEach(fetchUpdatedTicket);
+    setTickets([...tickets]);
   }
   
   useEffect(() => {
@@ -180,6 +194,7 @@ function StatsModal() {
               {ticket && <TicketDisplay ticket={ticket} />}
           </Accordion>
         )}
+        <RefreshButton onClick={onRefresh}>Refresh Tickets</RefreshButton>
         <ArchiveButton onClick={onToggleArchives}>{showArchivedTickets ? "Hide" : "Show"} Archived Tickets</ArchiveButton>
       </Content>
     </StatsModalDiv>

@@ -22,6 +22,7 @@ const parseTicket = (ticketNumber: string, ticketResult: TicketResult) => {
 			sportsbook: "draftkings",
 			status: getStatus(ticketResult),
 			ticketResult,
+			refreshing: false,
 		}
 		return ticket;
 	} else {

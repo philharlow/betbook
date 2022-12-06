@@ -3,8 +3,8 @@ import { localStorageGet, localStorageSet } from '../LocalStorageManager';
 import { fetchTicketStatus } from '../ticketApi';
 
 export enum TicketStatus {
+	Unknown = "Updating",
 	Error = "Error",
-	Refreshing = "Refreshing",
 	Opened = "Opened",
 	Lost = "Lost",
 	Draw = "Draw",
@@ -25,6 +25,7 @@ export interface TicketRecord {
 	status: TicketStatus;
 	sportsbook: string;
 	archived?: boolean;
+	refreshing: boolean;
 	ticketResult?: TicketResult;
 }
 
@@ -71,7 +72,6 @@ export const getStatusColor = (status: TicketStatus) => {
     if (status === TicketStatus.Lost) return 'red';
     if (status === TicketStatus.Won) return 'green';
     if (status === TicketStatus.Draw) return 'lightgrey';
-    if (status === TicketStatus.Refreshing) return 'transparent';
     return 'white';
 };
 
@@ -125,6 +125,7 @@ interface TicketState {
 }
 
 export const fetchUpdatedTicket = async (ticket: TicketRecord) => {
+	ticket.refreshing = true;
 	console.log('fetching ticket', ticket.ticketNumber);
 	const newTicket = await fetchTicketStatus(ticket.ticketNumber);
 	console.log("ticket response", newTicket?.ticketResult);
@@ -138,7 +139,7 @@ const getTicketsFromStorage = () => {
 	for (const ticket of tickets) {
 		if (typeof ticket.ticketNumber === "number") ticket.ticketNumber = `${ticket.ticketNumber}`;
 		if (!ticket.archived) {
-			ticket.status = TicketStatus.Refreshing;
+			ticket.refreshing = true;
 			if (ticket.ticketResult) calculateTicketValues(ticket.ticketResult);
 		}
 	}
