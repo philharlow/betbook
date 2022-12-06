@@ -105,14 +105,14 @@ function TicketTable() {
         {!hasTickets &&
           <>
             <AddTicketsMessage>
-              <div>No tickets found</div>
+              <div>No {filterLevel === FilterLevel.All ? "" : filterLevel.toLowerCase()} tickets found</div>
               {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
             </AddTicketsMessage>
-            <Disclaimer>
+            {filterLevel === FilterLevel.All && <Disclaimer>
               Disclaimer: All data is stored on your device. No data ever leaves your device.
               <br/>
               <a href="https://github.com/philharlow/betbook">Open source: https://github.com/philharlow/betbook</a>
-            </Disclaimer>
+            </Disclaimer>}
           </>
         }
       </Content>

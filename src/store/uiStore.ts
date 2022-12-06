@@ -1,4 +1,5 @@
 import create from 'zustand'
+import { localStorageGet, localStorageSet } from '../LocalStorageManager';
 import { TicketRecord } from './ticketStore';
 
 export enum FilterLevel {
@@ -9,6 +10,8 @@ export enum FilterLevel {
 	Lost = "Lost",
 }
 export const FilterLevels = Object.values(FilterLevel);
+
+const FILTER_LEVEL = "FILTER_LEVEL";
 
 interface UIState {
 	viewingTicket?: TicketRecord;
@@ -29,9 +32,10 @@ export const useUIState = create<UIState>((set, get) => ({
 	setViewingTicket: (viewingTicket?: TicketRecord) => {
 		set({ viewingTicket });
 	},
-	filterLevel: FilterLevel.All,
+	filterLevel: localStorageGet(FILTER_LEVEL) ? localStorageGet(FILTER_LEVEL) as FilterLevel : FilterLevel.All,
 	setFilterLevel: (filterLevel: FilterLevel) => {
 		set({filterLevel});
+		localStorageSet(FILTER_LEVEL, filterLevel);
 	},
 	addTicketModalOpen: false,
 	setAddTicketModalOpen: (addTicketModalOpen: boolean) => {
