@@ -74,7 +74,7 @@ function TicketTable() {
 
   const handleRefresh = async () => {
     console.log("refreshed");
-    tickets.forEach((ticket) => !ticket.archived && fetchUpdatedTicket(ticket));
+    tickets.forEach((ticket) => !isSettled(ticket.status) && fetchUpdatedTicket(ticket));
     setTickets([...tickets]);
   };
 
