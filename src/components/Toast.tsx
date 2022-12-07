@@ -16,6 +16,7 @@ const ToastDiv = styled.div`
   opacity: 0;
   transition: opacity 0.5s linear;
   pointer-events: none;
+  z-index: 1000000;
 `;
 
 let timeout: NodeJS.Timeout;
