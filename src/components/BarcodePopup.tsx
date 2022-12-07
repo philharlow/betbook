@@ -23,14 +23,19 @@ const BarcodeDiv = styled.div`
   top: 0;
   left: 0;
   display: flex;
-  align-items: start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
 `;
 
 const BigBarcode = styled(Barcode)`
   width: 80vw;
   height: 80vw;
   margin-top: -10vw;
+`;
+const CloseMessage = styled.div`
+  color: #333;
 `;
 
 
@@ -42,7 +47,8 @@ function BarcodePopup() {
   return (
     <BarcodePopupDiv onClick={() => setViewingBarcode(undefined)}>
       <BarcodeDiv>
-        <BigBarcode value={viewingBarcode} options={{ displayValue: false, format: 'ean13', flat: true }} />
+        <BigBarcode value={viewingBarcode} options={{ format: 'ean13', flat: true }} />
+        <CloseMessage>Tap anywhere to close</CloseMessage>
       </BarcodeDiv>
     </BarcodePopupDiv>
   );
