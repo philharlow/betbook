@@ -116,12 +116,11 @@ function AddTicketModal() {
   }, [addTicketModalOpen, toggleAddTicketModalOpen]);
 
   const addTicket = useCallback((ticketNumber: string) => {
-    const asNumber = parseInt(ticketNumber);
-
     // Skip repeats
     if (found.indexOf(ticketNumber) > -1) return;
     found.push(ticketNumber);
 
+    const asNumber = parseInt(ticketNumber);
     if (asNumber && !isNaN(asNumber)) {
       setValue(ticketNumber);
       if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
