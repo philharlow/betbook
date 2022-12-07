@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import styled from 'styled-components/macro';
-import { fetchUpdatedTicket, isSettled, useTicketState } from '../store/ticketStore';
+import { fetchUpdatedTicket, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import SelectionDisplay from './SelectionDisplay';
@@ -176,7 +176,7 @@ function ViewTicketModal() {
           </Selections>
           
           <ButtonRow>
-            <RemoveButton onClick={deleteTicket}>Remove Ticket</RemoveButton>
+            <RemoveButton onClick={deleteTicket}>Delete Ticket</RemoveButton>
             <ArchiveButton onClick={onArchiveTicket}>{archiveLabel} Ticket</ArchiveButton>
             <RedeemButton onClick={redeemTicket}>Redeem Ticket</RedeemButton>
           </ButtonRow>
