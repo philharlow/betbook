@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components/macro';
-import {  TicketRecord, TicketStatus, TimePeriod, useTicketState } from '../store/ticketStore';
+import {  fetchUpdatedTicket, isSettled, TicketRecord, TicketStatus, TimePeriod, useTicketState } from '../store/ticketStore';
 import { FilterLevel, useUIState } from '../store/uiStore';
 import Accordion from './Accordion';
 import TicketDisplay from './TicketDisplay';
+import PullToRefresh from 'react-simple-pull-to-refresh';
 
 const TableDiv = styled.div`
   width: 100%;
@@ -49,6 +50,7 @@ const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTi
 
 function TicketTable() {
   const tickets = useTicketState(state => state.tickets);
+  const setTickets = useTicketState(state => state.setTickets);
   const filterLevel = useUIState(state => state.filterLevel);
   const showArchivedTickets = useUIState(state => state.showArchivedTickets);
   const [hasTickets, setHasTickets] = useState(false);
@@ -70,52 +72,62 @@ function TicketTable() {
 
   const getTicketDisplay = (ticket: TicketRecord) => <TicketDisplay ticket={ticket} key={ticket.ticketNumber} />
 
+  const handleRefresh = async () => {
+    console.log("refreshed");
+    tickets.forEach((ticket) => !ticket.archived && fetchUpdatedTicket(ticket));
+    setTickets([...tickets]);
+  };
+
+  const refreshing = tickets.some((ticket) => ticket.refreshing);
+
   return (
     <TableDiv>
-      <Content>
-        {/* Pending */}
-        <Accordion
-          dontDrawIfNoChildren={true}
-          label={`Pending (${pendingTickets.length})`}>
-            {pendingTickets.map(getTicketDisplay)}
-        </Accordion>
+      <PullToRefresh onRefresh={handleRefresh} canFetchMore={refreshing}>
+        <Content>
+          {/* Pending */}
+          <Accordion
+            dontDrawIfNoChildren={true}
+            label={`Pending (${pendingTickets.length})`}>
+              {pendingTickets.map(getTicketDisplay)}
+          </Accordion>
 
-        {/* Past */}
-        <Accordion
-          dontDrawIfNoChildren={true}
-          label={`Past (${pastTickets.length})`}>
-            {pastTickets.map(getTicketDisplay)}
-        </Accordion>
+          {/* Past */}
+          <Accordion
+            dontDrawIfNoChildren={true}
+            label={`Past (${pastTickets.length})`}>
+              {pastTickets.map(getTicketDisplay)}
+          </Accordion>
 
-        {/* Current */}
-        <Accordion
-          dontDrawIfNoChildren={true}
-          label={`Current (${currentTickets.length})`}>
-            {currentTickets.map(getTicketDisplay)}
-        </Accordion>
+          {/* Current */}
+          <Accordion
+            dontDrawIfNoChildren={true}
+            label={`Current (${currentTickets.length})`}>
+              {currentTickets.map(getTicketDisplay)}
+          </Accordion>
 
-        {/* Future */}
-        <Accordion
-          dontDrawIfNoChildren={true}
-          label={`Future (${futureTickets.length})`}>
-            {futureTickets.map(getTicketDisplay)}
-        </Accordion>
+          {/* Future */}
+          <Accordion
+            dontDrawIfNoChildren={true}
+            label={`Future (${futureTickets.length})`}>
+              {futureTickets.map(getTicketDisplay)}
+          </Accordion>
 
-        {/* No tickets */}
-        {!hasTickets &&
-          <>
-            <AddTicketsMessage>
-              <div>No {filterLevel === FilterLevel.All ? "" : filterLevel.toLowerCase()} tickets found</div>
-              {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
-            </AddTicketsMessage>
-            {filterLevel === FilterLevel.All && <Disclaimer>
-              Disclaimer: All data is stored on your device. No data ever leaves your device.
-              <br/>
-              <a href="https://github.com/philharlow/betbook">Open source: https://github.com/philharlow/betbook</a>
-            </Disclaimer>}
-          </>
-        }
-      </Content>
+          {/* No tickets */}
+          {!hasTickets &&
+            <>
+              <AddTicketsMessage>
+                <div>No {filterLevel === FilterLevel.All ? "" : filterLevel.toLowerCase()} tickets found</div>
+                {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
+              </AddTicketsMessage>
+              {filterLevel === FilterLevel.All && <Disclaimer>
+                Disclaimer: All data is stored on your device. No data ever leaves your device.
+                <br/>
+                <a href="https://github.com/philharlow/betbook">Open source: https://github.com/philharlow/betbook</a>
+              </Disclaimer>}
+            </>
+          }
+        </Content>
+      </PullToRefresh>
     </TableDiv>
   );
 }
