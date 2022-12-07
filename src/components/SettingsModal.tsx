@@ -97,7 +97,7 @@ function SettingsModal() {
       <Content>
         <RefreshButton onClick={onRefreshAll}>Refresh All Tickets</RefreshButton>
         <RefreshButton onClick={onRefreshOpen}>Refresh Open Tickets</RefreshButton>
-        <ArchiveButton onClick={onToggleArchives}>{showArchivedTickets ? "Hide" : "Show"} Archived Tickets in All</ArchiveButton>
+        <ArchiveButton onClick={onToggleArchives}>{showArchivedTickets ? "Hide" : "Show"} Archived Tickets</ArchiveButton>
       </Content>
     </SettingsModalDiv>
   );

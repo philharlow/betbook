@@ -60,7 +60,7 @@ function TicketTable() {
   const [futureTickets, setFutureTickets] = useState<TicketRecord[]>([]);
 
   useEffect(() => {
-    const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel, showArchivedTickets || filterLevel !== FilterLevel.All));
+    const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel, showArchivedTickets));
     setPendingTickets(filteredTickets.filter((ticket) => ticket.ticketResult === undefined));
     setPastTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Past));
     setCurrentTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current));
