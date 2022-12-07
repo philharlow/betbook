@@ -42,9 +42,10 @@ const GreyLabel = styled.div`
 
 interface Props {
   selection: SelectionResult;
+  className?: string;
 }
 
-function SelectionDisplay({selection} : Props) {
+function SelectionDisplay({ selection, className } : Props) {
   const score = `${selection.MatchScore1}-${selection.MatchScore2}`;
 
   return (
@@ -52,7 +53,7 @@ function SelectionDisplay({selection} : Props) {
       <Column>
         <Circle style={{ backgroundColor: "var(--" + getStatusColor(selection.Status) + ")" }} />
       </Column>
-      <Column style={{flex: 1}}>
+      <Column style={{flex: 1}} className={className}>
         <Title>
           {selection.YourBetPrefix}
         </Title>
@@ -66,7 +67,7 @@ function SelectionDisplay({selection} : Props) {
           {new Date(selection.EventDate).toLocaleString()}
         </GreyLabel>
       </Column>
-      <Column>
+      <Column className={className}>
         {selection.Odds || score}
       </Column>
     </SelectionDisplayDiv>

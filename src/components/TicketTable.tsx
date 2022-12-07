@@ -78,36 +78,34 @@ function TicketTable() {
     setTickets([...tickets]);
   };
 
-  const refreshing = tickets.some((ticket) => ticket.refreshing);
-
   return (
     <TableDiv>
-      <PullToRefresh onRefresh={handleRefresh} canFetchMore={refreshing}>
+      <PullToRefresh onRefresh={handleRefresh}>
         <Content>
           {/* Pending */}
           <Accordion
-            dontDrawIfNoChildren={true}
+            dontDrawEmpty={true}
             label={`Pending (${pendingTickets.length})`}>
               {pendingTickets.map(getTicketDisplay)}
           </Accordion>
 
           {/* Past */}
           <Accordion
-            dontDrawIfNoChildren={true}
+            dontDrawEmpty={true}
             label={`Past (${pastTickets.length})`}>
               {pastTickets.map(getTicketDisplay)}
           </Accordion>
 
           {/* Current */}
           <Accordion
-            dontDrawIfNoChildren={true}
+            dontDrawEmpty={true}
             label={`Current (${currentTickets.length})`}>
               {currentTickets.map(getTicketDisplay)}
           </Accordion>
 
           {/* Future */}
           <Accordion
-            dontDrawIfNoChildren={true}
+            dontDrawEmpty={true}
             label={`Future (${futureTickets.length})`}>
               {futureTickets.map(getTicketDisplay)}
           </Accordion>

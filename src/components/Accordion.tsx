@@ -45,10 +45,10 @@ interface Props {
   label: string,
   startOpen?: boolean,
   children?: JSX.Element | JSX.Element[];
-  dontDrawIfNoChildren?: boolean;
+  dontDrawEmpty?: boolean;
 }
 
-function Accordion({ label, startOpen, children, dontDrawIfNoChildren } : Props) {
+function Accordion({ label, startOpen, children, dontDrawEmpty: dontDrawIfNoChildren } : Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(startOpen ?? true);
 

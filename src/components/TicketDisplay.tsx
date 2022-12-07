@@ -81,45 +81,45 @@ interface Props {
 
 function TicketDisplay({ticket, hideArrow} : Props) {
   const navigate = useNavigate();
-  const resultClassName = ticket.refreshing ? "scrolling-gradient" : "";
+  const className = ticket.refreshing ? "scrolling-gradient" : "";
 
   return (
     <TicketDisplayDiv onClick={() => navigate("/" + ticket.ticketNumber)}>
       {!hideArrow && <ClickArrow>&gt;</ClickArrow>}
-      <ResultRow style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={resultClassName}>
+      <ResultRow style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={className}>
         {ticket.status}
       </ResultRow>
       {ticket.ticketResult === undefined && <Title>Loading...</Title>}
 
-      <Title className={ticket.archived ? "archived " : "" + resultClassName}>
+      <Title className={ticket.archived ? "archived " : "" + className}>
         {ticket.ticketResult?.calculated.Title}{ticket.archived ? " (Archived)" : ""}
       </Title>
-      <SubTitle className={resultClassName}>
+      <SubTitle className={className}>
         {ticket.ticketResult?.calculated.SubTitle}
       </SubTitle>
-      <Info>
+      <Info className={className}>
         <InfoCol>
-          <CellContent className={resultClassName}>
+          <CellContent>
             <GreyLabel>Wager:</GreyLabel>
             ${ticket.ticketResult?.TicketCost}
           </CellContent>
-          <CellContent className={resultClassName}>
+          <CellContent>
             <GreyLabel>To Pay:</GreyLabel>
             ${ticket.ticketResult?.ToPay}
           </CellContent>
         </InfoCol>
         <InfoCol>
-          <CellContent className={resultClassName}>
+          <CellContent>
             <GreyLabel>Odds:</GreyLabel>
             {ticket.ticketResult?.TotalOdds}
           </CellContent>
-          <CellContent className={resultClassName}>
+          <CellContent>
             <GreyLabel>To Win:</GreyLabel>
             ${ticket.ticketResult?.ToWin}
           </CellContent>
         </InfoCol>
       </Info>
-      <CellContent className={resultClassName}>
+      <CellContent className={className}>
         <TimeLabel>{ticket.ticketResult?.calculated.EventDate.toLocaleString()}</TimeLabel>
       </CellContent>
     </TicketDisplayDiv>

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import PullToRefresh from 'react-simple-pull-to-refresh';
 import styled from 'styled-components/macro';
-import { isSettled, useTicketState } from '../store/ticketStore';
+import { fetchUpdatedTicket, isSettled, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import SelectionDisplay from './SelectionDisplay';
@@ -78,6 +79,7 @@ const ButtonRow = styled.div`
   flex-direction: row;
   width: 100%;
   justify-content: space-around;
+  gap: 15px;
 `;
 
 const FooterRow = styled.div`
@@ -99,6 +101,7 @@ function ViewTicketModal() {
   const tickets = useTicketState(state => state.tickets);
   const removeTicket = useTicketState(state => state.removeTicket);
   const archiveTicket = useTicketState(state => state.archiveTicket);
+  const updateTicket = useTicketState(state => state.updateTicket);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -147,6 +150,13 @@ function ViewTicketModal() {
   const odds = viewingTicket.ticketResult?.TotalOdds;
   const archivable = isSettled(viewingTicket.status);
   const archiveLabel = viewingTicket.archived ? "Unarchive" : "Archive";
+  const className = viewingTicket.refreshing ? "scrolling-gradient" : "";
+
+  const handleRefresh = async () => {
+    console.log("refreshed");
+    fetchUpdatedTicket(viewingTicket);
+    updateTicket(viewingTicket);
+  };
 
   return (
     <ViewTicketDiv className={open ? "open" : ""}>
@@ -155,25 +165,27 @@ function ViewTicketModal() {
         Ticket number {viewingTicket.ticketNumber}
         <span />
       </TopBar>
-      <Content>
-        <TicketDisplay ticket={viewingTicket} hideArrow={true} />
+      <PullToRefresh onRefresh={handleRefresh}>
+        <Content>
+          <TicketDisplay ticket={viewingTicket} hideArrow={true} />
 
-        <Title>{title} {odds}</Title>
-        <Selections>
-          {viewingTicket.ticketResult?.Selections.map((selection, i) => (
-            <SelectionDisplay key={i} selection={selection} />
-          )) ?? 'Loading...'}
-        </Selections>
-      
-      <ButtonRow>
-        <RemoveButton onClick={deleteTicket}>Remove Ticket</RemoveButton>
-        {archivable && <ArchiveButton onClick={onArchiveTicket}>{archiveLabel} Ticket</ArchiveButton>}
-        <RedeemButton onClick={redeemTicket}>Redeem Ticket</RedeemButton>
-      </ButtonRow>
-      {archivable && <FooterRow>
-        Archiving tickets will remove them from the main screen but keep them for stats.
-      </FooterRow>}
-      </Content>
+          <Title className={className}>{title} {odds}</Title>
+          <Selections>
+            {viewingTicket.ticketResult?.Selections.map((selection, i) => (
+              <SelectionDisplay key={i} selection={selection} className={className} />
+            )) ?? 'Loading...'}
+          </Selections>
+          
+          <ButtonRow>
+            <RemoveButton onClick={deleteTicket}>Remove Ticket</RemoveButton>
+            {archivable && <ArchiveButton onClick={onArchiveTicket}>{archiveLabel} Ticket</ArchiveButton>}
+            <RedeemButton onClick={redeemTicket}>Redeem Ticket</RedeemButton>
+          </ButtonRow>
+          {archivable && <FooterRow>
+            Archiving tickets will remove them from the main screen but keep them for stats.
+          </FooterRow>}
+        </Content>
+      </PullToRefresh>
     </ViewTicketDiv>
   );
 }
