@@ -83,7 +83,6 @@ const NumberInput = styled.input`
 `;
 
 let listening = false;
-let found: string[] = [];
 let qrScanner: QrScanner | undefined;
 
 function AddTicketModal() {
@@ -102,7 +101,6 @@ function AddTicketModal() {
   };
 
   const closeModal = useCallback(() => {
-    found = [];
     if (qrScanner) {
       qrScanner.stop();
       qrScanner.destroy();
@@ -116,35 +114,27 @@ function AddTicketModal() {
   }, [addTicketModalOpen, toggleAddTicketModalOpen]);
 
   const addTicket = useCallback((ticketNumber: string) => {
-    // Skip repeats
-    if (found.indexOf(ticketNumber) > -1) return;
-    found.push(ticketNumber);
-
     const asNumber = parseInt(ticketNumber);
     if (asNumber && !isNaN(asNumber)) {
       setValue(ticketNumber);
-      if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
-        showToast("Ticket already added");
-      } else {
-        const ticket: TicketRecord = {
-          ticketNumber,
-          sportsbook: "draftkings",
-          status: TicketStatus.Unknown,
-          refreshing: true,
-        };
-        updateTicket(ticket);
-        fetchUpdatedTicket(ticket)
-        showToast("Ticket added!");
-      }
+      if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) showToast("Ticket already added");
+      else showToast("Ticket added!");
+
+      const ticket: TicketRecord = {
+        ticketNumber,
+        sportsbook: "draftkings",
+        status: TicketStatus.Unknown,
+        refreshing: true,
+      };
+      updateTicket(ticket);
+
+      fetchUpdatedTicket(ticket);
+      
+      closeModal();
     } else {
       showToast("Ticket number invalid");
     }
-  }, [updateTicket, tickets, showToast]);
-
-  const onAddTicket = (ticketNumber: string) => {
-    addTicket(ticketNumber);
-    closeModal();
-  };
+  }, [closeModal, updateTicket, tickets, showToast]);
 
   useEffect(() => {
     if (!qrScanner && videoRef.current) {
@@ -188,7 +178,7 @@ function AddTicketModal() {
       </TopBar>
       <TicketEntry>
         <NumberInput value={value} placeholder="Enter ticket number" onChange={handleChange} type='text' />
-        <AddTicketButton disabled={value.length === 0} onClick={() => onAddTicket(value)}>Add Ticket</AddTicketButton>
+        <AddTicketButton disabled={value.length === 0} onClick={() => addTicket(value)}>Add Ticket</AddTicketButton>
       </TicketEntry>
       or scan QR code
       <VideoContainer>
