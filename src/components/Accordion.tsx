@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components/macro';
 
 const AccordionDiv = styled.div`
@@ -34,11 +34,10 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: flex 0.3s ease;
+  transition: height 0.3s ease;
   overflow: hidden;
-  flex: 0;
-  &.open {
-    flex: 1;
+  &.closed {
+    height: 0 !important;
   }
 `;
 
@@ -50,7 +49,14 @@ interface Props {
 }
 
 function Accordion({ label, startOpen, children, dontDrawIfNoChildren } : Props) {
+  const ref = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(startOpen ?? true);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.style.height = ref.current.scrollHeight + "px";
+    }
+  }, [children]);
 
   if (dontDrawIfNoChildren) {
     if (Array.isArray(children) && !children?.length) return null;
@@ -63,7 +69,7 @@ function Accordion({ label, startOpen, children, dontDrawIfNoChildren } : Props)
         <TitleLabel>{label}</TitleLabel>
         <Arrow className={isOpen ? "open" : ""}>&gt;</Arrow>
       </Title>
-      <Content className={isOpen ? "open" : ""}>{children}</Content>
+      <Content ref={ref} className={isOpen ? "" : "closed"}>{children}</Content>
     </AccordionDiv>
   );
 }

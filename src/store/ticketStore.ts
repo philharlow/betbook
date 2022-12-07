@@ -20,6 +20,10 @@ export enum TimePeriod {
 	Future = "Future"
 }
 
+export const isSettled = (status: TicketStatus) => {
+	return status === TicketStatus.Won || status === TicketStatus.Lost || status === TicketStatus.Draw;
+}
+
 export interface TicketRecord {
 	ticketNumber: string;
 	status: TicketStatus;
@@ -138,14 +142,14 @@ const getTicketsFromStorage = () => {
 	const tickets = JSON.parse(ticketsStr) as TicketRecord[];
 	for (const ticket of tickets) {
 		if (typeof ticket.ticketNumber === "number") ticket.ticketNumber = `${ticket.ticketNumber}`;
-		if (!ticket.archived) {
-			ticket.refreshing = true;
-			if (ticket.ticketResult) calculateTicketValues(ticket.ticketResult);
-		}
+		if (ticket.ticketResult) calculateTicketValues(ticket.ticketResult);
 	}
 	
 	// Fetch updates
-	setTimeout(() => tickets.forEach(fetchUpdatedTicket), 1);
+	setTimeout(() => tickets.forEach((ticket) => {
+		// Only update unsettled bets
+		if (!isSettled(ticket.status)) fetchUpdatedTicket(ticket);
+	}), 1);
 
 	return tickets;
 }

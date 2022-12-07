@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import styled from 'styled-components';
-import { TicketStatus, useTicketState } from '../store/ticketStore';
+import styled from 'styled-components/macro';
+import { isSettled, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import SelectionDisplay from './SelectionDisplay';
@@ -42,6 +42,7 @@ const TopBar = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 10px 15px;
+  align-items: center;
 `;
 
 const Title = styled.div`
@@ -66,6 +67,11 @@ const ArchiveButton = styled(Button)`
   padding: 10px 20px;
 `;
 
+const RedeemButton = styled(Button)`
+  background: var(--green);
+  padding: 10px 20px;
+`;
+
 const ButtonRow = styled.div`
   margin-top: 50px;
   display: flex;
@@ -80,13 +86,16 @@ const FooterRow = styled.div`
   max-width: 75%;
 `;
 
-const CloseButton = styled(Button)``;
+const BackButton = styled(Button)`
+  padding: 10px 14px;
+`;
 
 function ViewTicketModal() {
 	const { ticketNumber } = useParams<{ ticketNumber: string }>();
   const navigate = useNavigate();
   const viewingTicket = useUIState(state => state.viewingTicket);
   const setViewingTicket = useUIState(state => state.setViewingTicket);
+  const setViewingBarcode = useUIState(state => state.setViewingBarcode);
   const tickets = useTicketState(state => state.tickets);
   const removeTicket = useTicketState(state => state.removeTicket);
   const archiveTicket = useTicketState(state => state.archiveTicket);
@@ -119,9 +128,13 @@ function ViewTicketModal() {
     setViewingTicket(undefined);
   };
   
+  const redeemTicket = () => {
+    if (!viewingTicket) return;
+    setViewingBarcode(viewingTicket.ticketNumber);
+  };
+  
   const onArchiveTicket = () => {
     if (!viewingTicket) return;
-    if (!window.confirm(`Are you sure you want to ${archiveLabel} ticket ${viewingTicket.ticketNumber}?`)) return;
     archiveTicket(viewingTicket.ticketNumber, !viewingTicket.archived);
     setViewingTicket(undefined);
   };
@@ -132,14 +145,15 @@ function ViewTicketModal() {
   const firstSelection = selections[0];
   const title = selections.length > 1 ? `${selections.length} Pick Parlay` : firstSelection?.EventName ?? "Loading...";
   const odds = viewingTicket.ticketResult?.TotalOdds;
-  const archivable = viewingTicket.status === TicketStatus.Lost || viewingTicket.status === TicketStatus.Won;
+  const archivable = isSettled(viewingTicket.status);
   const archiveLabel = viewingTicket.archived ? "Unarchive" : "Archive";
 
   return (
     <ViewTicketDiv className={open ? "open" : ""}>
       <TopBar>
+        <BackButton onClick={closeModal}>&lt;</BackButton>
         Ticket number {viewingTicket.ticketNumber}
-        <CloseButton onClick={closeModal}>X</CloseButton>
+        <span />
       </TopBar>
       <Content>
         <TicketDisplay ticket={viewingTicket} hideArrow={true} />
@@ -154,6 +168,7 @@ function ViewTicketModal() {
       <ButtonRow>
         <RemoveButton onClick={deleteTicket}>Remove Ticket</RemoveButton>
         {archivable && <ArchiveButton onClick={onArchiveTicket}>{archiveLabel} Ticket</ArchiveButton>}
+        <RedeemButton onClick={redeemTicket}>Redeem Ticket</RedeemButton>
       </ButtonRow>
       {archivable && <FooterRow>
         Archiving tickets will remove them from the main screen but keep them for stats.

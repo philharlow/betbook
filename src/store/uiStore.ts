@@ -16,6 +16,8 @@ const FILTER_LEVEL = "FILTER_LEVEL";
 interface UIState {
 	viewingTicket?: TicketRecord;
 	setViewingTicket: (viewingTicket?: TicketRecord) => void;
+	viewingBarcode?: string;
+	setViewingBarcode: (viewingBarcode?: string) => void;
 	filterLevel: FilterLevel;
 	setFilterLevel: (filterLevel: FilterLevel) => void;
 	addTicketModalOpen: boolean;
@@ -23,6 +25,10 @@ interface UIState {
 	toggleAddTicketModalOpen: () => void;
 	statsModalOpen: boolean;
 	setStatsModalOpen: (statsModalOpen: boolean) => void;
+	settingsModalOpen: boolean;
+	setSettingsModalOpen: (settingsModalOpen: boolean) => void;
+	menuOpen: boolean;
+	setMenuOpen: (menuOpen: boolean) => void;
 	showArchivedTickets: boolean;
 	setShowArchivedTickets: (showArchivedTickets: boolean) => void;
 }
@@ -31,6 +37,10 @@ export const useUIState = create<UIState>((set, get) => ({
 	viewingTicket: undefined,
 	setViewingTicket: (viewingTicket?: TicketRecord) => {
 		set({ viewingTicket });
+	},
+	viewingBarcode: undefined,
+	setViewingBarcode: (viewingBarcode?: string) => {
+		set({ viewingBarcode });
 	},
 	filterLevel: localStorageGet(FILTER_LEVEL) ? localStorageGet(FILTER_LEVEL) as FilterLevel : FilterLevel.All,
 	setFilterLevel: (filterLevel: FilterLevel) => {
@@ -47,6 +57,14 @@ export const useUIState = create<UIState>((set, get) => ({
 	statsModalOpen: false,
 	setStatsModalOpen: (statsModalOpen: boolean) => {
 		set({ statsModalOpen });
+	},
+	settingsModalOpen: false,
+	setSettingsModalOpen: (settingsModalOpen: boolean) => {
+		set({ settingsModalOpen });
+	},
+	menuOpen: false,
+	setMenuOpen: (menuOpen: boolean) => {
+		set({ menuOpen });
 	},
 	showArchivedTickets: false,
 	setShowArchivedTickets: (showArchivedTickets: boolean) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { getStatusColor, TicketRecord } from '../store/ticketStore';
 
 const TicketDisplayDiv = styled.div`
@@ -33,6 +33,17 @@ const CellContent = styled.div`
   gap: 10px;
 `;
 
+const Info = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+`;
+
+const InfoCol = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
 const ResultRow = styled.div`
   position: absolute;
   right: 15px;
@@ -45,11 +56,11 @@ const ResultRow = styled.div`
 `;
 
 const GreyLabel = styled.div`
-  color: #666;
+  color: #888;
 `;
 
 const TimeLabel = styled.div`
-  color: #666;
+  color: #888;
   font-size: 14px;
 `;
 
@@ -86,14 +97,28 @@ function TicketDisplay({ticket, hideArrow} : Props) {
       <SubTitle className={resultClassName}>
         {ticket.ticketResult?.calculated.SubTitle}
       </SubTitle>
-      <CellContent className={resultClassName}>
-        <GreyLabel>Wager:</GreyLabel>
-        ${ticket.ticketResult?.TicketCost}
-      </CellContent>
-      <CellContent className={resultClassName}>
-        <GreyLabel>To Pay:</GreyLabel>
-        ${ticket.ticketResult?.ToPay}
-      </CellContent>
+      <Info>
+        <InfoCol>
+          <CellContent className={resultClassName}>
+            <GreyLabel>Wager:</GreyLabel>
+            ${ticket.ticketResult?.TicketCost}
+          </CellContent>
+          <CellContent className={resultClassName}>
+            <GreyLabel>To Pay:</GreyLabel>
+            ${ticket.ticketResult?.ToPay}
+          </CellContent>
+        </InfoCol>
+        <InfoCol>
+          <CellContent className={resultClassName}>
+            <GreyLabel>Odds:</GreyLabel>
+            {ticket.ticketResult?.TotalOdds}
+          </CellContent>
+          <CellContent className={resultClassName}>
+            <GreyLabel>To Win:</GreyLabel>
+            ${ticket.ticketResult?.ToWin}
+          </CellContent>
+        </InfoCol>
+      </Info>
       <CellContent className={resultClassName}>
         <TimeLabel>{ticket.ticketResult?.calculated.EventDate.toLocaleString()}</TimeLabel>
       </CellContent>

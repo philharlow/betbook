@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import { fetchUpdatedTicket, TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
+import styled from 'styled-components/macro';
+import { TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import Accordion from './Accordion';
+import MenuButton from './MenuButton';
 import TicketDisplay from './TicketDisplay';
 
 const StatsModalDiv = styled.div`
@@ -24,7 +25,13 @@ const Content = styled.div`
   flex-direction: column;
   overflow-y: auto;
   padding: 15px;
-  gap: 10px;
+  gap: 20px;
+`;
+
+const Stats = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
 `;
 
 const StatGroup = styled.div`
@@ -32,8 +39,8 @@ const StatGroup = styled.div`
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  padding: 15px;
+  gap: 15px;
+  padding: 10px;
   justify-content: center;
 `;
 
@@ -42,7 +49,7 @@ const Stat = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
   padding: 15px;
 `;
 
@@ -62,25 +69,13 @@ const TopBar = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 10px 15px;
+  align-items: center;
 `;
 
-const CloseButton = styled(Button)``;
-
-const ArchiveButton = styled(Button)`
-  margin-top: 50px;
-  margin-bottom: 50px;
-  background: var(--blue);
-  padding: 10px 20px;
-  align-self: center;
+const CloseButton = styled(Button)`
+  padding: 10px 14px;
 `;
 
-const RefreshButton = styled(Button)`
-  margin-top: 50px;
-  margin-bottom: 50px;
-  background: var(--green);
-  padding: 10px 20px;
-  align-self: center;
-`;
 
 const dollarUSLocale = Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const toCurrencyFormat = (val: number) => "$" + dollarUSLocale.format(val);
@@ -89,26 +84,13 @@ function StatsModal() {
   const navigate = useNavigate();
   const statsModalOpen = useUIState(state => state.statsModalOpen);
   const setStatsModalOpen = useUIState(state => state.setStatsModalOpen);
-  const showArchivedTickets = useUIState(state => state.showArchivedTickets);
-  const setShowArchivedTickets = useUIState(state => state.setShowArchivedTickets);
   const tickets = useTicketState(state => state.tickets);
-  const setTickets = useTicketState(state => state.setTickets);
   
   const closeModal = () => {
     setStatsModalOpen(false);
     navigate("/");
   };
 
-  const onToggleArchives = () => {
-    setShowArchivedTickets(!showArchivedTickets);
-    closeModal();
-  }
-
-  const onRefresh = () => {
-    tickets.forEach(fetchUpdatedTicket);
-    setTickets([...tickets]);
-  }
-  
   useEffect(() => {
     setStatsModalOpen(true);
   }, [setStatsModalOpen]);
@@ -177,15 +159,20 @@ function StatsModal() {
   return (
     <StatsModalDiv>
       <TopBar>
+        <MenuButton />
         Stats
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
       <Content>
-        {statGroups.map((stats, i) =>
-          <StatGroup key={i}>
-            {stats.map((stat) => getStatDiv(stat[0], stat[1]))}
-          </StatGroup>
-        )}
+        <Accordion label="Stats" >
+          <Stats>
+            {statGroups.map((stats, i) =>
+              <StatGroup key={i}>
+                {stats.map((stat) => getStatDiv(stat[0], stat[1]))}
+              </StatGroup>
+            )}
+          </Stats>
+        </Accordion>
         {ticketsToShow.map(([label, ticket]) =>
           <Accordion
             key={label}
@@ -194,8 +181,6 @@ function StatsModal() {
               {ticket && <TicketDisplay ticket={ticket} />}
           </Accordion>
         )}
-        <RefreshButton onClick={onRefresh}>Refresh Tickets</RefreshButton>
-        <ArchiveButton onClick={onToggleArchives}>{showArchivedTickets ? "Hide" : "Show"} Archived Tickets</ArchiveButton>
       </Content>
     </StatsModalDiv>
   );

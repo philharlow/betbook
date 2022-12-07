@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import AddTicketModal from './components/AddTicketModal';
 import FilterBar from './components/FilterBar';
 import StatsModal from './components/StatsModal';
@@ -10,6 +10,9 @@ import VersionDisplay from './components/VersionDisplay';
 import ViewTicketModal from './components/ViewTicketModal';
 import { GlobalStyles } from './styles/GlobalStyles';
 import { HashRouter, Route, Routes } from 'react-router-dom';
+import BarcodePopup from './components/BarcodePopup';
+import MenuPopup from './components/MenuPopup';
+import SettingsModal from './components/SettingsModal';
 
 const AppDiv = styled.div`
   height: 100vh;
@@ -25,20 +28,17 @@ const App = () => {
       <HashRouter>
         <GlobalStyles />
           <Routes>
-            <Route
-              path='/stats'
-              element={<StatsModal />}
-            />
-            <Route
-              path='/:ticketNumber'
-              element={<ViewTicketModal />}
-            />
+            <Route path='/settings' element={<SettingsModal />} />
+            <Route path='/stats' element={<StatsModal />} />
+            <Route path='/:ticketNumber' element={<ViewTicketModal />} />
             <Route path="*" element={<></>} />
           </Routes>
         <TopBar />
         <FilterBar />
         <TicketTable />
         <AddTicketModal />
+        <MenuPopup />
+        <BarcodePopup />
         <Toast />
         <VersionDisplay />
       </HashRouter>

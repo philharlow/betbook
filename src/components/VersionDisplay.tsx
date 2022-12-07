@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import pjson from "../../package.json";
 
 const VersionDiv = styled.div`

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import {
   fetchUpdatedTicket,
   TicketRecord,
@@ -32,6 +32,7 @@ const TopBar = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 10px 15px;
+  align-items: center;
 `;
 
 const VideoContainer = styled.div`
@@ -69,7 +70,7 @@ const TicketEntry = styled.div`
 `;
 
 const CloseButton = styled(Button)`
-  padding: 2px 12px;
+  padding: 10px 14px;
 `;
 
 const AddTicketButton = styled(Button)`

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { Button } from '../styles/GlobalStyles';
 
 const easeTime = 500;
@@ -38,9 +38,12 @@ const TopBar = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 10px 15px;
+  align-items: center;
 `;
 
-const CloseButton = styled(Button)``;
+const CloseButton = styled(Button)`
+  padding: 10px 14px;
+`;
 
 interface Props {
   title: string;
