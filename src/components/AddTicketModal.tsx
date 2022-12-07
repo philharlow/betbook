@@ -43,7 +43,7 @@ const VideoContainer = styled.div`
 
 const NotSecureWarning = styled.div`
   position: absolute;
-  top: 50%;
+  top: 70%;
   width: 100%;
   transform: translateY(-50%);
   background: #dcdc5777;
@@ -144,32 +144,35 @@ function AddTicketModal() {
   };
 
   useEffect(() => {
-    if (!qrScanner && videoRef.current) {
-      const handleResult = (url: string) => {
-        const ticketNumber = url.split("ticket#")[1];
-        if (ticketNumber && listening) {
-          // Skip repeats
-          if (found.indexOf(ticketNumber) > -1) return;
-          found.push(ticketNumber);
-          // Show the qr code outline for a smidge
-          setTimeout(() => addTicket(ticketNumber), 100);
+    setTimeout(() => {
+      if (!qrScanner && videoRef.current) {
+        const handleResult = (url: string) => {
+          const ticketNumber = url.split("ticket#")[1];
+          if (ticketNumber && listening) {
+            // Skip repeats
+            if (found.indexOf(ticketNumber) > -1) return;
+            found.push(ticketNumber);
+            // Show the qr code outline for a smidge
+            setTimeout(() => addTicket(ticketNumber), 100);
+          }
         }
-      }
 
-      const scanner = new QrScanner(
-        videoRef.current,
-        result => handleResult(result.data),
-        {
-          highlightScanRegion: true,
-          highlightCodeOutline: true,
-        },
-      );
-      qrScanner = scanner;
-      console.log('created scanner', scanner);
-      scanner.start();
-      listening = true;
-    }
-  }, [videoRef, addTicket]);
+        const scanner = new QrScanner(
+          videoRef.current,
+          result => handleResult(result.data),
+          {
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+          },
+        );
+        qrScanner = scanner;
+        console.log('created scanner', scanner);
+        scanner.start();
+        listening = true;
+      }
+    }, 100);
+  }, [videoRef, addTicketModalOpen, addTicket]);
+  // HACK to include addTicketModalOpen and settimeout. videoRef should be sufficient
 
   useEffect(() => {
     const secure = window.location.protocol === "https:";
