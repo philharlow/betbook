@@ -148,7 +148,6 @@ function ViewTicketModal() {
   const firstSelection = selections[0];
   const title = selections.length > 1 ? `${selections.length} Pick Parlay` : firstSelection?.EventName ?? "Loading...";
   const odds = viewingTicket.ticketResult?.TotalOdds;
-  const archivable = isSettled(viewingTicket.status);
   const archiveLabel = viewingTicket.archived ? "Unarchive" : "Archive";
   const className = viewingTicket.refreshing ? "scrolling-gradient" : "";
 
@@ -178,12 +177,12 @@ function ViewTicketModal() {
           
           <ButtonRow>
             <RemoveButton onClick={deleteTicket}>Remove Ticket</RemoveButton>
-            {archivable && <ArchiveButton onClick={onArchiveTicket}>{archiveLabel} Ticket</ArchiveButton>}
+            <ArchiveButton onClick={onArchiveTicket}>{archiveLabel} Ticket</ArchiveButton>
             <RedeemButton onClick={redeemTicket}>Redeem Ticket</RedeemButton>
           </ButtonRow>
-          {archivable && <FooterRow>
+          <FooterRow>
             Archiving tickets will remove them from the main screen but keep them for stats.
-          </FooterRow>}
+          </FooterRow>
         </Content>
       </PullToRefresh>
     </ViewTicketDiv>
