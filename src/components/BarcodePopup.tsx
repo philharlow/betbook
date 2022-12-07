@@ -16,20 +16,21 @@ const BarcodePopupDiv = styled.div`
 `;
 
 const BarcodeDiv = styled.div`
-position: absolute;
-background-color: var(--white);
-width: 100%;
-height: 100%;
-top: 0;
-left: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: absolute;
+  background-color: var(--white);
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: start;
+  justify-content: center;
 `;
 
 const BigBarcode = styled(Barcode)`
-width: 80%;
-height: 80%;
+  width: 80vw;
+  height: 80vw;
+  margin-top: -10vw;
 `;
 
 
