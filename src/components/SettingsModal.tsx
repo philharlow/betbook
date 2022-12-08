@@ -72,12 +72,12 @@ function SettingsModal() {
   }
 
   const onRefreshAll = () => {
-    tickets.forEach(fetchUpdatedTicket);
+    tickets.forEach((t) => fetchUpdatedTicket(t.ticketNumber));
     setTickets([...tickets]);
   }
 
   const onRefreshOpen = () => {
-    tickets.forEach((ticket) => !isSettled(ticket.status) && fetchUpdatedTicket(ticket));
+    tickets.forEach((ticket) => !isSettled(ticket.status) && fetchUpdatedTicket(ticket.ticketNumber));
     setTickets([...tickets]);
   }
   

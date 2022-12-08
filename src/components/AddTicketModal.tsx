@@ -130,7 +130,7 @@ function AddTicketModal() {
           refreshing: true,
         };
         updateTicket(ticket);
-        fetchUpdatedTicket(ticket)
+        fetchUpdatedTicket(ticket.ticketNumber)
         showToast("Ticket added!");
       }
     } else {

@@ -1,6 +1,6 @@
 import create from 'zustand'
-import { localStorageGet, localStorageSet } from '../LocalStorageManager';
-import { TicketRecord } from './ticketStore';
+import { localStorageGet, localStorageGetBool, localStorageSet, localStorageSetBool } from '../LocalStorageManager';
+import { TicketRecord, useTicketState } from './ticketStore';
 
 export enum FilterLevel {
 	All = "All",
@@ -12,10 +12,12 @@ export enum FilterLevel {
 export const FilterLevels = Object.values(FilterLevel);
 
 const FILTER_LEVEL = "FILTER_LEVEL";
+const SHOW_ARCHIVED_TICKETS = "SHOW_ARCHIVED_TICKETS";
 
 interface UIState {
 	viewingTicket?: TicketRecord;
 	setViewingTicket: (viewingTicket?: TicketRecord) => void;
+	setViewingTicketNumber: (ticketNumber?: string) => void;
 	viewingBarcode?: string;
 	setViewingBarcode: (viewingBarcode?: string) => void;
 	filterLevel: FilterLevel;
@@ -36,6 +38,11 @@ interface UIState {
 export const useUIState = create<UIState>((set, get) => ({
 	viewingTicket: undefined,
 	setViewingTicket: (viewingTicket?: TicketRecord) => {
+		if (viewingTicket) viewingTicket = { ...viewingTicket };
+		set({ viewingTicket });
+	},
+	setViewingTicketNumber: (ticketNumber?: string) => {
+		const viewingTicket = useTicketState.getState().tickets.find((t) => t.ticketNumber === ticketNumber);
 		set({ viewingTicket });
 	},
 	viewingBarcode: undefined,
@@ -66,8 +73,9 @@ export const useUIState = create<UIState>((set, get) => ({
 	setMenuOpen: (menuOpen: boolean) => {
 		set({ menuOpen });
 	},
-	showArchivedTickets: false,
+	showArchivedTickets: localStorageGetBool(SHOW_ARCHIVED_TICKETS) ?? false,
 	setShowArchivedTickets: (showArchivedTickets: boolean) => {
 		set({ showArchivedTickets });
+		localStorageSetBool(SHOW_ARCHIVED_TICKETS, showArchivedTickets);
 	},
 }));

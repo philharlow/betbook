@@ -1,6 +1,7 @@
 import create from 'zustand'
 import { localStorageGet, localStorageSet } from '../LocalStorageManager';
 import { fetchTicketStatus } from '../ticketApi';
+import { useUIState } from './uiStore';
 
 export enum TicketStatus {
 	Unknown = "Updating",
@@ -123,17 +124,30 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 interface TicketState {
 	tickets: TicketRecord[];
 	setTickets: (tickets: TicketRecord[]) => void;
-	updateTicket: (ticket: TicketRecord) => void;
+	updateTicket: (ticket: TicketRecord) => TicketRecord;
 	removeTicket: (ticketNumber: string) => void;
 	archiveTicket: (ticketNumber: string, archived?: boolean) => void;
 }
 
-export const fetchUpdatedTicket = async (ticket: TicketRecord) => {
+export const fetchUpdatedTicket = async (ticketNumber: string) => {
+	const ticketState = useTicketState.getState();
+	const uiState = useUIState.getState();
+	const ticket = ticketState.tickets.find((t) => t.ticketNumber === ticketNumber);
+	if (!ticket) return console.warn("fetchUpdatedTicket() Could not find ticket", ticketNumber);
+
 	ticket.refreshing = true;
+	uiState.setViewingTicket(ticket);
+
 	console.log('fetching ticket', ticket.ticketNumber);
 	const newTicket = await fetchTicketStatus(ticket.ticketNumber);
+
 	console.log("ticket response", newTicket?.ticketResult);
-	if (newTicket) useTicketState.getState().updateTicket(newTicket);
+	if (newTicket) {
+		const updatedTicket = useTicketState.getState().updateTicket(newTicket);
+		// TODO fix, this is bad, disconnected objects
+		if (uiState.viewingTicket?.ticketNumber === updatedTicket.ticketNumber)
+			uiState.setViewingTicket(updatedTicket);
+	}
 };
 
 const getTicketsFromStorage = () => {
@@ -148,7 +162,7 @@ const getTicketsFromStorage = () => {
 	// Fetch updates
 	setTimeout(() => tickets.forEach((ticket) => {
 		// Only update unsettled bets
-		if (!isSettled(ticket.status)) fetchUpdatedTicket(ticket);
+		if (!isSettled(ticket.status)) fetchUpdatedTicket(ticket.ticketNumber);
 	}), 1);
 
 	return tickets;
@@ -162,14 +176,16 @@ export const useTicketState = create<TicketState>((set, get) => ({
 	},
 	updateTicket: (ticket: TicketRecord) => {
 		const tickets = [...get().tickets];
-		const existingTicket = tickets.find((t) => t.ticketNumber === ticket.ticketNumber);
-		if (existingTicket) {
-			Object.assign(existingTicket, ticket);
+		const existingTicketIndex = tickets.findIndex((t) => t.ticketNumber === ticket.ticketNumber);
+		if (existingTicketIndex > -1) {
+			ticket = { ...tickets[existingTicketIndex], ...ticket};
+			tickets[existingTicketIndex] = ticket;
 		}
 		else tickets.push(ticket);
 		tickets.sort((a, b) => a.ticketResult && b.ticketResult ? a.ticketResult.calculated.EventDate.getDate() - b.ticketResult.calculated.EventDate.getDate() : 0);
 
 		get().setTickets(tickets);
+		return ticket;
 	},
 	removeTicket: (ticketNumber: string) => {
 		const tickets = [...get().tickets].filter((t) => t.ticketNumber !== ticketNumber);

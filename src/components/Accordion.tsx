@@ -54,6 +54,7 @@ function Accordion({ label, startOpen, children, dontDrawEmpty: dontDrawIfNoChil
 
   useEffect(() => {
     if (ref.current) {
+      ref.current.style.height = "unset"; // Allow height to update automatically
       ref.current.style.height = ref.current.scrollHeight + "px";
     }
   }, [children]);

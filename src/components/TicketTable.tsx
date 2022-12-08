@@ -74,7 +74,7 @@ function TicketTable() {
 
   const handleRefresh = async () => {
     console.log("refreshed");
-    tickets.forEach((ticket) => !isSettled(ticket.status) && fetchUpdatedTicket(ticket));
+    tickets.forEach((ticket) => !isSettled(ticket.status) && fetchUpdatedTicket(ticket.ticketNumber));
     setTickets([...tickets]);
   };
 
@@ -118,7 +118,7 @@ function TicketTable() {
                 {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
               </AddTicketsMessage>
               {filterLevel === FilterLevel.All && <Disclaimer>
-                Disclaimer: All data is stored on your device. No data ever leaves your device.
+                All data is stored securely on your device.
                 <br/>
                 <a href="https://github.com/philharlow/betbook">Open source: https://github.com/philharlow/betbook</a>
               </Disclaimer>}

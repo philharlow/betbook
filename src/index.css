@@ -12,6 +12,10 @@ code {
     monospace;
 }
 
+.ptr__children {
+  display: flex;
+}
+
 .scrolling-gradient {
   --bg-size: 500%;
   --color-one: hsl(0 0% 25%);

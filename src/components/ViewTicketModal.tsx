@@ -97,20 +97,16 @@ function ViewTicketModal() {
   const navigate = useNavigate();
   const viewingTicket = useUIState(state => state.viewingTicket);
   const setViewingTicket = useUIState(state => state.setViewingTicket);
+  const setViewingTicketNumber = useUIState(state => state.setViewingTicketNumber);
   const setViewingBarcode = useUIState(state => state.setViewingBarcode);
-  const tickets = useTicketState(state => state.tickets);
   const removeTicket = useTicketState(state => state.removeTicket);
   const archiveTicket = useTicketState(state => state.archiveTicket);
   const updateTicket = useTicketState(state => state.updateTicket);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (ticketNumber && viewingTicket?.ticketNumber !== ticketNumber) {
-      const ticket = tickets.find((t) => t.ticketNumber === ticketNumber);
-      console.log("setting ticket" , { ticketNumber, ticket });
-      setViewingTicket(ticket);
-    }
-  }, [ticketNumber, viewingTicket, setViewingTicket, tickets]);
+    setViewingTicketNumber(ticketNumber);
+  }, [ticketNumber, setViewingTicketNumber]);
   
   const closeModal = () => {
     setOpen(false);
@@ -121,7 +117,7 @@ function ViewTicketModal() {
   
   useEffect(() => {
     setOpen(viewingTicket !== undefined);
-    console.log("viewing ticket useeffect", viewingTicket);
+    // console.log("viewing ticket useeffect", viewingTicket);
   }, [viewingTicket]);
   
   const deleteTicket = () => {
@@ -153,8 +149,7 @@ function ViewTicketModal() {
 
   const handleRefresh = async () => {
     console.log("refreshed");
-    fetchUpdatedTicket(viewingTicket);
-    updateTicket(viewingTicket);
+    fetchUpdatedTicket(viewingTicket.ticketNumber);
   };
 
   return (
