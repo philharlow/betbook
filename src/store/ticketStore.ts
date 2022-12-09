@@ -68,51 +68,71 @@ export interface SelectionResult {
 	Status: TicketStatus;
 	
 	// Calculated
-	Teams: string[];
-	WinningTeam: string;
+	calculated: {
+		Teams: string[];
+		WinningTeam: string;
+		EventDate: Date;
+		TimePeriod: TimePeriod;
+	}
 }
 
 export const getStatusColor = (status: TicketStatus) => {
     if (status === TicketStatus.Opened) return 'orange';
     if (status === TicketStatus.Lost) return 'red';
     if (status === TicketStatus.Won) return 'green';
-    if (status === TicketStatus.Draw) return 'lightgrey';
+    if (status === TicketStatus.Draw) return 'draw';
     return 'white';
 };
+
+const getTimePeriod = (eventDate: Date, ticketStatus: TicketStatus) => {
+	const timePeriod = now > eventDate ? TimePeriod.Past : TimePeriod.Future;
+	if (timePeriod === TimePeriod.Past && ticketStatus === TicketStatus.Opened)
+		return TimePeriod.Current;
+	return timePeriod;
+}
 
 const now = new Date();
 export const calculateTicketValues = (ticketResult: TicketResult) => {
 	const selections = ticketResult.Selections;
 	const firstSelection = selections[0];
 
-	let EventDate = new Date(firstSelection.EventDate);
+	let earliestEventDate = new Date(firstSelection.EventDate);
 	const set = new Set();
 	for (const selection of selections) {
 		const split = selection.Yourbet.split(" - ");
 		const eventName = split[0];
+
+		let WinningTeam = "";
 		
-		if (split.length > 1) selection.WinningTeam = split[1]; // Winning team
+		if (split.length > 1) WinningTeam = split[1]; // Winning team
 
-		selection.Teams = eventName.split(" vs ");
-		selection.Teams.forEach((team) => set.add(team));
+		const Teams = eventName.split(" vs ");
+		Teams.forEach((team) => set.add(team));
 
-		const eventDate = new Date(selection.EventDate);
-		if (eventDate < EventDate) EventDate = eventDate;
+		const EventDate = new Date(selection.EventDate);
+		if (EventDate < earliestEventDate) earliestEventDate = EventDate;
+		const TimePeriod = getTimePeriod(EventDate, ticketResult.Status);
+		
+		selection.calculated = {
+			WinningTeam,
+			Teams,
+			EventDate,
+			TimePeriod,
+		}
 	}
 	const SubTitle = Array.from(set.values()).join(", ");
 
 	let Title = firstSelection.YourBetPrefix;
 	if(selections.length > 1) Title = `Parlay (${selections.length} pick)`;
 
-	let timePeriod = now > EventDate ? TimePeriod.Past : TimePeriod.Future;
-	if (timePeriod === TimePeriod.Past && ticketResult.Status === TicketStatus.Opened)
-		timePeriod = TimePeriod.Current;
+	const EventDate = earliestEventDate;
+	const TimePeriod = getTimePeriod(EventDate, ticketResult.Status);
 	
 	ticketResult.calculated = {
 		Title,
 		SubTitle,
 		EventDate,
-		TimePeriod: timePeriod,
+		TimePeriod,
 		TicketCost: parseFloat(ticketResult.TicketCost),
 		ToPay: parseFloat(ticketResult.ToPay),
 		ToWin: parseFloat(ticketResult.ToWin),
@@ -124,9 +144,11 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 interface TicketState {
 	tickets: TicketRecord[];
 	setTickets: (tickets: TicketRecord[]) => void;
-	updateTicket: (ticket: TicketRecord) => TicketRecord;
+	updateTicket: (ticket: TicketRecord) => void;
 	removeTicket: (ticketNumber: string) => void;
 	archiveTicket: (ticketNumber: string, archived?: boolean) => void;
+	refreshTicket: (ticket: TicketRecord) => void;
+	refreshTickets: (filter?: (ticket: TicketRecord) => boolean) => void;
 }
 
 export const fetchUpdatedTicket = async (ticketNumber: string) => {
@@ -143,10 +165,7 @@ export const fetchUpdatedTicket = async (ticketNumber: string) => {
 
 	console.log("ticket response", newTicket?.ticketResult);
 	if (newTicket) {
-		const updatedTicket = useTicketState.getState().updateTicket(newTicket);
-		// TODO fix, this is bad, disconnected objects
-		if (uiState.viewingTicket?.ticketNumber === updatedTicket.ticketNumber)
-			uiState.setViewingTicket(updatedTicket);
+		useTicketState.getState().updateTicket(newTicket);
 	}
 };
 
@@ -185,7 +204,11 @@ export const useTicketState = create<TicketState>((set, get) => ({
 		tickets.sort((a, b) => a.ticketResult && b.ticketResult ? a.ticketResult.calculated.EventDate.getDate() - b.ticketResult.calculated.EventDate.getDate() : 0);
 
 		get().setTickets(tickets);
-		return ticket;
+		
+		// TODO fix this, this is bad
+		const uiState = useUIState.getState();
+		if (uiState.viewingTicket?.ticketNumber === ticket.ticketNumber)
+			uiState.setViewingTicket(ticket);
 	},
 	removeTicket: (ticketNumber: string) => {
 		const tickets = [...get().tickets].filter((t) => t.ticketNumber !== ticketNumber);
@@ -193,10 +216,18 @@ export const useTicketState = create<TicketState>((set, get) => ({
 		get().setTickets(tickets);
 	},
 	archiveTicket: (ticketNumber: string, archived = true) => {
-		const tickets = [...get().tickets];
-		const ticket = tickets.find((ticket) => ticket.ticketNumber === ticketNumber);
-		if (ticket) ticket.archived = archived;
-		
-		get().setTickets(tickets);
+		const existingTicket = get().tickets.find((t) => t.ticketNumber === ticketNumber);
+		if (existingTicket) {
+			existingTicket.archived = archived;
+			get().updateTicket(existingTicket);
+		}
+	},
+	refreshTicket: (ticket: TicketRecord) => {
+		fetchUpdatedTicket(ticket.ticketNumber);
+	},
+	refreshTickets: (filter?: (ticket: TicketRecord) => boolean) => {
+		const { tickets,setTickets } = get();
+		tickets.forEach((t) => (!filter || filter(t)) && fetchUpdatedTicket(t.ticketNumber));
+		setTickets([...tickets]);
 	},
 }));

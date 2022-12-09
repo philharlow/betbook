@@ -12,6 +12,10 @@ code {
     monospace;
 }
 
+button {
+  cursor: pointer;
+}
+
 .ptr__children {
   display: flex;
 }

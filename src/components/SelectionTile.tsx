@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components/macro';
 import { getStatusColor, SelectionResult } from '../store/ticketStore';
 
-const SelectionDisplayDiv = styled.div`
+const SelectionTileDiv = styled.div`
   width: 100%;
   background: var(--grey);
   padding: 15px;
@@ -18,6 +18,7 @@ const Circle = styled.div`
   height: 15px;
   border-radius: 20px;
   margin-top: 5px;
+  background-clip: unset;
 `;
 
 const Title = styled.div`
@@ -45,13 +46,13 @@ interface Props {
   className?: string;
 }
 
-function SelectionDisplay({ selection, className } : Props) {
+function SelectionTile({ selection, className } : Props) {
   const score = `${selection.MatchScore1}-${selection.MatchScore2}`;
 
   return (
-    <SelectionDisplayDiv>
+    <SelectionTileDiv>
       <Column>
-        <Circle style={{ backgroundColor: "var(--" + getStatusColor(selection.Status) + ")" }} />
+        <Circle style={{ backgroundColor: "var(--" + getStatusColor(selection.Status) + ")" }} className={className} />
       </Column>
       <Column style={{flex: 1}} className={className}>
         <Title>
@@ -70,8 +71,8 @@ function SelectionDisplay({ selection, className } : Props) {
       <Column className={className}>
         {selection.Odds || score}
       </Column>
-    </SelectionDisplayDiv>
+    </SelectionTileDiv>
   );
 }
 
-export default SelectionDisplay;
+export default SelectionTile;

@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
-import { fetchUpdatedTicket, isSettled, useTicketState } from '../store/ticketStore';
+import { isSettled, TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
+import { useToastState } from '../store/toastStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import MenuButton from './MenuButton';
@@ -40,14 +41,7 @@ const CloseButton = styled(Button)`
   padding: 10px 14px;
 `;
 
-const ArchiveButton = styled(Button)`
-  background: var(--blue);
-  padding: 10px 20px;
-  align-self: center;
-`;
-
-const RefreshButton = styled(Button)`
-  background: var(--green);
+const SettingButton = styled(Button)`
   padding: 10px 20px;
   align-self: center;
 `;
@@ -56,29 +50,44 @@ function SettingsModal() {
   const navigate = useNavigate();
   const settingsModalOpen = useUIState(state => state.settingsModalOpen);
   const setSettingsModalOpen = useUIState(state => state.setSettingsModalOpen);
-  const showArchivedTickets = useUIState(state => state.showArchivedTickets);
-  const setShowArchivedTickets = useUIState(state => state.setShowArchivedTickets);
   const tickets = useTicketState(state => state.tickets);
-  const setTickets = useTicketState(state => state.setTickets);
+  const updateTicket = useTicketState(state => state.updateTicket);
+  const refreshTickets = useTicketState(state => state.refreshTickets);
+  const showToast = useToastState((state) => state.showToast);
   
   const closeModal = () => {
     setSettingsModalOpen(false);
     navigate("/");
   };
 
-  const onToggleArchives = () => {
-    setShowArchivedTickets(!showArchivedTickets);
-    closeModal();
-  }
-
   const onRefreshAll = () => {
-    tickets.forEach((t) => fetchUpdatedTicket(t.ticketNumber));
-    setTickets([...tickets]);
+    refreshTickets();
   }
 
   const onRefreshOpen = () => {
-    tickets.forEach((ticket) => !isSettled(ticket.status) && fetchUpdatedTicket(ticket.ticketNumber));
-    setTickets([...tickets]);
+    refreshTickets((ticket) => !isSettled(ticket.status));
+  }
+
+  const onImport = () => {
+    const ticketNumbersStr = prompt("Enter comma-delimited ticket number list");
+    if (!ticketNumbersStr) return;
+    const ticketNumbers = ticketNumbersStr.split(",").map((tn) => tn.trim());
+    const newTicketNumbers = ticketNumbers.filter((tn) => !tickets.find((t) => t.ticketNumber === tn));
+    showToast(`Adding ${newTicketNumbers.length} new tickets`);
+    newTicketNumbers.forEach((ticketNumber) => {
+      const ticket: TicketRecord = {
+        ticketNumber,
+        sportsbook: "draftkings",
+        status: TicketStatus.Unknown,
+        refreshing: true,
+      };
+      updateTicket(ticket);
+    });
+  }
+
+  const onExport = () => {
+    const ticketNumbers = tickets.map((t) => t.ticketNumber);
+    navigator.clipboard.writeText(ticketNumbers.join(", "));
   }
   
   useEffect(() => {
@@ -95,9 +104,13 @@ function SettingsModal() {
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
       <Content>
-        <RefreshButton onClick={onRefreshAll}>Refresh All Tickets</RefreshButton>
-        <RefreshButton onClick={onRefreshOpen}>Refresh Open Tickets</RefreshButton>
-        <ArchiveButton onClick={onToggleArchives}>{showArchivedTickets ? "Hide" : "Show"} Archived Tickets</ArchiveButton>
+        Manual refesh
+        <SettingButton onClick={onRefreshAll}>Refresh All Tickets</SettingButton>
+        <SettingButton onClick={onRefreshOpen}>Refresh Open Tickets</SettingButton>
+        <hr />
+        Import/Export
+        <SettingButton onClick={onImport}>Import ticket numbers</SettingButton>
+        <SettingButton onClick={onExport}>Copy all ticket numbers</SettingButton>
       </Content>
     </SettingsModalDiv>
   );

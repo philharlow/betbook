@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import styled from 'styled-components/macro';
-import { fetchUpdatedTicket, useTicketState } from '../store/ticketStore';
+import { SelectionResult, TimePeriod, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
-import SelectionDisplay from './SelectionDisplay';
-import TicketDisplay from './TicketDisplay';
+import Accordion from './Accordion';
+import SelectionTile from './SelectionTile';
+import TicketTile from './TicketTile';
+import Toggle from './Toggle';
 
-const easeTime = 500;
+const easeTime = 300;
 
 const ViewTicketDiv = styled.div`
   position: absolute;
@@ -30,6 +32,7 @@ const ViewTicketDiv = styled.div`
 const Content = styled.div`
   display: flex;
   flex-direction: column;
+  width: 100%;
   align-items: center;
   gap: 10px;
   padding: 15px;
@@ -51,21 +54,10 @@ const Title = styled.div`
   font-weight: 500;
 `;
 
-const Selections = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 100%;
-`;
-
 const RemoveButton = styled(Button)`
   background: var(--red);
   padding: 10px 20px;
-`;
-
-const ArchiveButton = styled(Button)`
-  background: var(--blue);
-  padding: 10px 20px;
+  margin-top: 30px;
 `;
 
 const RedeemButton = styled(Button)`
@@ -74,7 +66,7 @@ const RedeemButton = styled(Button)`
 `;
 
 const ButtonRow = styled.div`
-  margin-top: 50px;
+  margin-top: 30px;
   display: flex;
   flex-direction: row;
   width: 100%;
@@ -82,10 +74,23 @@ const ButtonRow = styled.div`
   gap: 15px;
 `;
 
-const FooterRow = styled.div`
-  margin-bottom: 50px;
-  color: #666;
-  max-width: 75%;
+const ArchiveRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 50px;
+  max-width: 60%;
+  span {
+    color: #666;
+  }
+`;
+
+const ToggleRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-self: center;
+  align-items: center;
 `;
 
 const BackButton = styled(Button)`
@@ -101,7 +106,7 @@ function ViewTicketModal() {
   const setViewingBarcode = useUIState(state => state.setViewingBarcode);
   const removeTicket = useTicketState(state => state.removeTicket);
   const archiveTicket = useTicketState(state => state.archiveTicket);
-  const updateTicket = useTicketState(state => state.updateTicket);
+  const refreshTicket = useTicketState(state => state.refreshTicket);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -135,21 +140,26 @@ function ViewTicketModal() {
   const onArchiveTicket = () => {
     if (!viewingTicket) return;
     archiveTicket(viewingTicket.ticketNumber, !viewingTicket.archived);
-    setViewingTicket(undefined);
   };
 
   if (!viewingTicket) return <ViewTicketDiv />;
-
-  const selections = viewingTicket.ticketResult?.Selections ?? [];
+  
+  const selections = viewingTicket.ticketResult?.Selections || [];
+  const isPending = viewingTicket.ticketResult === undefined;
+  const pastSelections = selections.filter((selection) => selection.calculated.TimePeriod === TimePeriod.Past);
+  const currentSelections = selections.filter((selection) => selection.calculated.TimePeriod === TimePeriod.Current);
+  const futureSelections = selections.filter((selection) => selection.calculated.TimePeriod === TimePeriod.Future);
+  
   const firstSelection = selections[0];
   const title = selections.length > 1 ? `${selections.length} Pick Parlay` : firstSelection?.EventName ?? "Loading...";
   const odds = viewingTicket.ticketResult?.TotalOdds;
-  const archiveLabel = viewingTicket.archived ? "Unarchive" : "Archive";
   const className = viewingTicket.refreshing ? "scrolling-gradient" : "";
+  const getSelectionDisplay = (selection: SelectionResult, i: number) => <SelectionTile selection={selection} key={i} className={className}/>
+
 
   const handleRefresh = async () => {
     console.log("refreshed");
-    fetchUpdatedTicket(viewingTicket.ticketNumber);
+    refreshTicket(viewingTicket);
   };
 
   return (
@@ -161,23 +171,45 @@ function ViewTicketModal() {
       </TopBar>
       <PullToRefresh onRefresh={handleRefresh}>
         <Content>
-          <TicketDisplay ticket={viewingTicket} hideArrow={true} />
+          <TicketTile ticket={viewingTicket} hideArrow={true} />
 
           <Title className={className}>{title} {odds}</Title>
-          <Selections>
-            {viewingTicket.ticketResult?.Selections.map((selection, i) => (
-              <SelectionDisplay key={i} selection={selection} className={className} />
-            )) ?? 'Loading...'}
-          </Selections>
           
+          {/* Past */}
+          <Accordion
+            className={className}
+            dontDrawEmpty={true}
+            label={`Past (${pastSelections.length})`}>
+              {pastSelections.map(getSelectionDisplay)}
+          </Accordion>
+
+          {/* Current */}
+          <Accordion
+            dontDrawEmpty={true}
+            label={`Current (${currentSelections.length})`}>
+              {currentSelections.map(getSelectionDisplay)}
+          </Accordion>
+
+          {/* Future */}
+          <Accordion
+            dontDrawEmpty={true}
+            label={`Future (${futureSelections.length})`}>
+              {futureSelections.map(getSelectionDisplay)}
+          </Accordion>
+
+          {isPending && 'Loading...'}
+          
+          <ArchiveRow>
+            <ToggleRow>
+              <div onClick={onArchiveTicket}>Archive Ticket</div>
+              <Toggle checked={viewingTicket.archived ?? false} onChecked={onArchiveTicket} />
+            </ToggleRow>
+            <span>Archiving tickets will remove them from the main screen but keep them for stats.</span>
+          </ArchiveRow>
           <ButtonRow>
-            <RemoveButton onClick={deleteTicket}>Delete Ticket</RemoveButton>
-            <ArchiveButton onClick={onArchiveTicket}>{archiveLabel} Ticket</ArchiveButton>
-            <RedeemButton onClick={redeemTicket}>Redeem Ticket</RedeemButton>
+            <RedeemButton onClick={redeemTicket}>View Barcode</RedeemButton>
           </ButtonRow>
-          <FooterRow>
-            Archiving tickets will remove them from the main screen but keep them for stats.
-          </FooterRow>
+          <RemoveButton onClick={deleteTicket}>Delete Ticket</RemoveButton>
         </Content>
       </PullToRefresh>
     </ViewTicketDiv>

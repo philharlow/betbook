@@ -4,13 +4,18 @@ import styled from 'styled-components/macro';
 import { useUIState } from '../store/uiStore';
 
 const MenuPopupDiv = styled.div`
-  background: #0007;
+  background-color: unset;
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 0%;
   height: 100%;
   z-index: 10;
+  transition: background-color 0.3s ease;
+  &.open {
+    width: 100%;
+    background-color: #0007;
+  }
 `;
 
 const MenuDiv = styled.div`
@@ -20,6 +25,11 @@ const MenuDiv = styled.div`
   padding: 15px;
   width: fit-content;
   gap: 10px;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  &.open {
+    transform: unset;
+  }
 `;
 
 const MenuOption = styled.div`
@@ -52,13 +62,13 @@ function MenuPopup() {
     navigate("/stats");
   };
 
-  if (!menuOpen) return null;
+  const className = menuOpen ? "open" : "";
   return (
-    <MenuPopupDiv onClick={() => setMenuOpen(false)}>
-        <MenuDiv>
-        <MenuOption onClick={onHome}>My Bets</MenuOption>
-        <MenuOption onClick={onStats}>Stats</MenuOption>
-        <MenuOption onClick={onSettings}>Settings</MenuOption>
+    <MenuPopupDiv className={className} onClick={() => setMenuOpen(false)}>
+        <MenuDiv className={className}>
+          <MenuOption onClick={onHome}>My Bets</MenuOption>
+          <MenuOption onClick={onStats}>Stats</MenuOption>
+          <MenuOption onClick={onSettings}>Settings</MenuOption>
         </MenuDiv>
     </MenuPopupDiv>
   );

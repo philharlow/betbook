@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import { getStatusColor, TicketRecord } from '../store/ticketStore';
 
-const TicketDisplayDiv = styled.div`
+const TicketTileDiv = styled.div`
   width: 100%;
   background: var(--grey);
   padding: 15px;
@@ -79,19 +79,19 @@ interface Props {
   hideArrow?: boolean;
 }
 
-function TicketDisplay({ticket, hideArrow} : Props) {
+function TicketTile({ticket, hideArrow} : Props) {
   const navigate = useNavigate();
   const className = ticket.refreshing ? "scrolling-gradient" : "";
 
   return (
-    <TicketDisplayDiv onClick={() => navigate("/" + ticket.ticketNumber)}>
+    <TicketTileDiv onClick={() => navigate("/" + ticket.ticketNumber)}>
       {!hideArrow && <ClickArrow>&gt;</ClickArrow>}
       <ResultRow style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={className}>
         {ticket.status}
       </ResultRow>
       {ticket.ticketResult === undefined && <Title>Loading...</Title>}
 
-      <Title className={ticket.archived ? "archived " : "" + className}>
+      <Title className={(ticket.archived ? "archived " : "") + className}>
         {ticket.ticketResult?.calculated.Title}{ticket.archived ? " (Archived)" : ""}
       </Title>
       <SubTitle className={className}>
@@ -122,8 +122,8 @@ function TicketDisplay({ticket, hideArrow} : Props) {
       <CellContent className={className}>
         <TimeLabel>{ticket.ticketResult?.calculated.EventDate.toLocaleString()}</TimeLabel>
       </CellContent>
-    </TicketDisplayDiv>
+    </TicketTileDiv>
   );
 }
 
-export default TicketDisplay;
+export default TicketTile;

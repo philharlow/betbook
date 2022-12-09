@@ -24,7 +24,7 @@ const Arrow = styled.div`
   font-size: 14px;
   color: #777;
   transform: rotate(-90deg);
-  transition: transform 0.2s linear;
+  transition: transform 0.3s linear;
   &.open {
     transform: rotate(90deg);
   }
@@ -43,12 +43,13 @@ const Content = styled.div`
 
 interface Props {
   label: string,
+  className?: string;
   startOpen?: boolean,
   children?: JSX.Element | JSX.Element[];
   dontDrawEmpty?: boolean;
 }
 
-function Accordion({ label, startOpen, children, dontDrawEmpty: dontDrawIfNoChildren } : Props) {
+function Accordion({ label, className, startOpen, children, dontDrawEmpty: dontDrawIfNoChildren } : Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(startOpen ?? true);
 
@@ -65,7 +66,7 @@ function Accordion({ label, startOpen, children, dontDrawEmpty: dontDrawIfNoChil
   }
 
   return (
-    <AccordionDiv>
+    <AccordionDiv className={className}>
       <Title onClick={() => setIsOpen(!isOpen)}>
         <TitleLabel>{label}</TitleLabel>
         <Arrow className={isOpen ? "open" : ""}>&gt;</Arrow>

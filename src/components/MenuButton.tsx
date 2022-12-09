@@ -2,7 +2,9 @@ import React from 'react';
 import styled from 'styled-components/macro';
 import { useUIState } from '../store/uiStore';
 
-const MenuButtonDiv = styled.div`
+const MenuButtonDiv = styled.button`
+  background: unset;
+  border: unset;
   padding: 3px;
 `;
 

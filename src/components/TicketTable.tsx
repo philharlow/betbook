@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components/macro';
-import {  fetchUpdatedTicket, isSettled, TicketRecord, TicketStatus, TimePeriod, useTicketState } from '../store/ticketStore';
+import {  isSettled, TicketRecord, TicketStatus, TimePeriod, useTicketState } from '../store/ticketStore';
 import { FilterLevel, useUIState } from '../store/uiStore';
 import Accordion from './Accordion';
-import TicketDisplay from './TicketDisplay';
+import TicketTile from './TicketTile';
 import PullToRefresh from 'react-simple-pull-to-refresh';
+import Toggle from './Toggle';
 
 const TableDiv = styled.div`
   width: 100%;
@@ -37,6 +38,18 @@ const Disclaimer = styled.div`
   font-size: 14px;
   color: #666;
   justify-content: end;
+  a {
+    text-decoration: underline;
+  }
+`;
+
+const Footer = styled.div`
+  justify-content: center;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  padding: 25px 0;
 `;
 
 const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTickets: boolean) => {
@@ -50,32 +63,32 @@ const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTi
 
 function TicketTable() {
   const tickets = useTicketState(state => state.tickets);
-  const setTickets = useTicketState(state => state.setTickets);
+  const refreshTickets = useTicketState(state => state.refreshTickets);
   const filterLevel = useUIState(state => state.filterLevel);
   const showArchivedTickets = useUIState(state => state.showArchivedTickets);
-  const [hasTickets, setHasTickets] = useState(false);
-  const [pendingTickets, setPendingTickets] = useState<TicketRecord[]>([]);
-  const [pastTickets, setPastTickets] = useState<TicketRecord[]>([]);
-  const [currentTickets, setCurrentTickets] = useState<TicketRecord[]>([]);
-  const [futureTickets, setFutureTickets] = useState<TicketRecord[]>([]);
+  const setShowArchivedTickets = useUIState(state => state.setShowArchivedTickets);
 
+  const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel, showArchivedTickets));
+  const pendingTickets = filteredTickets.filter((ticket) => ticket.ticketResult === undefined);
+  const pastTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Past);
+  const currentTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current);
+  const futureTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Future);
+  const hasTickets = filteredTickets.length > 0;
+
+  // Scroll to current
   useEffect(() => {
-    const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel, showArchivedTickets));
-    setPendingTickets(filteredTickets.filter((ticket) => ticket.ticketResult === undefined));
-    setPastTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Past));
-    setCurrentTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current));
-    setFutureTickets(filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Future));
-    setHasTickets(filteredTickets.length > 0);
-  }, [tickets, filterLevel, showArchivedTickets])
+    const current = document.querySelector(".current");
+    current?.scrollIntoView( { behavior: 'smooth', block: 'start' } );
+    console.log("current", current);
+  }, []);
 
   // TODO remove hard coded time periods
 
-  const getTicketDisplay = (ticket: TicketRecord) => <TicketDisplay ticket={ticket} key={ticket.ticketNumber} />
+  const getTicketDisplay = (ticket: TicketRecord) => <TicketTile ticket={ticket} key={ticket.ticketNumber} />
 
   const handleRefresh = async () => {
     console.log("refreshed");
-    tickets.forEach((ticket) => !isSettled(ticket.status) && fetchUpdatedTicket(ticket.ticketNumber));
-    setTickets([...tickets]);
+    refreshTickets((ticket) => !isSettled(ticket.status));
   };
 
   return (
@@ -98,6 +111,7 @@ function TicketTable() {
 
           {/* Current */}
           <Accordion
+            className="current"
             dontDrawEmpty={true}
             label={`Current (${currentTickets.length})`}>
               {currentTickets.map(getTicketDisplay)}
@@ -105,6 +119,7 @@ function TicketTable() {
 
           {/* Future */}
           <Accordion
+            className="future"
             dontDrawEmpty={true}
             label={`Future (${futureTickets.length})`}>
               {futureTickets.map(getTicketDisplay)}
@@ -112,17 +127,21 @@ function TicketTable() {
 
           {/* No tickets */}
           {!hasTickets &&
-            <>
-              <AddTicketsMessage>
-                <div>No {filterLevel === FilterLevel.All ? "" : filterLevel.toLowerCase()} tickets found</div>
-                {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
-              </AddTicketsMessage>
-              {filterLevel === FilterLevel.All && <Disclaimer>
-                All data is stored securely on your device.
-                <br/>
-                <a href="https://github.com/philharlow/betbook">Open source: https://github.com/philharlow/betbook</a>
-              </Disclaimer>}
-            </>
+            <AddTicketsMessage>
+              <div>No {filterLevel === FilterLevel.All ? "" : filterLevel.toLowerCase()} tickets found</div>
+              {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
+            </AddTicketsMessage>
+          }
+          <Footer>
+            <Toggle checked={showArchivedTickets} onChecked={(checked) => setShowArchivedTickets(checked)} />
+            Show Archived tickets
+          </Footer>
+          {!hasTickets && filterLevel === FilterLevel.All &&
+            <Disclaimer>
+              All data is stored securely on your device.
+              <br/>
+              Open source: <a href="https://github.com/philharlow/betbook">github.com/philharlow/betbook</a>
+            </Disclaimer>
           }
         </Content>
       </PullToRefresh>

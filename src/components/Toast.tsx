@@ -14,7 +14,7 @@ const ToastDiv = styled.div`
   color: #fff;
   border-radius: 30px;
   opacity: 0;
-  transition: opacity 0.5s linear;
+  transition: opacity 0.3s linear;
   pointer-events: none;
   z-index: 1000000;
 `;

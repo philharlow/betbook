@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import { Button } from '../styles/GlobalStyles';
 
-const easeTime = 500;
+const easeTime = 300;
 
 const ViewTicketDiv = styled.div`
   position: absolute;

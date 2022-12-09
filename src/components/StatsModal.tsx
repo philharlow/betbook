@@ -6,7 +6,7 @@ import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import Accordion from './Accordion';
 import MenuButton from './MenuButton';
-import TicketDisplay from './TicketDisplay';
+import TicketTile from './TicketTile';
 
 const StatsModalDiv = styled.div`
   position: absolute;
@@ -49,12 +49,17 @@ const Stat = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 15px;
+  padding: 10px 15px;
+  height: 70px;
+  max-width: 100px;
+  justify-content: space-between;
 `;
 
 const StatLabel = styled.div`
   font-size: 12px;
+  display: flex;
+  flex: 1;
+  align-items: center;
 `;
 
 const StatValue = styled.div`
@@ -178,7 +183,7 @@ function StatsModal() {
             key={label}
             label={label}
             >
-              {ticket && <TicketDisplay ticket={ticket} />}
+              {ticket && <TicketTile ticket={ticket} />}
           </Accordion>
         )}
       </Content>
