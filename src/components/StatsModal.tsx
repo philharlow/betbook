@@ -51,7 +51,7 @@ const Stat = styled.div`
   align-items: center;
   padding: 10px 15px;
   height: 70px;
-  max-width: 100px;
+  max-width: 120px;
   justify-content: space-between;
 `;
 
@@ -84,6 +84,7 @@ const CloseButton = styled(Button)`
 
 const dollarUSLocale = Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const toCurrencyFormat = (val: number) => "$" + dollarUSLocale.format(val);
+export const toPercentFormat = (val: number) => `${parseFloat((val * 100).toFixed(2))}%`;
 
 function StatsModal() {
   const navigate = useNavigate();
@@ -107,12 +108,13 @@ function StatsModal() {
   const losingTickets = tickets.filter((t) => t.status === TicketStatus.Lost);
   const drawingTickets = tickets.filter((t) => t.status === TicketStatus.Draw);
   const openTickets = tickets.filter((t) => t.status === TicketStatus.Opened);
-  const totalWagered = tickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.TicketCost ?? "0"), 0);
-  const totalLost = losingTickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.TicketCost ?? "0"), 0);
-  const totalWon = winningTickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.ToPay ?? "0"), 0);
-  const totalDrawn = drawingTickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.ToPay ?? "0"), 0);
+  const totalWagered = tickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
+  const totalLost = losingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
+  const totalWon = winningTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
+  const totalDrawn = drawingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
   const totalReceived = totalWon + totalDrawn;
-  const maxRemainingWin = tickets.reduce((acc, t) => acc + parseFloat(t.ticketResult?.ToPay ?? "0"), 0) - totalReceived;
+  const maxWin = tickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0) ;
+  const maxRemainingWin = maxWin - totalReceived;
 
   const getStatDiv = (label: string, value: any) => {
     return (
@@ -131,18 +133,19 @@ function StatsModal() {
       ["Tickets Open",  openTickets.length],
     ],[
       ["Total Wagered", toCurrencyFormat(totalWagered)],
+      ["Total Received", toCurrencyFormat(totalReceived)],
       ["Total Won", toCurrencyFormat(totalWon)],
       ["Total Lost", toCurrencyFormat(totalLost)],
       ["Total Drawn", toCurrencyFormat(totalDrawn)],
     ],
     [
       ["Current profit/loss", toCurrencyFormat(totalReceived - totalWagered)],
-      ["Current profit/loss %", `${parseFloat((((totalReceived / totalWagered) - 1) * 100).toFixed(2))}%`],
+      ["Current profit/loss %", `${toPercentFormat((totalReceived / totalWagered) - 1)}`],
     ],
     [
       ["Max potential win", toCurrencyFormat(maxRemainingWin)],
       ["Max profit/loss", toCurrencyFormat((maxRemainingWin + totalReceived) - totalWagered)],
-      ["Max profit/loss %", `${parseFloat(((((maxRemainingWin + totalReceived) / totalWagered) - 1) * 100).toFixed(2))}%`],
+      ["Max profit/loss %", `${toPercentFormat(((maxRemainingWin + totalReceived) / totalWagered) - 1)}`],
     ],
     [
       ["Archived Tickets", tickets.filter((t) => t.archived).length],
@@ -157,8 +160,8 @@ function StatsModal() {
     if (ticket.ticketResult.calculated.TotalOdds > (bestOddsWin.ticketResult?.calculated.TotalOdds ?? 0)) bestOddsWin = ticket;
     if (ticket.ticketResult.calculated.ToPay > (bestPayWin.ticketResult?.calculated.ToPay ?? 0)) bestPayWin = ticket;
   }
-  ticketsToShow.push(["Best Odds Win", bestOddsWin]);
-  ticketsToShow.push(["Best Pay Win", bestPayWin]);
+  if (bestOddsWin) ticketsToShow.push(["Best Odds Win", bestOddsWin]);
+  if (bestPayWin) ticketsToShow.push(["Best Pay Win", bestPayWin]);
 
 
   return (

@@ -5,7 +5,6 @@ import { FilterLevel, useUIState } from '../store/uiStore';
 import Accordion from './Accordion';
 import TicketTile from './TicketTile';
 import PullToRefresh from 'react-simple-pull-to-refresh';
-import Toggle from './Toggle';
 
 const TableDiv = styled.div`
   width: 100%;
@@ -43,15 +42,6 @@ const Disclaimer = styled.div`
   }
 `;
 
-const Footer = styled.div`
-  justify-content: center;
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  align-items: center;
-  padding: 25px 0;
-`;
-
 const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTickets: boolean) => {
   if (ticket.archived && !showArchivedTickets) return false;
   if (filter === FilterLevel.Open) return ticket.status === TicketStatus.Opened;
@@ -66,7 +56,6 @@ function TicketTable() {
   const refreshTickets = useTicketState(state => state.refreshTickets);
   const filterLevel = useUIState(state => state.filterLevel);
   const showArchivedTickets = useUIState(state => state.showArchivedTickets);
-  const setShowArchivedTickets = useUIState(state => state.setShowArchivedTickets);
 
   const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel, showArchivedTickets));
   const pendingTickets = filteredTickets.filter((ticket) => ticket.ticketResult === undefined);
@@ -79,7 +68,6 @@ function TicketTable() {
   useEffect(() => {
     const current = document.querySelector(".current");
     current?.scrollIntoView( { behavior: 'smooth', block: 'start' } );
-    console.log("current", current);
   }, []);
 
   // TODO remove hard coded time periods
@@ -132,10 +120,6 @@ function TicketTable() {
               {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
             </AddTicketsMessage>
           }
-          <Footer>
-            <Toggle checked={showArchivedTickets} onChecked={(checked) => setShowArchivedTickets(checked)} />
-            Show Archived tickets
-          </Footer>
           {!hasTickets && filterLevel === FilterLevel.All &&
             <Disclaimer>
               All data is stored securely on your device.

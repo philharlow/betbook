@@ -125,7 +125,7 @@ function AddTicketModal() {
       } else {
         const ticket: TicketRecord = {
           ticketNumber,
-          sportsbook: "draftkings",
+          sportsbook: "DraftKings",
           status: TicketStatus.Unknown,
           refreshing: true,
         };

@@ -92,7 +92,7 @@ function TicketTile({ticket, hideArrow} : Props) {
       {ticket.ticketResult === undefined && <Title>Loading...</Title>}
 
       <Title className={(ticket.archived ? "archived " : "") + className}>
-        {ticket.ticketResult?.calculated.Title}{ticket.archived ? " (Archived)" : ""}
+        {ticket.ticketResult?.calculated.Title}
       </Title>
       <SubTitle className={className}>
         {ticket.ticketResult?.calculated.SubTitle}

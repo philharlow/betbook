@@ -4,6 +4,7 @@ import { useToastState } from "./store/toastStore";
 // cors-anywhere router to get around api's cors restrictions
 // https://github.com/Rob--W/cors-anywhere
 const corsRouter = process.env.REACT_APP_CORS_ROUTER;
+// Draftkings ticket api endpoint
 const ticketDetailsEndpoint = "https://cashier-dkuswaretail-ticket-details.sbtech.com/async/ticketdetails.ashx/GetPublicTicket";
 const request: RequestInit = { headers: { "requesttarget": "AJAXService" } };
 
@@ -24,7 +25,7 @@ const parseTicket = (ticketNumber: string, ticketResult: TicketResult) => {
 
 		const ticket: TicketRecord = {
 			ticketNumber,
-			sportsbook: "draftkings",
+			sportsbook: "DraftKings", // TODO
 			status: getStatus(ticketResult),
 			ticketResult,
 			refreshing: false,

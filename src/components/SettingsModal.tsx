@@ -77,7 +77,7 @@ function SettingsModal() {
     newTicketNumbers.forEach((ticketNumber) => {
       const ticket: TicketRecord = {
         ticketNumber,
-        sportsbook: "draftkings",
+        sportsbook: "DraftKings",
         status: TicketStatus.Unknown,
         refreshing: true,
       };

@@ -180,8 +180,9 @@ const getTicketsFromStorage = () => {
 	
 	// Fetch updates
 	setTimeout(() => tickets.forEach((ticket) => {
-		// Only update unsettled bets
-		if (!isSettled(ticket.status)) fetchUpdatedTicket(ticket.ticketNumber);
+		// Only update current bets
+		if (ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current)
+			fetchUpdatedTicket(ticket.ticketNumber);
 	}), 1);
 
 	return tickets;

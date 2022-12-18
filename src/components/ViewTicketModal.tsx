@@ -52,12 +52,14 @@ const TopBar = styled.div`
 const Title = styled.div`
   font-size: 18px;
   font-weight: 500;
+  padding: 7px 0;
 `;
 
 const RemoveButton = styled(Button)`
   background: var(--red);
   padding: 10px 20px;
   margin-top: 30px;
+  margin-bottom: 30px;
 `;
 
 const RedeemButton = styled(Button)`
@@ -80,9 +82,6 @@ const ArchiveRow = styled.div`
   gap: 5px;
   margin-top: 50px;
   max-width: 60%;
-  span {
-    color: #666;
-  }
 `;
 
 const ToggleRow = styled.div`
@@ -166,7 +165,7 @@ function ViewTicketModal() {
     <ViewTicketDiv className={open ? "open" : ""}>
       <TopBar>
         <BackButton onClick={closeModal}>&lt;</BackButton>
-        Ticket number {viewingTicket.ticketNumber}
+        DraftKings Ticket
         <span />
       </TopBar>
       <PullToRefresh onRefresh={handleRefresh}>
@@ -204,12 +203,13 @@ function ViewTicketModal() {
               <div onClick={onArchiveTicket}>Archive Ticket</div>
               <Toggle checked={viewingTicket.archived ?? false} onChecked={onArchiveTicket} />
             </ToggleRow>
-            <span>Archiving tickets will remove them from the main screen but keep them for stats.</span>
           </ArchiveRow>
           <ButtonRow>
             <RedeemButton onClick={redeemTicket}>View Barcode</RedeemButton>
           </ButtonRow>
           <RemoveButton onClick={deleteTicket}>Delete Ticket</RemoveButton>
+          
+          Ticket # {viewingTicket.ticketNumber}
         </Content>
       </PullToRefresh>
     </ViewTicketDiv>
