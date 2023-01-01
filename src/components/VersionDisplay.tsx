@@ -4,7 +4,7 @@ import pjson from "../../package.json";
 
 const VersionDiv = styled.div`
   position: absolute;
-  right: 25px;
+  right: 35px;
   bottom: 0;
   z-index: 100;
   color: #666;
