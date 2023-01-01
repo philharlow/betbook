@@ -77,10 +77,6 @@ const AddTicketButton = styled(Button)`
   font-size: 20px;
 `;
 
-const NumberInput = styled.input`
-  font-size: 20px;
-  border-radius: 10px;
-`;
 
 let listening = false;
 let found: string[] = [];
@@ -88,38 +84,21 @@ let qrScanner: QrScanner | undefined;
 
 function AddTicketModal() {
   const addTicketModalOpen = useUIState(state => state.addTicketModalOpen);
+  const setManuallyAddTicketModalOpen = useUIState(state => state.setManuallyAddTicketModalOpen);
   const tickets = useTicketState(state => state.tickets);
   const toggleAddTicketModalOpen = useUIState(state => state.toggleAddTicketModalOpen);
   const videoRef = useRef<HTMLVideoElement>(null);
   const updateTicket = useTicketState(state => state.updateTicket);
   const showToast = useToastState(state => state.showToast);
-  const [value, setValue] = useState('');
   const [isSecure, setIsSecure] = useState(false);
 
-  const handleChange = (e: any) => {
-    const val = e.target.value;
-    setValue(val);
-  };
-
   const closeModal = useCallback(() => {
-    found = [];
-    listening = false;
-    if (qrScanner) {
-      qrScanner.stop();
-      qrScanner.destroy();
-      qrScanner = undefined;
-      console.log('qrScanner.stop');
-    }
-    if (addTicketModalOpen) {
-      setValue('');
-      toggleAddTicketModalOpen();
-    }
+    if (addTicketModalOpen) toggleAddTicketModalOpen();
   }, [addTicketModalOpen, toggleAddTicketModalOpen]);
 
   const addTicket = useCallback((ticketNumber: string) => {
     const asNumber = parseInt(ticketNumber);
     if (asNumber && !isNaN(asNumber)) {
-      setValue(ticketNumber);
       if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
         showToast("Ticket already added");
       } else {
@@ -138,9 +117,9 @@ function AddTicketModal() {
     }
   }, [updateTicket, tickets, showToast]);
 
-  const onAddTicket = (ticketNumber: string) => {
-    addTicket(ticketNumber);
-    closeModal();
+  const onManuallyAddTicket = () => {
+    setManuallyAddTicketModalOpen(true);
+    toggleAddTicketModalOpen();
   };
 
   useEffect(() => {
@@ -171,6 +150,18 @@ function AddTicketModal() {
         listening = true;
       }
     }, 100);
+    
+    return () => {
+      found = [];
+      listening = false;
+      console.log("cleanup");
+      if (qrScanner) {
+        qrScanner.stop();
+        qrScanner.destroy();
+        qrScanner = undefined;
+        console.log('qrScanner.stop');
+      }
+    }
   }, [videoRef, addTicketModalOpen, addTicket]);
   // HACK to include addTicketModalOpen and settimeout. videoRef should be sufficient
 
@@ -188,8 +179,7 @@ function AddTicketModal() {
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
       <TicketEntry>
-        <NumberInput value={value} placeholder="Enter ticket number" onChange={handleChange} type='text' />
-        <AddTicketButton disabled={value.length === 0} onClick={() => onAddTicket(value)}>Add Ticket</AddTicketButton>
+        <AddTicketButton onClick={() => onManuallyAddTicket()}>Manually Add Ticket</AddTicketButton>
       </TicketEntry>
       or scan QR code
       <VideoContainer>

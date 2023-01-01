@@ -25,7 +25,6 @@ const BarcodeDiv = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
   padding: 15px;
 `;
 
@@ -34,8 +33,18 @@ const BigBarcode = styled(Barcode)`
   height: 80vw;
   margin-top: -10vw;
 `;
+
+const SportsBook = styled.div`
+  color: #333;
+`;
+
 const CloseMessage = styled.div`
   color: #333;
+  padding-bottom: 10px;
+`;
+
+const Flex = styled.div`
+  flex: 1;
 `;
 
 
@@ -47,7 +56,9 @@ function BarcodePopup() {
   return (
     <BarcodePopupDiv onClick={() => setViewingBarcode(undefined)}>
       <BarcodeDiv>
-        <BigBarcode value={viewingBarcode} options={{ format: 'ean13', flat: true }} />
+        <SportsBook>{viewingBarcode.ticketResult?.BetShopName}</SportsBook>
+        <BigBarcode value={viewingBarcode.ticketNumber} options={{ format: 'ean13', flat: true }} />
+        <Flex />
         <CloseMessage>Tap anywhere to close</CloseMessage>
       </BarcodeDiv>
     </BarcodePopupDiv>

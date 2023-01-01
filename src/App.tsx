@@ -13,6 +13,7 @@ import { HashRouter, Route, Routes } from 'react-router-dom';
 import BarcodePopup from './components/BarcodePopup';
 import MenuPopup from './components/MenuPopup';
 import SettingsModal from './components/SettingsModal';
+import ManuallyAddTicketModal from './components/ManuallyAddTicketModal';
 
 const AppDiv = styled.div`
   height: 100vh;
@@ -37,6 +38,7 @@ const App = () => {
         <FilterBar />
         <TicketTable />
         <AddTicketModal />
+        <ManuallyAddTicketModal />
         <MenuPopup />
         <BarcodePopup />
         <Toast />

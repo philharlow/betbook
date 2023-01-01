@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
-import { TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
+import { isSettled, TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import Accordion from './Accordion';
@@ -28,13 +28,7 @@ const Content = styled.div`
   gap: 20px;
 `;
 
-const Stats = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0px;
-`;
-
-const StatGroup = styled.div`
+const StatGroupDiv = styled.div`
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -50,15 +44,14 @@ const Stat = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 10px 15px;
-  height: 70px;
+  height: 80px;
   max-width: 120px;
-  justify-content: space-between;
+  justify-content: space-around;
 `;
 
 const StatLabel = styled.div`
   font-size: 12px;
   display: flex;
-  flex: 1;
   align-items: center;
 `;
 
@@ -80,6 +73,11 @@ const TopBar = styled.div`
 const CloseButton = styled(Button)`
   padding: 10px 14px;
 `;
+
+interface StatGroup {
+  name: string;
+  stats: [string, any][];
+}
 
 
 const dollarUSLocale = Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -108,7 +106,9 @@ function StatsModal() {
   const losingTickets = tickets.filter((t) => t.status === TicketStatus.Lost);
   const drawingTickets = tickets.filter((t) => t.status === TicketStatus.Draw);
   const openTickets = tickets.filter((t) => t.status === TicketStatus.Opened);
-  const totalWagered = tickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
+  const settledTickets = tickets.filter((t) => isSettled(t.status));
+  const totalOpen = openTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
+  const totalWagered = settledTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
   const totalLost = losingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
   const totalWon = winningTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
   const totalDrawn = drawingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
@@ -124,32 +124,49 @@ function StatsModal() {
     </Stat>);
   }
 
-  const statGroups: [string, any][][] = [
-    [
-      ["Total Tickets", tickets.length],
-      ["Tickets Won",  winningTickets.length],
-      ["Tickets Lost",  losingTickets.length],
-      ["Tickets Drawn",  drawingTickets.length],
-      ["Tickets Open",  openTickets.length],
-    ],[
-      ["Total Wagered", toCurrencyFormat(totalWagered)],
-      ["Total Received", toCurrencyFormat(totalReceived)],
-      ["Total Won", toCurrencyFormat(totalWon)],
-      ["Total Lost", toCurrencyFormat(totalLost)],
-      ["Total Drawn", toCurrencyFormat(totalDrawn)],
-    ],
-    [
-      ["Current profit/loss", toCurrencyFormat(totalReceived - totalWagered)],
-      ["Current profit/loss %", `${toPercentFormat((totalReceived / totalWagered) - 1)}`],
-    ],
-    [
-      ["Max potential win", toCurrencyFormat(maxRemainingWin)],
-      ["Max profit/loss", toCurrencyFormat((maxRemainingWin + totalReceived) - totalWagered)],
-      ["Max profit/loss %", `${toPercentFormat(((maxRemainingWin + totalReceived) / totalWagered) - 1)}`],
-    ],
-    [
-      ["Archived Tickets", tickets.filter((t) => t.archived).length],
-    ],
+  const statGroups: StatGroup[] = [
+    {
+      name: "Ticket Totals",
+      stats: [
+        ["Total Tickets", tickets.length],
+        ["Winning Tickets",  winningTickets.length],
+        ["Losing Tickets",  losingTickets.length],
+        ["Drawing Tickets",  drawingTickets.length],
+        ["Open Tickets",  openTickets.length],
+      ],
+    },
+    {
+      name: "$ Totals",
+      stats: [
+        ["Total Open", toCurrencyFormat(totalOpen)],
+        ["Total Wagered", toCurrencyFormat(totalWagered)],
+        ["Total Received", toCurrencyFormat(totalReceived)],
+        ["Total Won", toCurrencyFormat(totalWon)],
+        ["Total Lost", toCurrencyFormat(totalLost)],
+        ["Total Drawn", toCurrencyFormat(totalDrawn)],
+      ],
+    },
+    {
+      name: "Current profit/loss",
+      stats: [
+        ["Current profit/loss", toCurrencyFormat(totalReceived - totalWagered)],
+        ["Current profit/loss %", `${toPercentFormat((totalReceived / totalWagered) - 1)}`],
+      ],
+    },
+    {
+      name: "Maximum",
+      stats: [
+        ["Max potential win", toCurrencyFormat(maxRemainingWin)],
+        ["Max profit/loss", toCurrencyFormat((maxRemainingWin + totalReceived) - totalWagered)],
+        ["Max profit/loss %", `${toPercentFormat(((maxRemainingWin + totalReceived) / totalWagered) - 1)}`],
+      ],
+    },
+    {
+      name: "Archived",
+      stats: [
+        ["Archived Tickets", tickets.filter((t) => t.archived).length],
+      ],
+    },
   ];
 
   const ticketsToShow: [string, TicketRecord][] = [];
@@ -172,15 +189,13 @@ function StatsModal() {
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
       <Content>
-        <Accordion label="Stats" >
-          <Stats>
-            {statGroups.map((stats, i) =>
-              <StatGroup key={i}>
-                {stats.map((stat) => getStatDiv(stat[0], stat[1]))}
-              </StatGroup>
-            )}
-          </Stats>
-        </Accordion>
+        {statGroups.map((statGroup, i) =>
+          <Accordion label={statGroup.name} key={i} >
+            <StatGroupDiv>
+              {statGroup.stats.map((stat) => getStatDiv(stat[0], stat[1]))}
+            </StatGroupDiv>
+          </Accordion>
+        )}
         {ticketsToShow.map(([label, ticket]) =>
           <Accordion
             key={label}

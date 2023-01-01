@@ -133,7 +133,7 @@ function ViewTicketModal() {
   
   const redeemTicket = () => {
     if (!viewingTicket) return;
-    setViewingBarcode(viewingTicket.ticketNumber);
+    setViewingBarcode(viewingTicket);
   };
   
   const onArchiveTicket = () => {
@@ -160,6 +160,9 @@ function ViewTicketModal() {
     console.log("refreshed");
     refreshTicket(viewingTicket);
   };
+
+  const expiresInMs = viewingTicket.ticketResult ? viewingTicket.ticketResult?.calculated.ExpireDate.getTime() - Date.now() : -1;
+  const expiresInDays = expiresInMs < 0 ? "" : `(${Math.floor(expiresInMs / 1000 / 60 / 60/ 24)} days)`;
 
   return (
     <ViewTicketDiv className={open ? "open" : ""}>
@@ -197,6 +200,9 @@ function ViewTicketModal() {
           </Accordion>
 
           {isPending && 'Loading...'}
+
+          Created: {viewingTicket.ticketResult?.calculated.CreatedDate.toLocaleString() ?? ""}<br />
+          Expires: {viewingTicket.ticketResult?.calculated.ExpireDate.toLocaleString() ?? ""} {expiresInDays}
           
           <ArchiveRow>
             <ToggleRow>
@@ -209,7 +215,7 @@ function ViewTicketModal() {
           </ButtonRow>
           <RemoveButton onClick={deleteTicket}>Delete Ticket</RemoveButton>
           
-          Ticket # {viewingTicket.ticketNumber}
+          {/* Ticket # {viewingTicket.ticketNumber}<br /> */}
         </Content>
       </PullToRefresh>
     </ViewTicketDiv>

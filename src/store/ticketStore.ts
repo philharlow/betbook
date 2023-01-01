@@ -29,16 +29,21 @@ export interface TicketRecord {
 	ticketNumber: string;
 	status: TicketStatus;
 	sportsbook: string;
-	archived?: boolean;
 	refreshing: boolean;
 	ticketResult?: TicketResult;
+	
+	archived?: boolean;
+	manuallyCreated?: boolean;
 }
 
 export interface TicketResult {
+	BetShopName: string;
 	TicketCost: string;
 	ToPay: string;
 	ToWin: string;
 	TotalOdds: string;
+	CreatedDate: string;
+	ExpireDate: string;
 	Selections: SelectionResult[];
 	Status: TicketStatus;
 
@@ -52,6 +57,9 @@ export interface TicketResult {
 		SubTitle: String;
 		EventDate: Date;
 		TimePeriod: TimePeriod;
+		CreatedDate: Date;
+		ExpireDate: Date;
+		ArchivedDate?: Date;
 	};
 }
 
@@ -137,7 +145,8 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 		ToPay: parseFloat(ticketResult.ToPay),
 		ToWin: parseFloat(ticketResult.ToWin),
 		TotalOdds: parseFloat(ticketResult.TotalOdds),
-		
+		CreatedDate: new Date(ticketResult.CreatedDate),
+		ExpireDate: new Date(ticketResult.ExpireDate),
 	};
 };
 
@@ -150,6 +159,19 @@ interface TicketState {
 	refreshTicket: (ticket: TicketRecord) => void;
 	refreshTickets: (filter?: (ticket: TicketRecord) => boolean) => void;
 }
+
+// Refresh current tickets on focusing the app
+let lastRefreshed = Date.now();
+window.addEventListener('focus', () => {
+	if (Date.now() - lastRefreshed > 60 * 1000) {
+		console.log("focused, refreshing");
+		lastRefreshed = Date.now();
+		// TODO force tickets to update their own timeperiod, then use that to update
+		useTicketState.getState().refreshTickets((ticket) => ticket.ticketResult ? getTimePeriod(ticket.ticketResult?.calculated.EventDate, ticket.status) === TimePeriod.Current : false);
+	} else
+		console.log("focused too soon", Date.now() - lastRefreshed);
+});
+
 
 export const fetchUpdatedTicket = async (ticketNumber: string) => {
 	const ticketState = useTicketState.getState();
@@ -168,6 +190,9 @@ export const fetchUpdatedTicket = async (ticketNumber: string) => {
 		useTicketState.getState().updateTicket(newTicket);
 	}
 };
+const sortTickets = (tickets: TicketRecord[]) => {
+	tickets.sort((a, b) => a.ticketResult && b.ticketResult ? a.ticketResult.calculated.EventDate.getTime() - b.ticketResult.calculated.EventDate.getTime() : 0);
+}
 
 const getTicketsFromStorage = () => {
 	const ticketsStr = localStorageGet(TICKETS_KEY);
@@ -177,6 +202,7 @@ const getTicketsFromStorage = () => {
 		if (typeof ticket.ticketNumber === "number") ticket.ticketNumber = `${ticket.ticketNumber}`;
 		if (ticket.ticketResult) calculateTicketValues(ticket.ticketResult);
 	}
+	sortTickets(tickets);
 	
 	// Fetch updates
 	setTimeout(() => tickets.forEach((ticket) => {
@@ -191,6 +217,7 @@ const getTicketsFromStorage = () => {
 export const useTicketState = create<TicketState>((set, get) => ({
 	tickets: getTicketsFromStorage(),
 	setTickets: (tickets: TicketRecord[]) => {
+		sortTickets(tickets);
 		localStorageSet(TICKETS_KEY, JSON.stringify(tickets));
 		set({ tickets });
 	},
@@ -202,7 +229,6 @@ export const useTicketState = create<TicketState>((set, get) => ({
 			tickets[existingTicketIndex] = ticket;
 		}
 		else tickets.push(ticket);
-		tickets.sort((a, b) => a.ticketResult && b.ticketResult ? a.ticketResult.calculated.EventDate.getDate() - b.ticketResult.calculated.EventDate.getDate() : 0);
 
 		get().setTickets(tickets);
 		
