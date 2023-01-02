@@ -91,20 +91,20 @@ function TicketTable() {
               {pendingTickets.map(getTicketDisplay)}
           </Accordion>
 
-          {/* Future */}
-          <Accordion
-            className="future"
-            dontDrawEmpty={true}
-            label={`Future (${futureTickets.length})`}>
-              {futureTickets.map(getTicketDisplay)}
-          </Accordion>
-
           {/* Current */}
           <Accordion
             className="current"
             dontDrawEmpty={true}
             label={`Current (${currentTickets.length})`}>
               {currentTickets.map(getTicketDisplay)}
+          </Accordion>
+
+          {/* Future */}
+          <Accordion
+            className="future"
+            dontDrawEmpty={true}
+            label={`Future (${futureTickets.length})`}>
+              {futureTickets.map(getTicketDisplay)}
           </Accordion>
 
           {/* Past */}
