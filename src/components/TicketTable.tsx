@@ -83,6 +83,7 @@ function TicketTable() {
     <TableDiv>
       <PullToRefresh onRefresh={handleRefresh}>
         <Content>
+
           {/* Pending */}
           <Accordion
             dontDrawEmpty={true}
@@ -90,11 +91,12 @@ function TicketTable() {
               {pendingTickets.map(getTicketDisplay)}
           </Accordion>
 
-          {/* Past */}
+          {/* Future */}
           <Accordion
+            className="future"
             dontDrawEmpty={true}
-            label={`Past (${pastTickets.length})`}>
-              {pastTickets.map(getTicketDisplay)}
+            label={`Future (${futureTickets.length})`}>
+              {futureTickets.map(getTicketDisplay)}
           </Accordion>
 
           {/* Current */}
@@ -105,12 +107,11 @@ function TicketTable() {
               {currentTickets.map(getTicketDisplay)}
           </Accordion>
 
-          {/* Future */}
+          {/* Past */}
           <Accordion
-            className="future"
             dontDrawEmpty={true}
-            label={`Future (${futureTickets.length})`}>
-              {futureTickets.map(getTicketDisplay)}
+            label={`Past (${pastTickets.length})`}>
+              {pastTickets.map(getTicketDisplay)}
           </Accordion>
 
           {/* No tickets */}
