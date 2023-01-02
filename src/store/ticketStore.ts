@@ -191,7 +191,7 @@ export const fetchUpdatedTicket = async (ticketNumber: string) => {
 	}
 };
 const sortTickets = (tickets: TicketRecord[]) => {
-	tickets.sort((a, b) => a.ticketResult && b.ticketResult ? a.ticketResult.calculated.EventDate.getTime() - b.ticketResult.calculated.EventDate.getTime() : 0);
+	tickets.sort((a, b) => a.ticketResult && b.ticketResult ? b.ticketResult.calculated.EventDate.getTime() - a.ticketResult.calculated.EventDate.getTime() : 0);
 }
 
 const getTicketsFromStorage = () => {
