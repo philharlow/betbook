@@ -76,6 +76,7 @@ const CloseButton = styled(Button)`
 
 interface StatGroup {
   name: string;
+  startOpen?: boolean;
   stats: [string, any][];
 }
 
@@ -107,14 +108,18 @@ function StatsModal() {
   const drawingTickets = tickets.filter((t) => t.status === TicketStatus.Draw);
   const openTickets = tickets.filter((t) => t.status === TicketStatus.Opened);
   const settledTickets = tickets.filter((t) => isSettled(t.status));
-  const totalOpen = openTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
-  const totalWagered = settledTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
+  
+  const totalOpenWagers = openTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
+  const totalSettledWagers = settledTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
   const totalLost = losingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
+
   const totalWon = winningTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
   const totalDrawn = drawingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
   const totalReceived = totalWon + totalDrawn;
+
   const maxWin = tickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0) ;
   const maxRemainingWin = maxWin - totalReceived;
+  const archivedTickets = tickets.filter((t) => t.archived);
 
   const getStatDiv = (label: string, value: any) => {
     return (
@@ -136,35 +141,44 @@ function StatsModal() {
       ],
     },
     {
+      name: "Ticket %",
+      stats: [
+        ["Winning Ticket %",  toPercentFormat(winningTickets.length / settledTickets.length)],
+        ["Losing Ticket %",  toPercentFormat(losingTickets.length / settledTickets.length)],
+        ["Drawing Ticket %",  toPercentFormat(drawingTickets.length / settledTickets.length)],
+      ],
+    },
+    {
       name: "$ Totals",
       stats: [
-        ["Total Open", toCurrencyFormat(totalOpen)],
-        ["Total Wagered", toCurrencyFormat(totalWagered)],
-        ["Total Received", toCurrencyFormat(totalReceived)],
-        ["Total Won", toCurrencyFormat(totalWon)],
-        ["Total Lost", toCurrencyFormat(totalLost)],
-        ["Total Drawn", toCurrencyFormat(totalDrawn)],
+        ["Total Open Wagers", toCurrencyFormat(totalOpenWagers)],
+        ["Total Settled Wagers", toCurrencyFormat(totalSettledWagers)],
+        ["Total Losing Wagers", toCurrencyFormat(totalLost)],
+        ["Total Winning Payouts", toCurrencyFormat(totalWon)],
+        ["Total Drawing Payouts", toCurrencyFormat(totalDrawn)],
       ],
     },
     {
       name: "Current profit/loss",
       stats: [
-        ["Current profit/loss", toCurrencyFormat(totalReceived - totalWagered)],
-        ["Current profit/loss %", `${toPercentFormat((totalReceived / totalWagered) - 1)}`],
+        ["Current profit/loss", toCurrencyFormat(totalReceived - totalSettledWagers)],
+        ["Current profit/loss %", toPercentFormat((totalReceived / totalSettledWagers) - 1)],
       ],
     },
     {
-      name: "Maximum",
+      name: "Maximums",
       stats: [
         ["Max potential win", toCurrencyFormat(maxRemainingWin)],
-        ["Max profit/loss", toCurrencyFormat((maxRemainingWin + totalReceived) - totalWagered)],
-        ["Max profit/loss %", `${toPercentFormat(((maxRemainingWin + totalReceived) / totalWagered) - 1)}`],
+        ["Max profit/loss", toCurrencyFormat((maxRemainingWin + totalReceived) - totalSettledWagers)],
+        ["Max profit/loss %", toPercentFormat(((maxRemainingWin + totalReceived) / totalSettledWagers) - 1)],
       ],
     },
     {
       name: "Archived",
+      startOpen: false,
       stats: [
-        ["Archived Tickets", tickets.filter((t) => t.archived).length],
+        ["Archived Tickets", archivedTickets.length],
+        ["Archived %", toPercentFormat(archivedTickets.length / tickets.length)],
       ],
     },
   ];
@@ -190,7 +204,7 @@ function StatsModal() {
       </TopBar>
       <Content>
         {statGroups.map((statGroup, i) =>
-          <Accordion label={statGroup.name} key={i} >
+          <Accordion label={statGroup.name} key={i} startOpen={statGroup.startOpen} >
             <StatGroupDiv>
               {statGroup.stats.map((stat) => getStatDiv(stat[0], stat[1]))}
             </StatGroupDiv>
