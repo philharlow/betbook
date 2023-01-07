@@ -61,7 +61,7 @@ function TicketTable() {
   const pendingTickets = filteredTickets.filter((ticket) => ticket.ticketResult === undefined);
   const pastTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Past);
   const currentTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current);
-  const futureTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Future);
+  const futureTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Future).reverse();
   const hasTickets = filteredTickets.length > 0;
 
   // Scroll to current

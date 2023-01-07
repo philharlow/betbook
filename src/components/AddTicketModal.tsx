@@ -150,8 +150,10 @@ function AddTicketModal() {
         listening = true;
       }
     }, 100);
-    
-    return () => {
+  }, [videoRef, addTicketModalOpen, addTicket]);
+
+  useEffect(() => {
+    if (addTicketModalOpen === false) {
       found = [];
       listening = false;
       console.log("cleanup");
@@ -162,7 +164,7 @@ function AddTicketModal() {
         console.log('qrScanner.stop');
       }
     }
-  }, [videoRef, addTicketModalOpen, addTicket]);
+  }, [addTicketModalOpen]);
   // HACK to include addTicketModalOpen and settimeout. videoRef should be sufficient
 
   useEffect(() => {
