@@ -153,16 +153,13 @@ function AddTicketModal() {
   }, [videoRef, addTicketModalOpen, addTicket]);
 
   useEffect(() => {
-    if (addTicketModalOpen === false) {
+    if (addTicketModalOpen === false && qrScanner) {
       found = [];
       listening = false;
       console.log("cleanup");
-      if (qrScanner) {
-        qrScanner.stop();
-        qrScanner.destroy();
-        qrScanner = undefined;
-        console.log('qrScanner.stop');
-      }
+      qrScanner.stop();
+      qrScanner.destroy();
+      qrScanner = undefined;
     }
   }, [addTicketModalOpen]);
   // HACK to include addTicketModalOpen and settimeout. videoRef should be sufficient

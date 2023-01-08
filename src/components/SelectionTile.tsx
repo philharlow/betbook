@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components/macro';
 import { getStatusColor, SelectionResult } from '../store/ticketStore';
+import { getDateStrPrefix } from '../utils';
 
 const SelectionTileDiv = styled.div`
   width: 100%;
@@ -49,6 +50,9 @@ interface Props {
 function SelectionTile({ selection, className } : Props) {
   const score = `${selection.MatchScore1}-${selection.MatchScore2}`;
 
+  const eventDate = selection.calculated.EventDate;
+  const dateStr = getDateStrPrefix(eventDate) + eventDate?.toLocaleString();
+
   return (
     <SelectionTileDiv>
       <Column>
@@ -65,7 +69,7 @@ function SelectionTile({ selection, className } : Props) {
           {selection.LineTypeName}
         </SubTitle>
         <GreyLabel>
-          {new Date(selection.EventDate).toLocaleString()}
+          {dateStr}
         </GreyLabel>
       </Column>
       <Column className={className}>

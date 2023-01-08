@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import { getStatusColor, TicketRecord } from '../store/ticketStore';
+import { getDateStrPrefix } from '../utils';
 
 const TicketTileDiv = styled.div`
   width: 100%;
@@ -60,8 +61,8 @@ const GreyLabel = styled.div`
 `;
 
 const TimeLabel = styled.div`
-  color: #888;
-  font-size: 14px;
+  color: #ccc;
+  font-size: 16px;
 `;
 
 const ClickArrow = styled.div`
@@ -82,6 +83,9 @@ interface Props {
 function TicketTile({ticket, hideArrow} : Props) {
   const navigate = useNavigate();
   const className = ticket.refreshing ? "scrolling-gradient" : "";
+
+  const eventDate = ticket.ticketResult?.calculated.EventDate;
+  const dateStr = getDateStrPrefix(eventDate) + eventDate?.toLocaleString();
 
   return (
     <TicketTileDiv onClick={() => navigate("/" + ticket.ticketNumber)}>
@@ -120,7 +124,7 @@ function TicketTile({ticket, hideArrow} : Props) {
         </InfoCol>
       </Info>
       <CellContent className={className}>
-        <TimeLabel>{ticket.ticketResult?.calculated.EventDate.toLocaleString()}</TimeLabel>
+        <TimeLabel>{dateStr}</TimeLabel>
       </CellContent>
     </TicketTileDiv>
   );

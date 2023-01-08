@@ -64,7 +64,7 @@ function ManuallyAddTicketModal() {
   const addTicket = useCallback((ticketNumber: string) => {
     const asNumber = parseInt(ticketNumber);
     if (asNumber && !isNaN(asNumber)) {
-      setValue(ticketNumber);
+      setValue("");
       if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
         showToast("Ticket already added");
       } else {
