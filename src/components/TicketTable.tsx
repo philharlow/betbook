@@ -51,11 +51,14 @@ const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTi
   return true;
 }
 
-function TicketTable() {
-  const tickets = useTicketState(state => state.tickets);
+interface Props {
+  tickets: TicketRecord[];
+  showArchivedTickets: boolean;
+}
+
+function TicketTable({ tickets, showArchivedTickets }: Props) {
   const refreshTickets = useTicketState(state => state.refreshTickets);
   const filterLevel = useUIState(state => state.filterLevel);
-  const showArchivedTickets = useUIState(state => state.showArchivedTickets);
 
   const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel, showArchivedTickets));
   const pendingTickets = filteredTickets.filter((ticket) => ticket.ticketResult === undefined);

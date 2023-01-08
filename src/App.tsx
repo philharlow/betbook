@@ -3,7 +3,7 @@ import styled from 'styled-components/macro';
 import AddTicketModal from './components/AddTicketModal';
 import FilterBar from './components/FilterBar';
 import StatsModal from './components/StatsModal';
-import TicketTable from './components/TicketTable';
+import MainTicketTable from './components/MainTicketTable';
 import Toast from './components/Toast';
 import TopBar from './components/TopBar';
 import VersionDisplay from './components/VersionDisplay';
@@ -14,6 +14,7 @@ import BarcodePopup from './components/BarcodePopup';
 import MenuPopup from './components/MenuPopup';
 import SettingsModal from './components/SettingsModal';
 import ManuallyAddTicketModal from './components/ManuallyAddTicketModal';
+import SearchTicketTable from './components/SearchTicketTable';
 
 const AppDiv = styled.div`
   height: 100vh;
@@ -32,11 +33,12 @@ const App = () => {
             <Route path='/settings' element={<SettingsModal />} />
             <Route path='/stats' element={<StatsModal />} />
             <Route path='/:ticketNumber' element={<ViewTicketModal />} />
+            <Route path='/search' element={<SearchTicketTable />} />
             <Route path="*" element={<></>} />
           </Routes>
         <TopBar />
         <FilterBar />
-        <TicketTable />
+        <MainTicketTable />
         <AddTicketModal />
         <ManuallyAddTicketModal />
         <MenuPopup />

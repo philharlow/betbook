@@ -60,6 +60,7 @@ export interface TicketResult {
 		CreatedDate: Date;
 		ExpireDate: Date;
 		ArchivedDate?: Date;
+		searchStrings: string[];
 	};
 }
 
@@ -93,16 +94,33 @@ export const getStatusColor = (status: TicketStatus) => {
 };
 
 const getTimePeriod = (eventDate: Date, ticketStatus: TicketStatus) => {
+	const now = new Date();
 	const timePeriod = now > eventDate ? TimePeriod.Past : TimePeriod.Future;
 	if (timePeriod === TimePeriod.Past && ticketStatus === TicketStatus.Opened)
 		return TimePeriod.Current;
 	return timePeriod;
 }
 
-const now = new Date();
+export const sanitizeTicket = (ticketResult: TicketResult) => {
+	sanitizeStrings(ticketResult);
+};
+
+export const sanitizeStrings = (obj: any) => {
+	if (!obj) return;
+	for (const [key, value] of Object.entries(obj)) {
+		if (typeof value === "string") {
+			obj[key] = value.replace("−", "-") // Fix "heavy" minus returned from api
+		}
+		if (typeof value === "object") {
+			sanitizeStrings(value);
+		}
+	}
+};
+
 export const calculateTicketValues = (ticketResult: TicketResult) => {
 	const selections = ticketResult.Selections;
 	const firstSelection = selections[0];
+	const searchStrings: string[] = [];
 
 	let earliestEventDate = new Date(firstSelection.EventDate);
 	const set = new Set();
@@ -127,8 +145,13 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 			EventDate,
 			TimePeriod,
 		}
+		searchStrings.push(selection.EventName);
+		searchStrings.push(selection.YourBetPrefix);
+		searchStrings.push(selection.Yourbet);
+		searchStrings.push(...Teams);
 	}
 	const SubTitle = Array.from(set.values()).join(", ");
+	searchStrings.push(SubTitle);
 
 	let Title = firstSelection.YourBetPrefix;
 	if(selections.length > 1) Title = `Parlay (${selections.length} pick)`;
@@ -147,6 +170,7 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 		TotalOdds: parseFloat(ticketResult.TotalOdds),
 		CreatedDate: new Date(ticketResult.CreatedDate),
 		ExpireDate: new Date(ticketResult.ExpireDate),
+		searchStrings: searchStrings.map(s => s.toLowerCase()),
 	};
 };
 
