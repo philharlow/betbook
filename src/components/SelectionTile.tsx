@@ -53,8 +53,8 @@ interface Props {
 
 function SelectionTile({ selection, className } : Props) {
   const hasScore = selection.MatchScore1.length > 0 && selection.MatchScore1 !== "-";
-  const score = `${selection.calculated.Teams[0]}: ${selection.MatchScore1} - ${selection.calculated.Teams[1]}: ${selection.MatchScore2}`;
-  console.log(selection.MatchScore1, selection);
+  const score1 = `${selection.calculated.Teams[0]}: ${selection.MatchScore1}`;
+  const score2 = `${selection.calculated.Teams[1]}: ${selection.MatchScore2}`;
 
   const eventDate = selection.calculated.EventDate;
   const dateStr = getDateDisplay(eventDate);
@@ -80,7 +80,8 @@ function SelectionTile({ selection, className } : Props) {
       </Column>
       <RightColumn className={className}>
         Odds: {selection.Odds}<br />
-        {hasScore && <GreyLabel>{score}</GreyLabel>}
+        {hasScore && <GreyLabel>{score1}</GreyLabel>}
+        {hasScore && <GreyLabel>{score2}</GreyLabel>}
       </RightColumn>
     </SelectionTileDiv>
   );
