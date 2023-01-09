@@ -186,7 +186,8 @@ interface TicketState {
 
 // Refresh current tickets on focusing the app
 let lastRefreshed = Date.now();
-window.addEventListener('focus', () => {
+document.addEventListener('visibilitychange', () => {
+	if (document.visibilityState !== 'visible') return;
 	if (Date.now() - lastRefreshed > 60 * 1000) {
 		console.log("focused, refreshing");
 		lastRefreshed = Date.now();

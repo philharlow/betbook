@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import { getStatusColor, TicketRecord } from '../store/ticketStore';
-import { getDateStrPrefix } from '../utils';
+import { getDateDisplay } from '../utils';
 
 const TicketTileDiv = styled.div`
   width: 100%;
@@ -85,7 +85,7 @@ function TicketTile({ticket, hideArrow} : Props) {
   const className = ticket.refreshing ? "scrolling-gradient" : "";
 
   const eventDate = ticket.ticketResult?.calculated.EventDate;
-  const dateStr = getDateStrPrefix(eventDate) + eventDate?.toLocaleString();
+  const dateStr = getDateDisplay(eventDate);
 
   return (
     <TicketTileDiv onClick={() => navigate("/" + ticket.ticketNumber)}>

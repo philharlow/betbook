@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components/macro';
 import { getStatusColor, SelectionResult } from '../store/ticketStore';
-import { getDateStrPrefix } from '../utils';
+import { getDateDisplay } from '../utils';
 
 const SelectionTileDiv = styled.div`
   width: 100%;
@@ -51,7 +51,7 @@ function SelectionTile({ selection, className } : Props) {
   const score = `${selection.MatchScore1}-${selection.MatchScore2}`;
 
   const eventDate = selection.calculated.EventDate;
-  const dateStr = getDateStrPrefix(eventDate) + eventDate?.toLocaleString();
+  const dateStr = getDateDisplay(eventDate);
 
   return (
     <SelectionTileDiv>
