@@ -38,8 +38,12 @@ const Column = styled.div`
   align-items: start;
 `;
 
+const RightColumn = styled(Column)`
+  align-items: end;
+`;
+
 const GreyLabel = styled.div`
-  color: #666;
+  color: #ccc;
 `;
 
 interface Props {
@@ -48,7 +52,9 @@ interface Props {
 }
 
 function SelectionTile({ selection, className } : Props) {
-  const score = `${selection.MatchScore1}-${selection.MatchScore2}`;
+  const hasScore = selection.MatchScore1.length > 0 && selection.MatchScore1 !== "-";
+  const score = `${selection.calculated.Teams[0]}: ${selection.MatchScore1} - ${selection.calculated.Teams[1]}: ${selection.MatchScore2}`;
+  console.log(selection.MatchScore1, selection);
 
   const eventDate = selection.calculated.EventDate;
   const dateStr = getDateDisplay(eventDate);
@@ -72,9 +78,10 @@ function SelectionTile({ selection, className } : Props) {
           {dateStr}
         </GreyLabel>
       </Column>
-      <Column className={className}>
-        {selection.Odds || score}
-      </Column>
+      <RightColumn className={className}>
+        Odds: {selection.Odds}<br />
+        {hasScore && <GreyLabel>{score}</GreyLabel>}
+      </RightColumn>
     </SelectionTileDiv>
   );
 }

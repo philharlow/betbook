@@ -72,6 +72,7 @@ export interface SelectionResult {
 	Odds: string;
 	MatchScore1: string;
 	MatchScore2: string;
+	IsTeamSwapEnabled: boolean;
 	YourBetPrefix: string;
 	Yourbet: string;
 	Status: TicketStatus;
@@ -79,7 +80,6 @@ export interface SelectionResult {
 	// Calculated
 	calculated: {
 		Teams: string[];
-		WinningTeam: string;
 		EventDate: Date;
 		TimePeriod: TimePeriod;
 	}
@@ -125,14 +125,15 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 	let earliestEventDate = new Date(firstSelection.EventDate);
 	const set = new Set();
 	for (const selection of selections) {
-		const split = selection.Yourbet.split(" - ");
-		const eventName = split[0];
+		if (selection.IsTeamSwapEnabled) {
+			const temp = selection.MatchScore1;
+			selection.MatchScore1 = selection.MatchScore2;
+			selection.MatchScore2 = temp;
+		}
 
-		let WinningTeam = "";
-		
-		if (split.length > 1) WinningTeam = split[1]; // Winning team
-
-		const Teams = eventName.split(" vs ");
+		const Teams = [];
+		if (selection.EventName.indexOf(" vs ") > -1) Teams.push(...selection.EventName.split(" vs "));
+		if (selection.EventName.indexOf(" @ ") > -1) Teams.push(...selection.EventName.split(" @ "));
 		Teams.forEach((team) => set.add(team));
 
 		const EventDate = new Date(selection.EventDate);
@@ -140,7 +141,6 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 		const TimePeriod = getTimePeriod(EventDate, ticketResult.Status);
 		
 		selection.calculated = {
-			WinningTeam,
 			Teams,
 			EventDate,
 			TimePeriod,
