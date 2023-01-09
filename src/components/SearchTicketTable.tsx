@@ -53,6 +53,7 @@ const filter = (ticket: TicketRecord, searchValue: string) => {
 function SearchTicketTable() {
   const navigate = useNavigate();
   const tickets = useTicketState(state => state.tickets);
+  const searchModalOpen = useUIState(state => state.searchModalOpen);
   const searchQuery = useUIState(state => state.searchQuery);
   const setSearchQuery = useUIState(state => state.setSearchQuery);
   const [filteredTickets, setFilteredTickets] = useState<TicketRecord[]>([]);
@@ -65,6 +66,8 @@ function SearchTicketTable() {
   const closeModal = () => {
     navigate(-1);
   };
+
+  if (!searchModalOpen) return null;
 
   return (
     <SearchTicketTableDiv>
