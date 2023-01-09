@@ -12,6 +12,7 @@ const SelectionTileDiv = styled.div`
   align-items: start;
   gap: 15px;
   position: relative;
+  text-align: left;
 `;
 
 const Circle = styled.div`
@@ -36,10 +37,13 @@ const Column = styled.div`
   display: flex;
   flex-direction: column;
   align-items: start;
+  gap: 8px;
+  line-height: 16px;
 `;
 
 const RightColumn = styled(Column)`
   align-items: end;
+  text-align: right;
 `;
 
 const GreyLabel = styled.div`
@@ -80,9 +84,11 @@ function SelectionTile({ selection, className } : Props) {
         </GreyLabel>
       </Column>
       <RightColumn className={className}>
-        Odds: {selection.Odds}<br />
-        {hasScore && <GreyLabel className={scoreClassName}>{score1}</GreyLabel>}
-        {hasScore && <GreyLabel className={scoreClassName}>{score2}</GreyLabel>}
+        {selection.Odds && <div>Odds: {selection.Odds}</div>}
+        {hasScore && <GreyLabel className={scoreClassName}>
+          {score1}<br />
+          {score2}
+        </GreyLabel>}
       </RightColumn>
     </SelectionTileDiv>
   );

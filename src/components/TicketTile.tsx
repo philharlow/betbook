@@ -13,6 +13,7 @@ const TicketTileDiv = styled.div`
   align-items: start;
   gap: 5px;
   position: relative;
+  text-align: left;
 `;
 
 const Title = styled.div`
