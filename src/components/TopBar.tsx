@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components/macro';
-import { useUIState } from '../store/uiStore';
+import { Modal, useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import MenuButton from './MenuButton';
 
@@ -28,10 +28,10 @@ const Logo = styled.img`
 `;
 
 function TopBar() {
-  const toggleAddTicketModalOpen = useUIState(state => state.toggleAddTicketModalOpen);
+  const setModalOpen = useUIState(state => state.setModalOpen);
   
   const addTicket = () => {
-    toggleAddTicketModalOpen();
+    setModalOpen(Modal.AddTicket);
   };
 
   return (

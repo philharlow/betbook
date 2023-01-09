@@ -7,14 +7,17 @@ import Toast from './components/Toast';
 import VersionDisplay from './components/VersionDisplay';
 import ViewTicketModal from './components/ViewTicketModal';
 import { GlobalStyles } from './styles/GlobalStyles';
-import { HashRouter, Route, Routes } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import BarcodePopup from './components/BarcodePopup';
 import MenuPopup from './components/MenuPopup';
 import SettingsModal from './components/SettingsModal';
 import ManuallyAddTicketModal from './components/ManuallyAddTicketModal';
-import SearchTicketTable from './components/SearchTicketTable';
+import SearchTicketModal from './components/SearchTicketModal';
+import Router from './Router';
 
 const AppDiv = styled.div`
+  position: absolute;
+  width: 100vw;
   height: 100vh;
   text-align: center;
   display: flex;
@@ -26,14 +29,12 @@ const App = () => {
   return (
     <AppDiv>
       <HashRouter>
+        <Router />
+        <ViewTicketModal />
         <GlobalStyles />
-          <Routes>
-            <Route path='/settings' element={<SettingsModal />} />
-            <Route path='/stats' element={<StatsModal />} />
-            <Route path='/:ticketNumber' element={<ViewTicketModal />} />
-            <Route path='/search' element={<SearchTicketTable />} />
-            <Route path="*" element={<></>} />
-          </Routes>
+        <SettingsModal />
+        <StatsModal />
+        <SearchTicketModal />
         <MainTicketTable />
         <AddTicketModal />
         <ManuallyAddTicketModal />

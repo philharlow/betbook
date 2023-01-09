@@ -55,12 +55,6 @@ function TicketTable({ tickets }: Props) {
   const futureTickets = tickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Future).reverse();
   const hasTickets = tickets.length > 0;
 
-  // Scroll to current
-  useEffect(() => {
-    const current = document.querySelector(".current");
-    current?.scrollIntoView( { behavior: 'smooth', block: 'start' } );
-  }, []);
-
   // TODO remove hard coded time periods
 
   const getTicketDisplay = (ticket: TicketRecord) => <TicketTile ticket={ticket} key={ticket.ticketNumber} />

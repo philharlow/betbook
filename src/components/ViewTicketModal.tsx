@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import styled from 'styled-components/macro';
 import { SelectionResult, TimePeriod, useTicketState } from '../store/ticketStore';
@@ -18,8 +18,7 @@ const ViewTicketDiv = styled.div`
   width: 100%;
   height: 100%;
   top: 0;
-  left: 0;
-  z-index: 10;
+  z-index: 100;
   display: flex;
   flex-direction: column;
   left: 100%;
@@ -97,20 +96,14 @@ const BackButton = styled(Button)`
 `;
 
 function ViewTicketModal() {
-	const { ticketNumber } = useParams<{ ticketNumber: string }>();
   const navigate = useNavigate();
   const viewingTicket = useUIState(state => state.viewingTicket);
   const setViewingTicket = useUIState(state => state.setViewingTicket);
-  const setViewingTicketNumber = useUIState(state => state.setViewingTicketNumber);
   const setViewingBarcode = useUIState(state => state.setViewingBarcode);
   const removeTicket = useTicketState(state => state.removeTicket);
   const archiveTicket = useTicketState(state => state.archiveTicket);
   const refreshTicket = useTicketState(state => state.refreshTicket);
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    setViewingTicketNumber(ticketNumber);
-  }, [ticketNumber, setViewingTicketNumber]);
   
   const closeModal = () => {
     setOpen(false);

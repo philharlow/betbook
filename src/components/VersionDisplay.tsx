@@ -6,7 +6,7 @@ const VersionDiv = styled.div`
   position: absolute;
   right: 35px;
   bottom: 0;
-  z-index: 100;
+  z-index: 100000;
   color: #666;
   font-size: 10px;
   pointer-events: none;

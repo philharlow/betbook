@@ -14,6 +14,15 @@ export const FilterLevels = Object.values(FilterLevel);
 const FILTER_LEVEL = "FILTER_LEVEL";
 const SHOW_ARCHIVED_TICKETS = "SHOW_ARCHIVED_TICKETS";
 
+export enum Modal {
+	None,
+	AddTicket,
+	ManuallyAddTicket,
+	Search,
+	Stats,
+	Settings,
+}
+
 interface UIState {
 	viewingTicket?: TicketRecord;
 	setViewingTicket: (viewingTicket?: TicketRecord) => void;
@@ -22,19 +31,10 @@ interface UIState {
 	setViewingBarcode: (viewingBarcode?: TicketRecord) => void;
 	filterLevel: FilterLevel;
 	setFilterLevel: (filterLevel: FilterLevel) => void;
-	addTicketModalOpen: boolean;
-	setAddTicketModalOpen: (addTicketModalOpen: boolean) => void;
-	manuallyAddTicketModalOpen: boolean;
-	setManuallyAddTicketModalOpen: (manuallyAddTicketModalOpen: boolean) => void;
-	toggleAddTicketModalOpen: () => void;
-	statsModalOpen: boolean;
-	setStatsModalOpen: (statsModalOpen: boolean) => void;
-	settingsModalOpen: boolean;
-	setSettingsModalOpen: (settingsModalOpen: boolean) => void;
+	modalOpen?: Modal;
+	setModalOpen: (modal?: Modal) => void;
 	menuOpen: boolean;
 	setMenuOpen: (menuOpen: boolean) => void;
-	searchModalOpen: boolean;
-	setSearchModalOpen: (searchModalOpen: boolean) => void;
 	searchQuery: string;
 	setSearchQuery: (searchQuery: string) => void;
 	showArchivedTickets: boolean;
@@ -60,32 +60,13 @@ export const useUIState = create<UIState>((set, get) => ({
 		set({filterLevel});
 		localStorageSet(FILTER_LEVEL, filterLevel);
 	},
-	addTicketModalOpen: false,
-	setAddTicketModalOpen: (addTicketModalOpen: boolean) => {
-		set({ addTicketModalOpen });
-	},
-	manuallyAddTicketModalOpen: false,
-	setManuallyAddTicketModalOpen: (manuallyAddTicketModalOpen: boolean) => {
-		set({ manuallyAddTicketModalOpen });
-	},
-	toggleAddTicketModalOpen: () => {
-		set({ addTicketModalOpen: !get().addTicketModalOpen });
-	},
-	statsModalOpen: false,
-	setStatsModalOpen: (statsModalOpen: boolean) => {
-		set({ statsModalOpen });
-	},
-	settingsModalOpen: false,
-	setSettingsModalOpen: (settingsModalOpen: boolean) => {
-		set({ settingsModalOpen });
+	modalOpen: undefined,
+	setModalOpen: (modalOpen?: Modal) => {
+		set({ modalOpen });
 	},
 	menuOpen: false,
 	setMenuOpen: (menuOpen: boolean) => {
 		set({ menuOpen });
-	},
-	searchModalOpen: false,
-	setSearchModalOpen: (searchModalOpen: boolean) => {
-		set({ searchModalOpen });
 	},
 	searchQuery: "",
 	setSearchQuery: (searchQuery: string) => {

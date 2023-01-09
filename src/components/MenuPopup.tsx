@@ -10,7 +10,7 @@ const MenuPopupDiv = styled.div`
   left: 0;
   width: 0%;
   height: 100%;
-  z-index: 10;
+  z-index: 10000;
   transition: background-color 0.3s ease;
   &.open {
     width: 100%;

@@ -7,7 +7,7 @@ import {
   useTicketState,
 } from '../store/ticketStore';
 import QrScanner from 'qr-scanner';
-import { useUIState } from '../store/uiStore';
+import { Modal, useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import { useToastState } from '../store/toastStore';
 
@@ -18,7 +18,7 @@ const AddTicketDiv = styled.div`
   height: 100%;
   top: 0;
   left: 0;
-  z-index: 10;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -83,18 +83,17 @@ let found: string[] = [];
 let qrScanner: QrScanner | undefined;
 
 function AddTicketModal() {
-  const addTicketModalOpen = useUIState(state => state.addTicketModalOpen);
-  const setManuallyAddTicketModalOpen = useUIState(state => state.setManuallyAddTicketModalOpen);
+  const modalOpen = useUIState(state => state.modalOpen);
+  const setModalOpen = useUIState(state => state.setModalOpen);
   const tickets = useTicketState(state => state.tickets);
-  const toggleAddTicketModalOpen = useUIState(state => state.toggleAddTicketModalOpen);
   const videoRef = useRef<HTMLVideoElement>(null);
   const updateTicket = useTicketState(state => state.updateTicket);
   const showToast = useToastState(state => state.showToast);
   const [isSecure, setIsSecure] = useState(false);
 
-  const closeModal = useCallback(() => {
-    if (addTicketModalOpen) toggleAddTicketModalOpen();
-  }, [addTicketModalOpen, toggleAddTicketModalOpen]);
+  const closeModal = () => {
+    setModalOpen(undefined);
+  };
 
   const addTicket = useCallback((ticketNumber: string) => {
     const asNumber = parseInt(ticketNumber);
@@ -118,11 +117,11 @@ function AddTicketModal() {
   }, [updateTicket, tickets, showToast]);
 
   const onManuallyAddTicket = () => {
-    setManuallyAddTicketModalOpen(true);
-    toggleAddTicketModalOpen();
+    setModalOpen(Modal.ManuallyAddTicket);
   };
 
   useEffect(() => {
+    if (modalOpen !== Modal.AddTicket) return;
     setTimeout(() => {
       if (!qrScanner && videoRef.current) {
         const handleResult = (url: string) => {
@@ -150,10 +149,10 @@ function AddTicketModal() {
         listening = true;
       }
     }, 100);
-  }, [videoRef, addTicketModalOpen, addTicket]);
+  }, [videoRef, modalOpen, addTicket]);
 
   useEffect(() => {
-    if (addTicketModalOpen === false && qrScanner) {
+    if (modalOpen !== Modal.AddTicket && qrScanner) {
       found = [];
       listening = false;
       console.log("cleanup");
@@ -161,7 +160,7 @@ function AddTicketModal() {
       qrScanner.destroy();
       qrScanner = undefined;
     }
-  }, [addTicketModalOpen]);
+  }, [modalOpen]);
   // HACK to include addTicketModalOpen and settimeout. videoRef should be sufficient
 
   useEffect(() => {
@@ -169,7 +168,7 @@ function AddTicketModal() {
     setIsSecure(secure);
   }, []);
 
-  if (!addTicketModalOpen) return null;
+  if (modalOpen !== Modal.AddTicket) return null;
 
   return (
     <AddTicketDiv>

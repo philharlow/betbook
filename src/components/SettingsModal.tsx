@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import { isSettled, TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
 import { useToastState } from '../store/toastStore';
-import { useUIState } from '../store/uiStore';
+import { Modal, useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import MenuButton from './MenuButton';
 
@@ -48,16 +48,14 @@ const SettingButton = styled(Button)`
 
 function SettingsModal() {
   const navigate = useNavigate();
-  const settingsModalOpen = useUIState(state => state.settingsModalOpen);
-  const setSettingsModalOpen = useUIState(state => state.setSettingsModalOpen);
+  const modalOpen = useUIState(state => state.modalOpen);
   const tickets = useTicketState(state => state.tickets);
   const updateTicket = useTicketState(state => state.updateTicket);
   const refreshTickets = useTicketState(state => state.refreshTickets);
   const showToast = useToastState((state) => state.showToast);
   
   const closeModal = () => {
-    setSettingsModalOpen(false);
-    navigate(-1);
+    navigate("/");
   };
 
   const onRefreshAll = () => {
@@ -89,13 +87,9 @@ function SettingsModal() {
     const ticketNumbers = tickets.map((t) => t.ticketNumber);
     navigator.clipboard.writeText(ticketNumbers.join(", "));
   }
-  
-  useEffect(() => {
-    setSettingsModalOpen(true);
-  }, [setSettingsModalOpen]);
-  
 
-  if (!settingsModalOpen) return null;
+  if (modalOpen !== Modal.Settings) return null;
+
   return (
     <SettingsModalDiv>
       <TopBar>

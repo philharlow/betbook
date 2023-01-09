@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import { TicketRecord, useTicketState } from '../store/ticketStore';
-import { useUIState } from '../store/uiStore';
+import { Modal, useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import MenuButton from './MenuButton';
 import TicketTable from './TicketTable';
@@ -50,10 +50,10 @@ const filter = (ticket: TicketRecord, searchValue: string) => {
   return false;
 };
 
-function SearchTicketTable() {
+function SearchTicketModal() {
   const navigate = useNavigate();
   const tickets = useTicketState(state => state.tickets);
-  const searchModalOpen = useUIState(state => state.searchModalOpen);
+  const modalOpen = useUIState(state => state.modalOpen);
   const searchQuery = useUIState(state => state.searchQuery);
   const setSearchQuery = useUIState(state => state.setSearchQuery);
   const [filteredTickets, setFilteredTickets] = useState<TicketRecord[]>([]);
@@ -64,10 +64,10 @@ function SearchTicketTable() {
   }, [searchQuery, tickets]);
 
   const closeModal = () => {
-    navigate(-1);
+    navigate("/");
   };
 
-  if (!searchModalOpen) return null;
+  if (modalOpen !== Modal.Search) return null;
 
   return (
     <SearchTicketTableDiv>
@@ -81,4 +81,4 @@ function SearchTicketTable() {
   );
 }
 
-export default SearchTicketTable;
+export default SearchTicketModal;

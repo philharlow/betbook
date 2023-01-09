@@ -6,7 +6,7 @@ import {
   TicketStatus,
   useTicketState,
 } from '../store/ticketStore';
-import { useUIState } from '../store/uiStore';
+import { Modal, useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import { useToastState } from '../store/toastStore';
 
@@ -17,7 +17,7 @@ const AddTicketDiv = styled.div`
   height: 100%;
   top: 0;
   left: 0;
-  z-index: 10;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -49,8 +49,8 @@ const Input = styled.input`
 
 
 function ManuallyAddTicketModal() {
-  const manuallyAddTicketModalOpen = useUIState(state => state.manuallyAddTicketModalOpen);
-  const setManuallyAddTicketModalOpen = useUIState(state => state.setManuallyAddTicketModalOpen);
+  const modalOpen = useUIState(state => state.modalOpen);
+  const setModalOpen = useUIState(state => state.setModalOpen);
   const tickets = useTicketState(state => state.tickets);
   const updateTicket = useTicketState(state => state.updateTicket);
   const showToast = useToastState(state => state.showToast);
@@ -85,17 +85,17 @@ function ManuallyAddTicketModal() {
 
   const onAddTicket = () => {
     addTicket(value);
-    setManuallyAddTicketModalOpen(false);
+    setModalOpen(undefined);
   };
 
 
-  if (!manuallyAddTicketModalOpen) return null;
+  if (modalOpen !== Modal.ManuallyAddTicket) return null;
 
   return (
     <AddTicketDiv>
       <TopBar>
         Manually Add Ticket
-        <CloseButton onClick={() => setManuallyAddTicketModalOpen(false)}>X</CloseButton>
+        <CloseButton onClick={() => setModalOpen(undefined)}>X</CloseButton>
       </TopBar>
       Draftkings Ticket Number
       <Input value={value} placeholder="Ticket number" onChange={handleChange} type='text' />

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import { isSettled, TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
-import { useUIState } from '../store/uiStore';
+import { Modal, useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import Accordion from './Accordion';
 import MenuButton from './MenuButton';
@@ -103,8 +103,7 @@ export const toPercentFormat = (val: number) => `${parseFloat((val * 100).toFixe
 
 function StatsModal() {
   const navigate = useNavigate();
-  const statsModalOpen = useUIState(state => state.statsModalOpen);
-  const setStatsModalOpen = useUIState(state => state.setStatsModalOpen);
+  const modalOpen = useUIState(state => state.modalOpen);
   const tickets = useTicketState(state => state.tickets);
   const [timeSpan, setTimeSpan] = useState(TimeSpan.AllTime);
   const [filteredTickets, setFilteredTickets] = useState<TicketRecord[]>([]);
@@ -122,16 +121,10 @@ function StatsModal() {
   }, [tickets, timeSpan]);
   
   const closeModal = () => {
-    setStatsModalOpen(false);
-    navigate(-1);
+    navigate("/");
   };
 
-  useEffect(() => {
-    setStatsModalOpen(true);
-  }, [setStatsModalOpen]);
-  
-
-  if (!statsModalOpen) return null;
+  if (modalOpen !== Modal.Stats) return null;
 
   const winningTickets = filteredTickets.filter((t) => t.status === TicketStatus.Won);
   const losingTickets = filteredTickets.filter((t) => t.status === TicketStatus.Lost);
