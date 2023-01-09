@@ -6,6 +6,7 @@ const ToggleDiv = styled.label`
   display: inline-block;
   width: 56px;
   height: 30px;
+  cursor: pointer;
   
   /* Hide default HTML checkbox */
   & input {

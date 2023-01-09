@@ -14,6 +14,11 @@ const TicketTileDiv = styled.div`
   gap: 5px;
   position: relative;
   text-align: left;
+  cursor: pointer;
+  transition: background 0.1s linear;
+  &:active {
+    background: #333;
+  }
 `;
 
 const Title = styled.div`

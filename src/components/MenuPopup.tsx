@@ -36,6 +36,7 @@ const MenuOption = styled.div`
   background: var(--grey);
   font-size: 20px;
   padding: 20px 45px;
+  cursor: pointer;
 `;
 
 function MenuPopup() {

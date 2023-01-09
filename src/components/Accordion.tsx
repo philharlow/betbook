@@ -12,6 +12,7 @@ const Title = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 5px 10px;
+  cursor: pointer;
 `;
 
 const TitleLabel = styled.div`
