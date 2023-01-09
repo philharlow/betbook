@@ -115,7 +115,7 @@ function ViewTicketModal() {
   const closeModal = () => {
     setOpen(false);
     setTimeout(() => {
-      navigate("/");
+      navigate(-1);
     }, easeTime);
   };
   

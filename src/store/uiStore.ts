@@ -33,6 +33,8 @@ interface UIState {
 	setSettingsModalOpen: (settingsModalOpen: boolean) => void;
 	menuOpen: boolean;
 	setMenuOpen: (menuOpen: boolean) => void;
+	searchQuery: string;
+	setSearchQuery: (searchQuery: string) => void;
 	showArchivedTickets: boolean;
 	setShowArchivedTickets: (showArchivedTickets: boolean) => void;
 }
@@ -74,6 +76,10 @@ export const useUIState = create<UIState>((set, get) => ({
 	settingsModalOpen: false,
 	setSettingsModalOpen: (settingsModalOpen: boolean) => {
 		set({ settingsModalOpen });
+	},
+	searchQuery: "",
+	setSearchQuery: (searchQuery: string) => {
+		set({ searchQuery });
 	},
 	menuOpen: false,
 	setMenuOpen: (menuOpen: boolean) => {

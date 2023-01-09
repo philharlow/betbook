@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import { isSettled, TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
@@ -6,6 +6,7 @@ import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import Accordion from './Accordion';
 import MenuButton from './MenuButton';
+import OptionBar from './OptionBar';
 import TicketTile from './TicketTile';
 
 const StatsModalDiv = styled.div`
@@ -80,6 +81,21 @@ interface StatGroup {
   stats: [string, any][];
 }
 
+const dayMs = 1000 * 60 * 60 * 24;
+
+enum TimeSpan {
+  AllTime = "All time",
+  PastWeek = "Past 7 days",
+  PastMonth = "Past 30 days",
+  PastYear = "Past 365 days",
+}
+
+const timeSpanOptions = {
+  [TimeSpan.AllTime]: -1,
+  [TimeSpan.PastWeek]: dayMs * 7,
+  [TimeSpan.PastMonth]: dayMs * 30,
+  [TimeSpan.PastYear]: dayMs * 365,
+}
 
 const dollarUSLocale = Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const toCurrencyFormat = (val: number) => "$" + dollarUSLocale.format(val);
@@ -90,10 +106,24 @@ function StatsModal() {
   const statsModalOpen = useUIState(state => state.statsModalOpen);
   const setStatsModalOpen = useUIState(state => state.setStatsModalOpen);
   const tickets = useTicketState(state => state.tickets);
+  const [timeSpan, setTimeSpan] = useState(TimeSpan.AllTime);
+  const [filteredTickets, setFilteredTickets] = useState<TicketRecord[]>([]);
+
+  useEffect(() => {
+    const now = new Date();
+    const timeSpanLimit = timeSpanOptions[timeSpan];
+    const timeSpanResults = tickets.filter((ticket) => {
+      if (!ticket.ticketResult) return false;
+      if (timeSpanLimit === -1) return true;
+      const delta = now.getTime() - ticket.ticketResult.calculated.EventDate.getTime();
+      return delta > 0 && delta < timeSpanLimit;
+    });
+    setFilteredTickets(timeSpanResults);
+  }, [tickets, timeSpan]);
   
   const closeModal = () => {
     setStatsModalOpen(false);
-    navigate("/");
+    navigate(-1);
   };
 
   useEffect(() => {
@@ -103,11 +133,11 @@ function StatsModal() {
 
   if (!statsModalOpen) return null;
 
-  const winningTickets = tickets.filter((t) => t.status === TicketStatus.Won);
-  const losingTickets = tickets.filter((t) => t.status === TicketStatus.Lost);
-  const drawingTickets = tickets.filter((t) => t.status === TicketStatus.Draw);
-  const openTickets = tickets.filter((t) => t.status === TicketStatus.Opened);
-  const settledTickets = tickets.filter((t) => isSettled(t.status));
+  const winningTickets = filteredTickets.filter((t) => t.status === TicketStatus.Won);
+  const losingTickets = filteredTickets.filter((t) => t.status === TicketStatus.Lost);
+  const drawingTickets = filteredTickets.filter((t) => t.status === TicketStatus.Draw);
+  const openTickets = filteredTickets.filter((t) => t.status === TicketStatus.Opened);
+  const settledTickets = filteredTickets.filter((t) => isSettled(t.status));
   
   const totalOpenWagers = openTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
   const totalSettledWagers = settledTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
@@ -117,9 +147,9 @@ function StatsModal() {
   const totalDrawn = drawingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
   const totalReceived = totalWon + totalDrawn;
 
-  const maxWin = tickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0) ;
+  const maxWin = filteredTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0) ;
   const maxRemainingWin = maxWin - totalReceived;
-  const archivedTickets = tickets.filter((t) => t.archived);
+  const archivedTickets = filteredTickets.filter((t) => t.archived);
 
   const getStatDiv = (label: string, value: any) => {
     return (
@@ -133,7 +163,7 @@ function StatsModal() {
     {
       name: "Ticket Totals",
       stats: [
-        ["Total Tickets", tickets.length],
+        ["Total Tickets", filteredTickets.length],
         ["Winning Tickets",  winningTickets.length],
         ["Losing Tickets",  losingTickets.length],
         ["Drawing Tickets",  drawingTickets.length],
@@ -178,7 +208,7 @@ function StatsModal() {
       startOpen: false,
       stats: [
         ["Archived Tickets", archivedTickets.length],
-        ["Archived %", toPercentFormat(archivedTickets.length / tickets.length)],
+        ["Archived %", toPercentFormat(archivedTickets.length / filteredTickets.length)],
       ],
     },
   ];
@@ -203,6 +233,7 @@ function StatsModal() {
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
       <Content>
+        <OptionBar options={Object.keys(timeSpanOptions)} selected={timeSpan} onSelectionChanged={(val) => setTimeSpan(val as TimeSpan)} />
         {statGroups.map((statGroup, i) =>
           <Accordion label={statGroup.name} key={i} startOpen={statGroup.startOpen} >
             <StatGroupDiv>

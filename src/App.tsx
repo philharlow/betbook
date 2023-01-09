@@ -1,11 +1,9 @@
 import React from 'react';
 import styled from 'styled-components/macro';
 import AddTicketModal from './components/AddTicketModal';
-import FilterBar from './components/FilterBar';
 import StatsModal from './components/StatsModal';
 import MainTicketTable from './components/MainTicketTable';
 import Toast from './components/Toast';
-import TopBar from './components/TopBar';
 import VersionDisplay from './components/VersionDisplay';
 import ViewTicketModal from './components/ViewTicketModal';
 import { GlobalStyles } from './styles/GlobalStyles';
@@ -36,8 +34,6 @@ const App = () => {
             <Route path='/search' element={<SearchTicketTable />} />
             <Route path="*" element={<></>} />
           </Routes>
-        <TopBar />
-        <FilterBar />
         <MainTicketTable />
         <AddTicketModal />
         <ManuallyAddTicketModal />

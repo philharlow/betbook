@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components/macro';
-import { getStatusColor, isSettled, SelectionResult } from '../store/ticketStore';
+import { getStatusColor, SelectionResult } from '../store/ticketStore';
 import { getDateDisplay } from '../utils';
 
 const SelectionTileDiv = styled.div`
@@ -59,7 +59,6 @@ function SelectionTile({ selection, className } : Props) {
   const hasScore = selection.MatchScore1.length > 0 && selection.MatchScore1 !== "-";
   const score1 = `${selection.calculated.Teams[0]}: ${selection.MatchScore1}`;
   const score2 = `${selection.calculated.Teams[1]}: ${selection.MatchScore2}`;
-  const scoreClassName = isSettled(selection.Status) ? "" : "scrolling-gradient";
 
   const eventDate = selection.calculated.EventDate;
   const dateStr = getDateDisplay(eventDate);
@@ -85,10 +84,12 @@ function SelectionTile({ selection, className } : Props) {
       </Column>
       <RightColumn className={className}>
         {selection.Odds && <div>Odds: {selection.Odds}</div>}
-        {hasScore && <GreyLabel className={scoreClassName}>
-          {score1}<br />
-          {score2}
-        </GreyLabel>}
+        {hasScore &&
+          <GreyLabel>
+            {score1}<br />
+            {score2}
+          </GreyLabel>
+        }
       </RightColumn>
     </SelectionTileDiv>
   );

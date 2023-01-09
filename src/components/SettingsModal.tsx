@@ -57,7 +57,7 @@ function SettingsModal() {
   
   const closeModal = () => {
     setSettingsModalOpen(false);
-    navigate("/");
+    navigate(-1);
   };
 
   const onRefreshAll = () => {

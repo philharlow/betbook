@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import styled from 'styled-components/macro';
-import {  TicketRecord, TicketStatus, TimePeriod, updateCurrentTickets } from '../store/ticketStore';
+import {  TicketRecord, TimePeriod, updateCurrentTickets } from '../store/ticketStore';
 import { FilterLevel, useUIState } from '../store/uiStore';
 import Accordion from './Accordion';
 import TicketTile from './TicketTile';
@@ -42,29 +42,18 @@ const Disclaimer = styled.div`
   }
 `;
 
-const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTickets: boolean) => {
-  if (ticket.archived && !showArchivedTickets) return false;
-  if (filter === FilterLevel.Open) return ticket.status === TicketStatus.Opened;
-  if (filter === FilterLevel.Won) return ticket.status === TicketStatus.Won;
-  if (filter === FilterLevel.Lost) return ticket.status === TicketStatus.Lost;
-  if (filter === FilterLevel.Settled) return ticket.status === TicketStatus.Lost || ticket.status === TicketStatus.Won || ticket.status === TicketStatus.Draw;
-  return true;
-}
-
 interface Props {
   tickets: TicketRecord[];
-  showArchivedTickets: boolean;
 }
 
-function TicketTable({ tickets, showArchivedTickets }: Props) {
+function TicketTable({ tickets }: Props) {
   const filterLevel = useUIState(state => state.filterLevel);
 
-  const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel, showArchivedTickets));
-  const pendingTickets = filteredTickets.filter((ticket) => ticket.ticketResult === undefined);
-  const pastTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Past);
-  const currentTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current);
-  const futureTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Future).reverse();
-  const hasTickets = filteredTickets.length > 0;
+  const pendingTickets = tickets.filter((ticket) => ticket.ticketResult === undefined);
+  const pastTickets = tickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Past);
+  const currentTickets = tickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current);
+  const futureTickets = tickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Future).reverse();
+  const hasTickets = tickets.length > 0;
 
   // Scroll to current
   useEffect(() => {

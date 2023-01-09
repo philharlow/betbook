@@ -57,7 +57,7 @@ function ViewTicketModal({ title, children } : Props) {
   const closeModal = () => {
     setOpen(false);
     setTimeout(() => {
-      navigate("/");
+      navigate(-1);
     }, easeTime);
   };
 

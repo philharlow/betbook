@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import { TicketRecord, useTicketState } from '../store/ticketStore';
+import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import MenuButton from './MenuButton';
 import TicketTable from './TicketTable';
@@ -37,6 +38,7 @@ const CloseButton = styled(Button)`
 const SearchInput = styled.input`
   font-size: 20px;
   border-radius: 10px;
+  padding: 4px;
 `;
 
 const filter = (ticket: TicketRecord, searchValue: string) => {
@@ -51,25 +53,27 @@ const filter = (ticket: TicketRecord, searchValue: string) => {
 function SearchTicketTable() {
   const navigate = useNavigate();
   const tickets = useTicketState(state => state.tickets);
-  const [searchValue, setSearchValue] = useState("");
+  const searchQuery = useUIState(state => state.searchQuery);
+  const setSearchQuery = useUIState(state => state.setSearchQuery);
   const [filteredTickets, setFilteredTickets] = useState<TicketRecord[]>([]);
 
   useEffect(() => {
-    setFilteredTickets(tickets.filter((ticket) => filter(ticket, searchValue)))
-  }, [searchValue, tickets]);
+    const searchResults = tickets.filter((ticket) => filter(ticket, searchQuery));
+    setFilteredTickets(searchResults);
+  }, [searchQuery, tickets]);
 
   const closeModal = () => {
-    navigate("/");
+    navigate(-1);
   };
 
   return (
     <SearchTicketTableDiv>
       <TopBar>
         <MenuButton />
-        <SearchInput placeholder="Search" value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
+        <SearchInput placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
-      <TicketTable tickets={filteredTickets} showArchivedTickets={true} />
+      <TicketTable tickets={filteredTickets} />
     </SearchTicketTableDiv>
   );
 }
