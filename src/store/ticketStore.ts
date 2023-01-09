@@ -192,10 +192,21 @@ document.addEventListener('visibilitychange', () => {
 		console.log("focused, refreshing");
 		lastRefreshed = Date.now();
 		// TODO force tickets to update their own timeperiod, then use that to update
-		useTicketState.getState().refreshTickets((ticket) => ticket.ticketResult ? getTimePeriod(ticket.ticketResult?.calculated.EventDate, ticket.status) === TimePeriod.Current : false);
+		updateCurrentTickets();
 	} else
 		console.log("focused too soon", Date.now() - lastRefreshed);
 });
+
+export const updateCurrentTickets = () => {
+	useTicketState.getState().refreshTickets((ticket) => {
+		if (ticket.ticketResult) {
+			const newTimePeriod = getTimePeriod(ticket.ticketResult.calculated.EventDate, ticket.status);
+			if (newTimePeriod === TimePeriod.Current)
+				return true;
+		 }
+		 return false;
+	});
+}
 
 
 export const fetchUpdatedTicket = async (ticketNumber: string) => {

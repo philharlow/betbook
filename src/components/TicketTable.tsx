@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import styled from 'styled-components/macro';
-import {  isSettled, TicketRecord, TicketStatus, TimePeriod, useTicketState } from '../store/ticketStore';
+import {  TicketRecord, TicketStatus, TimePeriod, updateCurrentTickets } from '../store/ticketStore';
 import { FilterLevel, useUIState } from '../store/uiStore';
 import Accordion from './Accordion';
 import TicketTile from './TicketTile';
@@ -57,7 +57,6 @@ interface Props {
 }
 
 function TicketTable({ tickets, showArchivedTickets }: Props) {
-  const refreshTickets = useTicketState(state => state.refreshTickets);
   const filterLevel = useUIState(state => state.filterLevel);
 
   const filteredTickets = tickets.filter((ticket) => shouldDisplay(ticket, filterLevel, showArchivedTickets));
@@ -79,7 +78,7 @@ function TicketTable({ tickets, showArchivedTickets }: Props) {
 
   const handleRefresh = async () => {
     console.log("refreshed");
-    refreshTickets((ticket) => !isSettled(ticket.status));
+    updateCurrentTickets();
   };
 
   return (
