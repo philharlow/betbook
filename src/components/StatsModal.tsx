@@ -140,8 +140,7 @@ function StatsModal() {
   const totalDrawn = drawingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
   const totalReceived = totalWon + totalDrawn;
 
-  const maxWin = openTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0) ;
-  const maxRemainingWin = maxWin - totalReceived;
+  const maxRemainingWin = openTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0) ;
   const archivedTickets = filteredTickets.filter((t) => t.archived);
 
   const getStatDiv = (label: string, value: any) => {
