@@ -94,7 +94,7 @@ function TicketTile({ticket, hideArrow} : Props) {
   const dateStr = getDateDisplay(eventDate);
 
   return (
-    <TicketTileDiv onClick={() => navigate("/" + ticket.ticketNumber)}>
+    <TicketTileDiv onClick={() => hideArrow === false && navigate("/" + ticket.ticketNumber)}>
       {!hideArrow && <ClickArrow>&gt;</ClickArrow>}
       <ResultRow style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={className}>
         {ticket.status}
