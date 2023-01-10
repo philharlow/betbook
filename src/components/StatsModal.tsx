@@ -190,7 +190,7 @@ function StatsModal() {
     {
       name: "Maximums",
       stats: [
-        ["Max potential win", toCurrencyFormat(maxRemainingWin)],
+        ["Max potential payout", toCurrencyFormat(maxRemainingWin)],
         ["Max profit/loss", toCurrencyFormat((maxRemainingWin + totalReceived) - totalSettledWagers)],
         ["Max profit/loss %", toPercentFormat(((maxRemainingWin + totalReceived) / totalSettledWagers) - 1)],
       ],
