@@ -51,15 +51,20 @@ const InfoCol = styled.div`
   flex-direction: column;
 `;
 
-const ResultRow = styled.div`
-  position: absolute;
-  right: 15px;
-  top: 15px;
+const TicketResult = styled.div`
   display: flex;
   flex-direction: row;
   gap: 10px;
   font-size: 18px;
   font-weight: 500;
+`;
+
+const TopRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+  gap: 5px;
 `;
 
 const GreyLabel = styled.div`
@@ -96,14 +101,17 @@ function TicketTile({ticket, hideArrow} : Props) {
   return (
     <TicketTileDiv onClick={() => hideArrow !== true && navigate("/" + ticket.ticketNumber)}>
       {!hideArrow && <ClickArrow>&gt;</ClickArrow>}
-      <ResultRow style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={className}>
-        {ticket.status}
-      </ResultRow>
+      <TopRow>
+        <Title className={(ticket.archived ? "archived " : "") + className}>
+          {ticket.ticketResult?.calculated.Title}
+        </Title>
+        <TicketResult style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={className}>
+          {ticket.status}
+        </TicketResult>
+      </TopRow>
+
       {ticket.ticketResult === undefined && <Title>Loading...</Title>}
 
-      <Title className={(ticket.archived ? "archived " : "") + className}>
-        {ticket.ticketResult?.calculated.Title}
-      </Title>
       <SubTitle className={className}>
         {ticket.ticketResult?.calculated.SubTitle}
       </SubTitle>
