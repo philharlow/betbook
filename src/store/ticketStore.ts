@@ -145,15 +145,20 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 		if (selection.EventName.indexOf(" @ ") > -1) Teams.push(...selection.EventName.split(" @ "));
 		Teams = Teams.map((team) => cleanupTeamPrefix(team));
 		
-		const remove = ["Alternate", "Spread", "Yards"];
-		const prefixSplit = selection.YourBetPrefix.replace("Moneyline", "ML").split(" ");
-		const yourBetPrefix = prefixSplit.filter(p => !remove.includes(p)).join(" ");
+		const remove = ["Alternate", "Spread", "Yards", "Total"];
+		const replace: any = {
+			"Moneyline": "ML",
+			"Touchdown Scorer": "TD",
+		};
+		const prefixSplit = selection.YourBetPrefix.split(" ");
+		const yourBetPrefixSplit = prefixSplit.filter(p => !remove.includes(p));
+		const yourBetPrefix = yourBetPrefixSplit.map(p => replace[p] ? replace[p] : p).join(" ");
 		const yourBet = cleanupTeamPrefix(selection.Yourbet.split(" - ")[1] ?? selection.Yourbet) + " " + yourBetPrefix;
-		Teams.push(yourBet);
+		// Teams.push(yourBet);
 		if (selections.length > 1) {
 			allTeams.add(yourBet);
 		} else {
-			// Teams.forEach((team) => allTeams.add(team));
+			Teams.forEach((team) => allTeams.add(team));
 		}
 
 		const EventDate = new Date(selection.EventDate);
