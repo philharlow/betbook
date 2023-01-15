@@ -117,12 +117,13 @@ export const sanitizeStrings = (obj: any) => {
 	}
 };
 
-const addTeams = (teams: Set<string>, str: string, split: string) => {
-	if (str.indexOf(split) > -1) {
-		const splitStr = str.split(split);
-		teams.add(splitStr[0]);
-		teams.add(splitStr[1]);
+const cleanupTeamPrefix = (team: string) => {
+	const split = team.split(" ");
+	const prefix = split[0];
+	if (prefix.length <= 3 && prefix === prefix.toUpperCase()) {
+		return team.substring(prefix.length + 1);
 	}
+	return team;
 }
 
 export const calculateTicketValues = (ticketResult: TicketResult) => {
@@ -131,7 +132,7 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 	const searchStrings: string[] = [];
 
 	let earliestEventDate = new Date(firstSelection.EventDate);
-	const set = new Set();
+	const allTeams = new Set();
 	for (const selection of selections) {
 		if (selection.IsTeamSwapEnabled) {
 			const temp = selection.MatchScore1;
@@ -139,19 +140,18 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 			selection.MatchScore2 = temp;
 		}
 
-		const Teams: string[] = [];
-		// if (selection.EventName.indexOf(" vs ") > -1) Teams.push(...selection.EventName.split(" vs "));
-		// if (selection.EventName.indexOf(" @ ") > -1) Teams.push(...selection.EventName.split(" @ "));
-		const yourBet = selection.Yourbet.split(" - ")[1] ?? selection.Yourbet;
-		Teams.push(yourBet);
-		Teams.forEach((team) => set.add(team));
+		let Teams: string[] = [];
+		if (selection.EventName.indexOf(" vs ") > -1) Teams.push(...selection.EventName.split(" vs "));
+		if (selection.EventName.indexOf(" @ ") > -1) Teams.push(...selection.EventName.split(" @ "));
+		Teams = Teams.map((team) => cleanupTeamPrefix(team));
 		
-		const allTeams = new Set<string>();
-		allTeams.add(yourBet);
-		addTeams(allTeams, selection.EventName, " vs ");
-		addTeams(allTeams, selection.EventName, " @ ");
-
-		console.log("aalteams", allTeams);
+		const yourBet = cleanupTeamPrefix(selection.Yourbet.split(" - ")[1] ?? selection.Yourbet);
+		Teams.push(yourBet);
+		if (selections.length > 1) {
+			allTeams.add(yourBet);
+		} else {
+			// Teams.forEach((team) => allTeams.add(team));
+		}
 
 		const EventDate = new Date(selection.EventDate);
 		if (EventDate < earliestEventDate) earliestEventDate = EventDate;
@@ -165,13 +165,12 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 		searchStrings.push(selection.EventName);
 		searchStrings.push(selection.YourBetPrefix);
 		searchStrings.push(selection.Yourbet);
-		// searchStrings.push(...Teams);
-		searchStrings.push(...Array.from(allTeams.values()));
+		searchStrings.push(...Teams);
 	}
-	const SubTitle = Array.from(set.values()).join(", ");
+	const SubTitle = Array.from(allTeams.values()).join(", ");
 	searchStrings.push(SubTitle);
 
-	const yourBet = firstSelection.Yourbet.split(" - ")[1] ?? firstSelection.Yourbet;
+	const yourBet = cleanupTeamPrefix(firstSelection.Yourbet.split(" - ")[1] ?? firstSelection.Yourbet);
 	let Title = firstSelection.YourBetPrefix + " - " + yourBet;
 	if(selections.length > 1) Title = `Parlay (${selections.length} pick)`;
 
