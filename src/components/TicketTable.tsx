@@ -21,7 +21,10 @@ const Content = styled.div`
   flex-direction: column;
   flex: 1;
   gap: 10px;
-  margin-bottom: 200px; // Hack for iphones not scrolling to bottomw
+`;
+
+const Footer = styled.div`
+  padding-bottom: 100px;
 `;
 
 const AddTicketsMessage = styled.div`
@@ -98,6 +101,8 @@ function TicketTable({ tickets }: Props) {
             label={`Past (${pastTickets.length})`}>
               {pastTickets.map(getTicketDisplay)}
           </Accordion>
+
+          <Footer />
 
           {/* No tickets */}
           {!hasTickets &&

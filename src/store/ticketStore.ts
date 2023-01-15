@@ -117,6 +117,14 @@ export const sanitizeStrings = (obj: any) => {
 	}
 };
 
+const addTeams = (teams: Set<string>, str: string, split: string) => {
+	if (str.indexOf(split) > -1) {
+		const splitStr = str.split(split);
+		teams.add(splitStr[0]);
+		teams.add(splitStr[1]);
+	}
+}
+
 export const calculateTicketValues = (ticketResult: TicketResult) => {
 	const selections = ticketResult.Selections;
 	const firstSelection = selections[0];
@@ -131,10 +139,19 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 			selection.MatchScore2 = temp;
 		}
 
-		const Teams = [];
-		if (selection.EventName.indexOf(" vs ") > -1) Teams.push(...selection.EventName.split(" vs "));
-		if (selection.EventName.indexOf(" @ ") > -1) Teams.push(...selection.EventName.split(" @ "));
+		const Teams: string[] = [];
+		// if (selection.EventName.indexOf(" vs ") > -1) Teams.push(...selection.EventName.split(" vs "));
+		// if (selection.EventName.indexOf(" @ ") > -1) Teams.push(...selection.EventName.split(" @ "));
+		const yourBet = selection.Yourbet.split(" - ")[1] ?? selection.Yourbet;
+		Teams.push(yourBet);
 		Teams.forEach((team) => set.add(team));
+		
+		const allTeams = new Set<string>();
+		allTeams.add(yourBet);
+		addTeams(allTeams, selection.EventName, " vs ");
+		addTeams(allTeams, selection.EventName, " @ ");
+
+		console.log("aalteams", allTeams);
 
 		const EventDate = new Date(selection.EventDate);
 		if (EventDate < earliestEventDate) earliestEventDate = EventDate;
@@ -148,12 +165,14 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 		searchStrings.push(selection.EventName);
 		searchStrings.push(selection.YourBetPrefix);
 		searchStrings.push(selection.Yourbet);
-		searchStrings.push(...Teams);
+		// searchStrings.push(...Teams);
+		searchStrings.push(...Array.from(allTeams.values()));
 	}
 	const SubTitle = Array.from(set.values()).join(", ");
 	searchStrings.push(SubTitle);
 
-	let Title = firstSelection.YourBetPrefix + " - " + firstSelection.Yourbet;
+	const yourBet = firstSelection.Yourbet.split(" - ")[1] ?? firstSelection.Yourbet;
+	let Title = firstSelection.YourBetPrefix + " - " + yourBet;
 	if(selections.length > 1) Title = `Parlay (${selections.length} pick)`;
 
 	const EventDate = earliestEventDate;
@@ -161,7 +180,7 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 	
 	ticketResult.calculated = {
 		Title,
-		SubTitle,
+		SubTitle: SubTitle === yourBet ? "" : SubTitle,
 		EventDate,
 		TimePeriod,
 		TicketCost: parseFloat(ticketResult.TicketCost),

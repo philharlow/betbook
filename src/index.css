@@ -18,7 +18,6 @@ button {
 
 .ptr__children {
   display: flex;
-  padding-bottom: 200px;
 }
 
 .scrolling-gradient {

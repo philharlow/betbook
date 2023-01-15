@@ -95,6 +95,10 @@ const BackButton = styled(Button)`
   padding: 10px 14px;
 `;
 
+const Footer = styled.div`
+  padding-bottom: 100px;
+`;
+
 function ViewTicketModal() {
   const navigate = useNavigate();
   const viewingTicket = useUIState(state => state.viewingTicket);
@@ -209,6 +213,7 @@ function ViewTicketModal() {
           <RemoveButton onClick={deleteTicket}>Delete Ticket</RemoveButton>
           
           {/* Ticket # {viewingTicket.ticketNumber}<br /> */}
+          <Footer />
         </Content>
       </PullToRefresh>
     </ViewTicketDiv>

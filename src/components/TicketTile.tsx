@@ -104,17 +104,19 @@ function TicketTile({ticket, hideArrow} : Props) {
       <TopRow>
         <Title className={(ticket.archived ? "archived " : "") + className}>
           {ticket.ticketResult?.calculated.Title}
+          {ticket.ticketResult === undefined && <Title>Loading...</Title>}
         </Title>
         <TicketResult style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={className}>
           {ticket.status}
         </TicketResult>
       </TopRow>
 
-      {ticket.ticketResult === undefined && <Title>Loading...</Title>}
 
-      <SubTitle className={className}>
-        {ticket.ticketResult?.calculated.SubTitle}
-      </SubTitle>
+      {ticket.ticketResult?.calculated.SubTitle &&
+        <SubTitle className={className}>
+          {ticket.ticketResult?.calculated.SubTitle}
+        </SubTitle>
+      }
       <Info className={className}>
         <InfoCol>
           <CellContent>
