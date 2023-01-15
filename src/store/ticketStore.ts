@@ -145,7 +145,10 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 		if (selection.EventName.indexOf(" @ ") > -1) Teams.push(...selection.EventName.split(" @ "));
 		Teams = Teams.map((team) => cleanupTeamPrefix(team));
 		
-		const yourBet = cleanupTeamPrefix(selection.Yourbet.split(" - ")[1] ?? selection.Yourbet);
+		const remove = ["Alternate", "Spread", "Yards"];
+		const prefixSplit = selection.YourBetPrefix.replace("Moneyline", "ML").split(" ");
+		const yourBetPrefix = prefixSplit.filter(p => !remove.includes(p)).join(" ");
+		const yourBet = cleanupTeamPrefix(selection.Yourbet.split(" - ")[1] ?? selection.Yourbet) + " " + yourBetPrefix;
 		Teams.push(yourBet);
 		if (selections.length > 1) {
 			allTeams.add(yourBet);
