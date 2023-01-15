@@ -140,8 +140,11 @@ function StatsModal() {
   const totalDrawn = drawingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
   const totalReceived = totalWon + totalDrawn;
 
-  const maxRemainingWin = openTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0) ;
+  const maxRemainingPay = openTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
   const archivedTickets = filteredTickets.filter((t) => t.archived);
+  const nonArchivedSettledTickets = filteredTickets.filter((t) => !t.archived && isSettled(t.status));
+  
+  const nonArchivedPay = nonArchivedSettledTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
 
   const getStatDiv = (label: string, value: any) => {
     return (
@@ -178,6 +181,7 @@ function StatsModal() {
         ["Total Losing Wagers", toCurrencyFormat(totalLost)],
         ["Total Winning Payouts", toCurrencyFormat(totalWon)],
         ["Total Drawing Payouts", toCurrencyFormat(totalDrawn)],
+        ["UnArchived Payouts", toCurrencyFormat(nonArchivedPay)],
       ],
     },
     {
@@ -190,9 +194,9 @@ function StatsModal() {
     {
       name: "Maximums",
       stats: [
-        ["Max potential payout", toCurrencyFormat(maxRemainingWin)],
-        ["Max profit/loss", toCurrencyFormat((maxRemainingWin + totalReceived) - totalSettledWagers)],
-        ["Max profit/loss %", toPercentFormat(((maxRemainingWin + totalReceived) / totalSettledWagers) - 1)],
+        ["Max potential payout", toCurrencyFormat(maxRemainingPay)],
+        ["Max profit/loss", toCurrencyFormat((maxRemainingPay + totalReceived) - totalSettledWagers)],
+        ["Max profit/loss %", toPercentFormat(((maxRemainingPay + totalReceived) / totalSettledWagers) - 1)],
       ],
     },
     {

@@ -153,7 +153,7 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 	const SubTitle = Array.from(set.values()).join(", ");
 	searchStrings.push(SubTitle);
 
-	let Title = firstSelection.YourBetPrefix;
+	let Title = firstSelection.YourBetPrefix + " - " + firstSelection.Yourbet;
 	if(selections.length > 1) Title = `Parlay (${selections.length} pick)`;
 
 	const EventDate = earliestEventDate;

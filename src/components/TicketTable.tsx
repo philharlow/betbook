@@ -21,7 +21,7 @@ const Content = styled.div`
   flex-direction: column;
   flex: 1;
   gap: 10px;
-  margin-bottom: 70px; // Hack for iphones not scrolling to bottomw
+  margin-bottom: 200px; // Hack for iphones not scrolling to bottomw
 `;
 
 const AddTicketsMessage = styled.div`
