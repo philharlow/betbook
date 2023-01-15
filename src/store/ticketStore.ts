@@ -150,9 +150,11 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 			"Moneyline": "ML",
 			"Touchdown Scorer": "TD",
 		};
-		const prefixSplit = selection.YourBetPrefix.split(" ");
-		const yourBetPrefixSplit = prefixSplit.filter(p => !remove.includes(p));
-		const yourBetPrefix = yourBetPrefixSplit.map(p => replace[p] ? replace[p] : p).join(" ");
+		let betPrefix = selection.YourBetPrefix;
+		// TODO dont be lazy
+		Object.entries(replace).forEach(([key, str]) => betPrefix = betPrefix.replace(key, str as string));
+		const prefixSplit = betPrefix.split(" ");
+		const yourBetPrefix = prefixSplit.filter(p => !remove.includes(p)).join(" ");
 		const yourBet = cleanupTeamPrefix(selection.Yourbet.split(" - ")[1] ?? selection.Yourbet) + " " + yourBetPrefix;
 		// Teams.push(yourBet);
 		if (selections.length > 1) {
