@@ -1,12 +1,21 @@
 import React from 'react';
 import styled from 'styled-components/macro';
 
+const SmallToggleDiv = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 8px;
+  cursor: pointer;
+`;
+
 const ToggleDiv = styled.label`
   position: relative;
   display: inline-block;
   width: 36px;
   height: 20px;
-  cursor: pointer;
+  pointer-events: none;
   
   /* Hide default HTML checkbox */
   & input {
@@ -59,16 +68,20 @@ const RoundSlider = styled.span`
 // TODO: make size dynamic
 interface Props {
   checked: boolean;
-  onChecked?: (checked: boolean) => void;
+  label?: string;
+  onChecked: (checked: boolean) => void;
   className?: string;
 }
 
-function SmallToggle({ checked, onChecked, className }: Props) {
+function SmallToggle({ checked, onChecked, className, label }: Props) {
   return (
-    <ToggleDiv className={className}>
-      <input type="checkbox" checked={checked} onChange={() => onChecked && onChecked(!checked)} />
-      <RoundSlider className="slider" />
-    </ToggleDiv>
+    <SmallToggleDiv onClick={() => onChecked(!checked)}>
+      <ToggleDiv className={className}>
+        <input type="checkbox" checked={checked} onChange={() => {}} />
+        <RoundSlider className="slider" />
+      </ToggleDiv>
+      {label || ""}
+    </SmallToggleDiv>
   );
 }
 

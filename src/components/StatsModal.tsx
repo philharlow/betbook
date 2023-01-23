@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
-import { isSettled, TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
+import { filterTicketsBySearch, isSettled, TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
 import { Modal, useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import Accordion from './Accordion';
 import MenuButton from './MenuButton';
 import OptionBar from './OptionBar';
+import SmallToggle from './SmallToggle';
 import TicketTile from './TicketTile';
 
 const StatsModalDiv = styled.div`
@@ -71,6 +72,13 @@ const TopBar = styled.div`
   align-items: center;
 `;
 
+const SubBar = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+`;
+
 const CloseButton = styled(Button)`
   padding: 10px 14px;
 `;
@@ -86,8 +94,8 @@ const dayMs = 1000 * 60 * 60 * 24;
 enum TimeSpan {
   AllTime = "All time",
   PastWeek = "Past 7 days",
-  PastMonth = "Past 30 days",
-  PastYear = "Past 365 days",
+  PastMonth = "30 days",
+  PastYear = "365 days",
 }
 
 const timeSpanOptions = {
@@ -104,21 +112,24 @@ export const toPercentFormat = (val: number) => `${parseFloat((val * 100).toFixe
 function StatsModal() {
   const navigate = useNavigate();
   const modalOpen = useUIState(state => state.modalOpen);
+  const searchQuery = useUIState(state => state.searchQuery);
   const tickets = useTicketState(state => state.tickets);
   const [timeSpan, setTimeSpan] = useState(TimeSpan.AllTime);
   const [filteredTickets, setFilteredTickets] = useState<TicketRecord[]>([]);
+  const [useSearch, setUseSearch] = useState(false);
 
   useEffect(() => {
     const now = new Date();
     const timeSpanLimit = timeSpanOptions[timeSpan];
     const timeSpanResults = tickets.filter((ticket) => {
       if (!ticket.ticketResult) return false;
+      if (useSearch && !filterTicketsBySearch(ticket, searchQuery)) return false;
       if (timeSpanLimit === -1) return true;
       const delta = now.getTime() - ticket.ticketResult.calculated.EventDate.getTime();
       return delta > 0 && delta < timeSpanLimit;
     });
     setFilteredTickets(timeSpanResults);
-  }, [tickets, timeSpan]);
+  }, [tickets, timeSpan, searchQuery, useSearch]);
   
   const closeModal = () => {
     navigate("/");
@@ -229,7 +240,10 @@ function StatsModal() {
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
       <Content>
-        <OptionBar options={Object.keys(timeSpanOptions)} selected={timeSpan} onSelectionChanged={(val) => setTimeSpan(val as TimeSpan)} />
+        <SubBar>
+          <OptionBar options={Object.keys(timeSpanOptions)} selected={timeSpan} onSelectionChanged={(val) => setTimeSpan(val as TimeSpan)} />
+          <SmallToggle checked={useSearch} onChecked={(checked) => setUseSearch(checked)} label="Use Search" />
+        </SubBar>
         {statGroups.map((statGroup, i) =>
           <Accordion label={statGroup.name} key={i} startOpen={statGroup.startOpen} >
             <StatGroupDiv>

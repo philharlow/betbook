@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
-import { TicketRecord, useTicketState } from '../store/ticketStore';
+import { filterTicketsBySearch, TicketRecord, useTicketState } from '../store/ticketStore';
 import { Modal, useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import MenuButton from './MenuButton';
@@ -41,15 +41,6 @@ const SearchInput = styled.input`
   padding: 4px;
 `;
 
-const filter = (ticket: TicketRecord, searchValue: string) => {
-  if (!ticket.ticketResult) return false;
-  searchValue = searchValue.toLowerCase();
-  for (const searchString of ticket.ticketResult.calculated.searchStrings) {
-    if (searchString.indexOf(searchValue) > -1) return true;
-  }
-  return false;
-};
-
 function SearchTicketModal() {
   const navigate = useNavigate();
   const tickets = useTicketState(state => state.tickets);
@@ -59,7 +50,7 @@ function SearchTicketModal() {
   const [filteredTickets, setFilteredTickets] = useState<TicketRecord[]>([]);
 
   useEffect(() => {
-    const searchResults = tickets.filter((ticket) => filter(ticket, searchQuery));
+    const searchResults = tickets.filter((ticket) => filterTicketsBySearch(ticket, searchQuery));
     setFilteredTickets(searchResults);
   }, [searchQuery, tickets]);
 

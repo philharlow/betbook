@@ -69,6 +69,7 @@ export interface SelectionResult {
 	EventName: string;
 	EventTypeName: string;
 	LineTypeName: string;
+	LeagueName: string;
 	Odds: string;
 	MatchScore1: string;
 	MatchScore2: string;
@@ -175,6 +176,7 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 		searchStrings.push(selection.EventName);
 		searchStrings.push(selection.YourBetPrefix);
 		searchStrings.push(selection.Yourbet);
+		searchStrings.push(selection.LeagueName);
 		searchStrings.push(...Teams);
 	}
 	const SubTitle = Array.from(allTeams.values()).join(", ");
@@ -200,6 +202,15 @@ export const calculateTicketValues = (ticketResult: TicketResult) => {
 		ExpireDate: new Date(ticketResult.ExpireDate),
 		searchStrings: searchStrings.map(s => s.toLowerCase()),
 	};
+};
+
+export const filterTicketsBySearch = (ticket: TicketRecord, searchValue: string) => {
+	if (!ticket.ticketResult) return false;
+	searchValue = searchValue.toLowerCase();
+	for (const searchString of ticket.ticketResult.calculated.searchStrings) {
+	  if (searchString.indexOf(searchValue) > -1) return true;
+	}
+	return false;
 };
 
 interface TicketState {

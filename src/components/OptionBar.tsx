@@ -1,22 +1,5 @@
 import React from 'react';
 import styled from 'styled-components/macro';
-import { useUIState } from '../store/uiStore';
-import SmallToggle from './SmallToggle';
-
-const OptionBarDiv = styled.div`
-  width: 100%;
-  display: flex;
-  padding: 5px 15px;
-  justify-content: space-between;
-`;
-
-const ArchiveToggle = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  white-space: nowrap;
-  font-size: 8px;
-`;
 
 const Tabs = styled.div`
   display: flex;
@@ -34,37 +17,22 @@ const FilterTab = styled.div`
   }
 `;
 
-const DisabledSmallToggle = styled(SmallToggle)`
-  pointer-events: none;
-`;
-
 interface Props {
   options: string[];
   selected: string;
-  showArchiveToggle?: boolean;
   onSelectionChanged: (option: string) => void;
 }
 
-function OptionBar({ options, selected, onSelectionChanged, showArchiveToggle }: Props) {
-  const showArchivedTickets = useUIState(state => state.showArchivedTickets);
-  const setShowArchivedTickets = useUIState(state => state.setShowArchivedTickets);
+function OptionBar({ options, selected, onSelectionChanged }: Props) {
 
   return (
-    <OptionBarDiv>
-      <Tabs>
-        {options.map((option) => 
-          <FilterTab onClick={() => onSelectionChanged(option)} className={option === selected ? "selected" : ""} key={option}>
-            {option}
-          </FilterTab>
-        )}
-      </Tabs>
-      {showArchiveToggle &&
-        <ArchiveToggle onClick={() => setShowArchivedTickets(!showArchivedTickets)}>
-          <DisabledSmallToggle checked={showArchivedTickets} />
-          Show Archived
-        </ArchiveToggle>
-      }
-    </OptionBarDiv>
+    <Tabs>
+      {options.map((option) => 
+        <FilterTab onClick={() => onSelectionChanged(option)} className={option === selected ? "selected" : ""} key={option}>
+          {option}
+        </FilterTab>
+      )}
+    </Tabs>
   );
 }
 
