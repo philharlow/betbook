@@ -50,14 +50,24 @@ interface Props {
   dontDrawEmpty?: boolean;
 }
 
+function forceUpdateHeight(ref: HTMLDivElement) {
+  ref.style.height = "unset"; // Allow height to update automatically
+  ref.style.height = ref.scrollHeight + "px";
+}
+
 function Accordion({ label, className, startOpen, children, dontDrawEmpty: dontDrawIfNoChildren } : Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(startOpen ?? true);
 
   useEffect(() => {
     if (ref.current) {
-      ref.current.style.height = "unset"; // Allow height to update automatically
-      ref.current.style.height = ref.current.scrollHeight + "px";
+      new ResizeObserver(() => ref.current && forceUpdateHeight(ref.current)).observe(ref.current);
+    }
+  }, [ref]);
+
+  useEffect(() => {
+    if (ref.current) {
+      forceUpdateHeight(ref.current);
     }
   }, [children]);
 
