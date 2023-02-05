@@ -24,7 +24,7 @@ function MainTicketTable() {
     <>
       <TopBar />
       <FilterBar />
-      <TicketTable tickets={filteredTickets} />
+      <TicketTable tickets={filteredTickets} mainTable={true} />
     </>
   );
 }

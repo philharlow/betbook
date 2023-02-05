@@ -45,14 +45,14 @@ const Stat = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 15px;
+  padding: 10px 10px;
   height: 80px;
-  max-width: 120px;
+  width: 100px;
   justify-content: space-around;
 `;
 
 const StatLabel = styled.div`
-  font-size: 12px;
+  font-size: 11px;
   display: flex;
   align-items: center;
 `;
@@ -77,6 +77,11 @@ const SubBar = styled.div`
   display: flex;
   justify-content: space-between;
   gap: 30px;
+`;
+
+const SearchQueryBar = styled.div`
+  width: 100%;
+  text-align: center;
 `;
 
 const CloseButton = styled(Button)`
@@ -145,7 +150,8 @@ function StatsModal() {
   
   const totalOpenWagers = openTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
   const totalSettledWagers = settledTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
-  const totalLost = losingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
+  // const totalLost = losingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
+  const totalWagers = totalOpenWagers + totalSettledWagers;
 
   const totalWon = winningTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
   const totalDrawn = drawingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.ToPay ?? 0), 0);
@@ -189,7 +195,8 @@ function StatsModal() {
       stats: [
         ["Total Open Wagers", toCurrencyFormat(totalOpenWagers)],
         ["Total Settled Wagers", toCurrencyFormat(totalSettledWagers)],
-        ["Total Losing Wagers", toCurrencyFormat(totalLost)],
+        ["Total Wagers", toCurrencyFormat(totalWagers)],
+        // ["Total Losing Wagers", toCurrencyFormat(totalLost)],
         ["Total Winning Payouts", toCurrencyFormat(totalWon)],
         ["Total Drawing Payouts", toCurrencyFormat(totalDrawn)],
         ["UnArchived Payouts", toCurrencyFormat(nonArchivedPay)],
@@ -198,16 +205,18 @@ function StatsModal() {
     {
       name: "Current profit/loss",
       stats: [
-        ["Current profit/loss", toCurrencyFormat(totalReceived - totalSettledWagers)],
-        ["Current profit/loss %", toPercentFormat((totalReceived / totalSettledWagers) - 1)],
+        ["Current $ profit/loss", toCurrencyFormat(totalReceived - totalSettledWagers)],
+        ["Current % profit/loss", toPercentFormat((totalReceived / totalSettledWagers) - 1)],
       ],
     },
     {
       name: "Maximums",
       stats: [
-        ["Max potential payout", toCurrencyFormat(maxRemainingPay)],
-        ["Max profit/loss", toCurrencyFormat((maxRemainingPay + totalReceived) - totalSettledWagers)],
-        ["Max profit/loss %", toPercentFormat(((maxRemainingPay + totalReceived) / totalSettledWagers) - 1)],
+        ["Max remaining payout", toCurrencyFormat(maxRemainingPay)],
+        ["Max $ profit/loss", toCurrencyFormat((maxRemainingPay + totalReceived) - totalWagers)],
+        ["Max % profit/loss", toPercentFormat(((maxRemainingPay + totalReceived) / totalWagers) - 1)],
+        ["Min $ profit/loss", toCurrencyFormat((totalReceived) - totalWagers)],
+        ["Min % profit/loss", toPercentFormat(((totalReceived) / totalWagers) - 1)],
       ],
     },
     {
@@ -229,7 +238,7 @@ function StatsModal() {
     if (ticket.ticketResult.calculated.ToPay > (bestPayWin.ticketResult?.calculated.ToPay ?? 0)) bestPayWin = ticket;
   }
   if (bestOddsWin) ticketsToShow.push(["Best Odds Win", bestOddsWin]);
-  if (bestPayWin) ticketsToShow.push(["Best Pay Win", bestPayWin]);
+  if (bestPayWin) ticketsToShow.push(["Best Payout Win", bestPayWin]);
 
 
   return (
@@ -244,6 +253,7 @@ function StatsModal() {
           <OptionBar options={Object.keys(timeSpanOptions)} selected={timeSpan} onSelectionChanged={(val) => setTimeSpan(val as TimeSpan)} />
           <SmallToggle checked={useSearch} onChecked={(checked) => setUseSearch(checked)} label="Use Search" />
         </SubBar>
+        {useSearch && searchQuery && <SearchQueryBar>Stats for tickets matching {`"${searchQuery}"`}</SearchQueryBar>}
         {statGroups.map((statGroup, i) =>
           <Accordion label={statGroup.name} key={i} startOpen={statGroup.startOpen} >
             <StatGroupDiv>

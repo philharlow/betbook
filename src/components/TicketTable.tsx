@@ -47,9 +47,10 @@ const Disclaimer = styled.div`
 
 interface Props {
   tickets: TicketRecord[];
+  mainTable?: boolean;
 }
 
-function TicketTable({ tickets }: Props) {
+function TicketTable({ tickets, mainTable }: Props) {
   const filterLevel = useUIState(state => state.filterLevel);
 
   const pendingTickets = tickets.filter((ticket) => ticket.ticketResult === undefined);
@@ -108,10 +109,10 @@ function TicketTable({ tickets }: Props) {
           {!hasTickets &&
             <AddTicketsMessage>
               <div>No {filterLevel === FilterLevel.All ? "" : filterLevel.toLowerCase()} tickets found</div>
-              {filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
+              {mainTable && filterLevel === FilterLevel.All && <div>Click the + button to add a ticket</div>}
             </AddTicketsMessage>
           }
-          {!hasTickets && filterLevel === FilterLevel.All &&
+          {mainTable && !hasTickets && filterLevel === FilterLevel.All &&
             <Disclaimer>
               All data is stored securely on your device.
               <br/>

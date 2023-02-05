@@ -41,6 +41,18 @@ const SearchInput = styled.input`
   padding: 4px;
 `;
 
+const SearchDiv = styled.div`
+  position: relative;
+`;
+
+const ClearButton = styled(Button)`
+  position: absolute;
+  right: 7px;
+  top: 8px;
+  background: #3338;
+  padding: 4px 8px;
+`;
+
 function SearchTicketModal() {
   const navigate = useNavigate();
   const tickets = useTicketState(state => state.tickets);
@@ -58,13 +70,22 @@ function SearchTicketModal() {
     navigate("/");
   };
 
+  const clearQuery = () => {
+    setSearchQuery("");
+    const searchInput = document.querySelector("#search") as HTMLInputElement;
+    searchInput?.focus();
+  };
+
   if (modalOpen !== Modal.Search) return null;
 
   return (
     <SearchTicketTableDiv>
       <TopBar>
         <MenuButton />
-        <SearchInput placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        <SearchDiv>
+          <SearchInput id="search" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          {searchQuery && <ClearButton onClick={clearQuery}>x</ClearButton>}
+        </SearchDiv>
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
       <TicketTable tickets={filteredTickets} />
