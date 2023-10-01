@@ -1,4 +1,4 @@
-import { calculateTicketValues, sanitizeTicket, TicketRecord, TicketResult, TicketStatus, TicketStatuses } from "./store/ticketStore";
+import { calculateTicketValues, sanitizeTicket, TicketRecord, DraftkingsTicketResult, TicketStatus, TicketStatuses } from "./store/ticketStore";
 import { useToastState } from "./store/toastStore";
 
 // cors-anywhere router to get around api's cors restrictions
@@ -18,7 +18,7 @@ export const fetchTicketStatus = async (ticketNumber: string) => {
 	}
 };
 
-const parseTicket = (ticketNumber: string, ticketResult: TicketResult) => {
+const parseTicket = (ticketNumber: string, ticketResult: DraftkingsTicketResult) => {
 	if (ticketResult.ToPay) {
 		sanitizeTicket(ticketResult);
 
@@ -38,7 +38,7 @@ const parseTicket = (ticketNumber: string, ticketResult: TicketResult) => {
 	}
 };
 
-const getStatus = (ticketResult: TicketResult) => {
+const getStatus = (ticketResult: DraftkingsTicketResult) => {
 	if (TicketStatuses.includes(ticketResult.Status)) return ticketResult.Status;
 	return TicketStatus.Error;
 };

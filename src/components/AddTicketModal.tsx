@@ -155,7 +155,7 @@ function AddTicketModal() {
     if (modalOpen !== Modal.AddTicket && qrScanner) {
       found = [];
       listening = false;
-      console.log("cleanup");
+      console.log("scanner cleanup");
       qrScanner.stop();
       qrScanner.destroy();
       qrScanner = undefined;

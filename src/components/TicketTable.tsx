@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components/macro';
 import {  TicketRecord, TimePeriod, updateCurrentTickets } from '../store/ticketStore';
 import { FilterLevel, useUIState } from '../store/uiStore';
@@ -34,6 +34,7 @@ const AddTicketsMessage = styled.div`
   flex-direction: column;
   color: #999;
   justify-content: center;
+  line-height: 2;
 `;
 
 const Disclaimer = styled.div`
@@ -45,6 +46,19 @@ const Disclaimer = styled.div`
   }
 `;
 
+const SearchInput = styled.input`
+  font-size: 20px;
+  border-radius: 10px;
+  padding: 4px;
+  background: #111;
+  border: 1px solid #222;
+  color: #fff;
+
+  &:focus {
+    outline: none;
+  }
+`;
+
 interface Props {
   tickets: TicketRecord[];
   mainTable?: boolean;
@@ -52,12 +66,31 @@ interface Props {
 
 function TicketTable({ tickets, mainTable }: Props) {
   const filterLevel = useUIState(state => state.filterLevel);
+  const searchQuery = useUIState(state => state.searchQuery);
+  const setSearchQuery = useUIState(state => state.setSearchQuery);
+  
+  const [filteredTickets, setFilteredTickets] = useState<TicketRecord[]>([]);
+  
+  const filterTicketsBySearch = (ticket: TicketRecord, searchValue: string) => {
+    if (searchValue === "") return true;
+    if (!ticket.ticketResult) return false;
+    searchValue = searchValue.toLowerCase();
+    for (const searchString of ticket.ticketResult.calculated.searchStrings) {
+      if (searchString.indexOf(searchValue) > -1) return true;
+    }
+    return false;
+  };
 
-  const pendingTickets = tickets.filter((ticket) => ticket.ticketResult === undefined);
-  const pastTickets = tickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Past);
-  const currentTickets = tickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current);
-  const futureTickets = tickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Future).reverse();
-  const hasTickets = tickets.length > 0;
+  useEffect(() => {
+    const searchResults = tickets.filter((ticket) => filterTicketsBySearch(ticket, searchQuery));
+    setFilteredTickets(searchResults);
+  }, [searchQuery, tickets]);
+
+  const pendingTickets = filteredTickets.filter((ticket) => ticket.ticketResult === undefined);
+  const pastTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Past);
+  const currentTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current);
+  const futureTickets = filteredTickets.filter((ticket) => ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Future).reverse();
+  const hasTickets = filteredTickets.length > 0;
 
   // TODO remove hard coded time periods
 
@@ -72,6 +105,12 @@ function TicketTable({ tickets, mainTable }: Props) {
     <TableDiv>
       <PullToRefresh onRefresh={handleRefresh}>
         <Content>
+          <SearchInput
+            type="text"
+            placeholder="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
 
           {/* Pending */}
           <Accordion

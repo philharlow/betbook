@@ -4,6 +4,7 @@ import {
   fetchUpdatedTicket,
   TicketRecord,
   TicketStatus,
+  TimePeriod,
   useTicketState,
 } from '../store/ticketStore';
 import { Modal, useUIState } from '../store/uiStore';
@@ -55,6 +56,25 @@ function ManuallyAddTicketModal() {
   const updateTicket = useTicketState(state => state.updateTicket);
   const showToast = useToastState(state => state.showToast);
   const [value, setValue] = useState('');
+  const [ticket, setTicket] = useState<TicketRecord>({
+    refreshing: false,
+    sportsbook: '',
+    status: TicketStatus.Unknown,
+    ticketNumber: '',
+    manuallyCreated: {
+      CreatedDate: new Date(),
+      EventDate: new Date(),
+      ExpireDate: new Date(),
+      searchStrings: [],
+      SubTitle: '',
+      Title: '',
+      TicketCost: 0,
+      TimePeriod: TimePeriod.Future,
+      ToPay: 0,
+      TotalOdds: 0,
+      ToWin: 0,
+    },
+  });
 
   const handleChange = (e: any) => {
     const val = e.target.value;
@@ -97,14 +117,14 @@ function ManuallyAddTicketModal() {
         Manually Add Ticket
         <CloseButton onClick={() => setModalOpen(undefined)}>X</CloseButton>
       </TopBar>
-      Draftkings Ticket Number
+      Ticket Number
       <Input value={value} placeholder="Ticket number" onChange={handleChange} type='text' />
       <AddTicketButton onClick={() => onAddTicket()}>Add Ticket</AddTicketButton>
       <hr />
       Manual Ticket Entry<br />
       (Not done yet)
       {/* TODO: Add auto complete with existing entries */}
-      <Input placeholder="Name" onChange={handleChange} type='text' />
+      <Input placeholder="Name" onChange={handleChange} type='text' value={ticket.manuallyCreated?.Title} />
       <Input placeholder="Sportsbook" onChange={handleChange} type='text' />
       <Input placeholder="Ticket number" onChange={handleChange} type='text' />
       <Input placeholder="Wager" onChange={handleChange} type='text' />

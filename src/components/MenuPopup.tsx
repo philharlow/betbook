@@ -63,17 +63,17 @@ function MenuPopup() {
     navigate("/stats");
   };
 
-  const onSearch = () => {
+  /*const onSearch = () => {
     closeModal();
     navigate("/search");
-  };
+  };*/
 
   const className = menuOpen ? "open" : "";
   return (
     <MenuPopupDiv className={className} onClick={() => setMenuOpen(false)}>
         <MenuDiv className={className}>
           <MenuOption onClick={onHome}>My Bets</MenuOption>
-          <MenuOption onClick={onSearch}>Search</MenuOption>
+          {/*<MenuOption onClick={onSearch}>Search</MenuOption>*/}
           <MenuOption onClick={onStats}>Stats</MenuOption>
           <MenuOption onClick={onSettings}>Settings</MenuOption>
         </MenuDiv>

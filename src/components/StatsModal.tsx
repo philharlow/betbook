@@ -111,8 +111,8 @@ const timeSpanOptions = {
 }
 
 const dollarUSLocale = Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-export const toCurrencyFormat = (val: number) => "$" + dollarUSLocale.format(val);
-export const toPercentFormat = (val: number) => `${parseFloat((val * 100).toFixed(2))}%`;
+export const toCurrencyFormat = (val: number) => isNaN(val) ? "$--" : "$" + dollarUSLocale.format(val);
+export const toPercentFormat = (val: number) =>  isNaN(val) ? "--%" : `${parseFloat((val * 100).toFixed(2))}%`;
 
 function StatsModal() {
   const navigate = useNavigate();
@@ -176,9 +176,7 @@ function StatsModal() {
       name: "Ticket Totals",
       stats: [
         ["Total Tickets", filteredTickets.length],
-        ["Winning Tickets",  winningTickets.length],
-        ["Losing Tickets",  losingTickets.length],
-        ["Drawing Tickets",  drawingTickets.length],
+        ["Won/Lost/Drawn",  `${winningTickets.length}/${losingTickets.length}/${drawingTickets.length}`],
         ["Open Tickets",  openTickets.length],
       ],
     },
@@ -199,7 +197,7 @@ function StatsModal() {
         // ["Total Losing Wagers", toCurrencyFormat(totalLost)],
         ["Total Winning Payouts", toCurrencyFormat(totalWon)],
         ["Total Drawing Payouts", toCurrencyFormat(totalDrawn)],
-        ["UnArchived Payouts", toCurrencyFormat(nonArchivedPay)],
+        ["Un-archived Payouts", toCurrencyFormat(nonArchivedPay)],
       ],
     },
     {
@@ -210,7 +208,7 @@ function StatsModal() {
       ],
     },
     {
-      name: "Maximums",
+      name: "Maximum/Minimum",
       stats: [
         ["Max remaining payout", toCurrencyFormat(maxRemainingPay)],
         ["Max $ profit/loss", toCurrencyFormat((maxRemainingPay + totalReceived) - totalWagers)],

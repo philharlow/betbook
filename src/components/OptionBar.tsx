@@ -12,6 +12,7 @@ const FilterTab = styled.div`
   padding: 0px;
   padding-bottom: 5px;
   text-transform: uppercase;
+  cursor: pointer;
   &.selected {
     border-bottom: 3px solid var(--green);
   }
