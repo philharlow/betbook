@@ -3,6 +3,7 @@ import styled from 'styled-components/macro';
 import {
   fetchUpdatedTicket,
   TicketRecord,
+  TicketResult,
   TicketStatus,
   TimePeriod,
   useTicketState,
@@ -48,6 +49,19 @@ const Input = styled.input`
   border-radius: 10px;
 `;
 
+const ManuallyAddedTicketResult: TicketResult = {
+  CreatedDate: new Date(),
+  EventDate: new Date(),
+  ExpireDate: new Date(),
+  searchStrings: [],
+  SubTitle: '',
+  Title: '',
+  TicketCost: 0,
+  TimePeriod: TimePeriod.Future,
+  ToPay: 0,
+  TotalOdds: 0,
+  ToWin: 0,
+};
 
 function ManuallyAddTicketModal() {
   const modalOpen = useUIState(state => state.modalOpen);
@@ -61,19 +75,7 @@ function ManuallyAddTicketModal() {
     sportsbook: '',
     status: TicketStatus.Unknown,
     ticketNumber: '',
-    manuallyCreated: {
-      CreatedDate: new Date(),
-      EventDate: new Date(),
-      ExpireDate: new Date(),
-      searchStrings: [],
-      SubTitle: '',
-      Title: '',
-      TicketCost: 0,
-      TimePeriod: TimePeriod.Future,
-      ToPay: 0,
-      TotalOdds: 0,
-      ToWin: 0,
-    },
+    manuallyCreated: {...ManuallyAddedTicketResult},
   });
 
   const handleChange = (e: any) => {
@@ -108,6 +110,15 @@ function ManuallyAddTicketModal() {
     setModalOpen(undefined);
   };
 
+  const updateLocalTicket = (ticket: Partial<TicketRecord>) => {
+    setTicket((prev) => ({...prev, ...ticket}));
+  };
+
+  const updateManuallyCreated = (manuallyCreated: Partial<TicketResult>) => {
+    const newTicket = {...ticket};
+    newTicket.manuallyCreated = {...ticket.manuallyCreated || ManuallyAddedTicketResult, ...manuallyCreated};
+    setTicket(newTicket);
+  }
 
   if (modalOpen !== Modal.ManuallyAddTicket) return null;
 
@@ -124,8 +135,8 @@ function ManuallyAddTicketModal() {
       Manual Ticket Entry<br />
       (Not done yet)
       {/* TODO: Add auto complete with existing entries */}
-      <Input placeholder="Name" onChange={handleChange} type='text' value={ticket.manuallyCreated?.Title} />
-      <Input placeholder="Sportsbook" onChange={handleChange} type='text' />
+      <Input placeholder="Name" onChange={(ev) => updateManuallyCreated({Title: ev.target.value})} type='text' value={ticket.manuallyCreated?.Title} />
+      <Input placeholder="Sportsbook" onChange={(ev) => updateLocalTicket({sportsbook: ev.target.value})} type='text' />
       <Input placeholder="Ticket number" onChange={handleChange} type='text' />
       <Input placeholder="Wager" onChange={handleChange} type='text' />
       <Input placeholder="Odds" onChange={handleChange} type='text' />
