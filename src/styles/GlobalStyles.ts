@@ -1,5 +1,5 @@
-import styled, { createGlobalStyle } from 'styled-components/macro';
-import Variables from './Variables';
+import styled, { createGlobalStyle } from "styled-components/macro";
+import Variables from "./Variables";
 
 export const Button = styled.button`
   background: #ccc3;
@@ -48,6 +48,7 @@ export const GlobalStyles = createGlobalStyle`
     color: var(--white);
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
   }
 

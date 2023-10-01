@@ -19,6 +19,7 @@ const AppDiv = styled.div`
   position: absolute;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   text-align: center;
   display: flex;
   flex-direction: column;
