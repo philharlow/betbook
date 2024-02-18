@@ -79,7 +79,7 @@ const ArchiveRow = styled.div`
   display: flex;
   flex-direction: column;
   gap: 5px;
-  margin-top: 50px;
+  margin-top: 30px;
   max-width: 60%;
 `;
 
@@ -199,7 +199,7 @@ function ViewTicketModal() {
           {isPending && 'Loading...'}
 
           Created: {viewingTicket.ticketResult?.calculated.CreatedDate.toLocaleString() ?? ""}<br />
-          Expires: {viewingTicket.ticketResult?.calculated.ExpireDate.toLocaleString() ?? ""} {expiresInDays}
+          Expires: {viewingTicket.ticketResult?.calculated.ExpireDate.toLocaleString() ?? ""} {expiresInDays}<br />
           
           <ArchiveRow>
             <ToggleRow>
@@ -212,7 +212,7 @@ function ViewTicketModal() {
           </ButtonRow>
           <RemoveButton onClick={deleteTicket}>Delete Ticket</RemoveButton>
           
-          {/* Ticket # {viewingTicket.ticketNumber}<br /> */}
+          Ticket # {viewingTicket.ticketNumber}<br />
           <Footer />
         </Content>
       </PullToRefresh>
