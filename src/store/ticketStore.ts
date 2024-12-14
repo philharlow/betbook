@@ -13,7 +13,7 @@ export enum TicketStatus {
 }
 export const TicketStatuses = Object.values(TicketStatus);
 
-const TICKETS_KEY = "tickets";
+export const TICKETS_KEY = "tickets";
 
 export enum TimePeriod {
   Past = "Past",
