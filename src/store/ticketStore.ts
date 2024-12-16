@@ -29,18 +29,20 @@ export const isSettled = (status: TicketStatus) => {
   );
 };
 
-export interface TicketRecord {
+// TODONOW remove
+export interface TicketRecordOld {
   ticketNumber: string;
   status: TicketStatus;
   sportsbook: string;
   refreshing: boolean;
-  ticketResult?: DraftkingsTicketResult;
+  ticketResult?: DraftkingsTicketResultOld;
 
   archived?: boolean;
-  manuallyCreated?: TicketResult;
+  manuallyCreated?: TicketResultOld;
 }
 
-export interface TicketResult {
+// TODONOW remove
+export interface TicketResultOld {
   TicketCost: number;
   ToPay: number;
   ToWin: number;
@@ -55,7 +57,64 @@ export interface TicketResult {
   searchStrings: string[];
 }
 
-export interface DraftkingsTicketResult {
+enum TicketSource {
+  Manual,
+  DraftKingsV1,
+  DraftKingsV2,
+}
+
+export interface TicketDefinition {
+  ticketNumber: string;
+  ticketDetails: TicketDetails;
+
+  archivedDate?: Date;
+
+  dataSource: TicketSource;
+  sourceData?: any;
+
+  refreshing: boolean;
+  version: string;
+}
+
+export interface TicketDetails {
+  title: string;
+  subTitle: string;
+
+  wager: number;
+  toWin: number;
+  toPay: number;
+
+  totalOdds: number;
+
+  bets: BetDetails[];
+
+  createdDate: Date;
+  expiresDate: Date;
+
+  searchStrings: string[];
+}
+
+export interface BetDetails {
+  title: string;
+  subTitle: string;
+  lineType: string;
+  eventDate: Date;
+
+  odds: number;
+
+  scores?: Scores;
+}
+
+export interface Scores {
+  teamA: string;
+  scoreA: string;
+
+  teamB: string;
+  scoreB: string;
+}
+
+// TODONOW remove
+export interface DraftkingsTicketResultOld {
   BetShopName: string;
   TicketCost: string;
   ToPay: string;
@@ -67,7 +126,286 @@ export interface DraftkingsTicketResult {
   Status: TicketStatus;
 
   // Calculated
-  calculated: TicketResult;
+  calculated: TicketResultOld;
+}
+
+export interface DraftkingsDataOld {
+  BetShopName: string;
+  TicketCost: string;
+  ToPay: string;
+  ToWin: string;
+  TotalOdds: string;
+  CreatedDate: string;
+  ExpireDate: string;
+  Selections: SelectionResult[];
+  Status: TicketStatus;
+}
+
+namespace DraftKingsDataV1 {
+  export interface TicketResponse {
+    ticketNumber: string;
+    sportsbook: string;
+    status: string;
+    refreshing: boolean;
+    ticketResult: TicketResult;
+    archived: boolean;
+  }
+
+  export interface TicketResult {
+    BetShopName: string;
+    BetsInformation: BetsInformation[];
+    CanCalculateToWin: number;
+    CanCancel: number;
+    CanCashOut: number;
+    CancelActiveSeconds: number;
+    CanceledByType: number;
+    CanPayWin: number;
+    CanRefund: number;
+    CanReprint: number;
+    CreatedDate: string;
+    CurrencyCode: string;
+    ExpireDate: string;
+    ExtraWin: string;
+    GroupedSelections: GroupedSelection[];
+    HasOpenEvents: number;
+    IsCanceled: number;
+    IsCasino: number;
+    IsExpired: number;
+    IsFreeBet: number;
+    IsLive: number;
+    IsPrinted: number;
+    IssuerId: string;
+    IssuerType: string;
+    IsYourBet: number;
+    NumberOfBets: number;
+    PaidAmmount: string;
+    PaidBy: string;
+    PurchaseDate: string;
+    Selections: Selection2[];
+    SettleDate: string;
+    Stake: string;
+    StakePerBet: string;
+    StakeTaxAmount: string;
+    StakeTaxPercent: number;
+    Status: string;
+    StatusModified: string;
+    TicketCost: string;
+    TicketId: string;
+    ToPay: string;
+    TotalOdds: string;
+    ToWin: string;
+    WaitingBetID: string;
+    WasPaid: number;
+    WinTaxAmount: string;
+    WinTaxPercent: number;
+  }
+
+  export interface BetsInformation {
+    BetName: string;
+    BetType: number;
+    BetTypeId: number;
+    HasSgpSelection: number;
+    NumberOfBets: number;
+  }
+
+  export interface GroupedSelection {
+    ClientOdds: string;
+    IsProgressiveParlayGroup: number;
+    IsSgpGroup: number;
+    Selections: Selection[];
+  }
+
+  export interface Selection {
+    BranchId: number;
+    CountryName: string;
+    EventDate: string;
+    EventId: string;
+    EventName: string;
+    EventTime: string;
+    EventTypeID: number;
+    EventTypeName: string;
+    IsBanker: number;
+    IsLive: number;
+    IsOutright: number;
+    IsTeamSwapEnabled: number;
+    LeagueName: string;
+    LineTypeID: number;
+    LineTypeName: string;
+    MarketBlurbId: string;
+    MarketBlurbText: string;
+    MatchScore1: string;
+    MatchScore2: string;
+    Odds: string;
+    Results: any;
+    RowTypeID: number;
+    Score1: string;
+    Score2: string;
+    Status: string;
+    TeamMappingID: number;
+    Yourbet: string;
+    YourBetPrefix: string;
+  }
+
+  export interface Selection2 {
+    BranchId: number;
+    CountryName: string;
+    EventDate: string;
+    EventId: string;
+    EventName: string;
+    EventTime: string;
+    EventTypeID: number;
+    EventTypeName: string;
+    IsBanker: number;
+    IsLive: number;
+    IsOutright: number;
+    IsTeamSwapEnabled: number;
+    LeagueName: string;
+    LineTypeID: number;
+    LineTypeName: string;
+    MarketBlurbId: string;
+    MarketBlurbText: string;
+    MatchScore1: string;
+    MatchScore2: string;
+    Odds: string;
+    Results: any;
+    RowTypeID: number;
+    Score1: string;
+    Score2: string;
+    Status: string;
+    TeamMappingID: number;
+    Yourbet: string;
+    YourBetPrefix: string;
+    calculated: Calculated;
+  }
+
+  export interface Calculated {
+    Teams: any[];
+    EventDate: string;
+    TimePeriod: string;
+  }
+}
+
+namespace DraftKingsDataV2 {
+  export interface TicketResponse {
+    ticketId: string;
+    ticketCost: number;
+    displayTicketCost: string;
+    ticketStatus: string;
+    ticketStatusId: number;
+    totalOdds: string;
+    totalOddsDecimal: number;
+    toWinAmount: number;
+    displayToWinAmount: string;
+    toPayAmount: number;
+    displayToPayAmount: string;
+    paidAmount: number;
+    displayPaidAmount: string;
+    placedDate: string;
+    settleDate: string;
+    paidDate: any;
+    paidBy: any;
+    displayPaidBy: string;
+    expireDate: string;
+    wasPaid: boolean;
+    canCalculateToWin: boolean;
+    canPayWin: boolean;
+    canRefund: boolean;
+    canCashOut: boolean;
+    canReprint: boolean;
+    canCancel: boolean;
+    isCanceled: boolean;
+    isExpired: boolean;
+    cancelActiveSeconds: number;
+    isEnabledPayoutPin: boolean;
+    siteId: number;
+    betshopName: string;
+    issuerId: number;
+    issuerType: string;
+    issuerName: string;
+    ticketExpPeriod: number;
+    bets: Bet[];
+  }
+
+  export interface Bet {
+    betId: string;
+    betStatus: string;
+    betStatusId: number;
+    betName: string;
+    betType: string;
+    betTypeId: number;
+    betOdds: string;
+    betStake: number;
+    displayBetStake: string;
+    toPayAmount: number;
+    displayToPayAmount: string;
+    paidAmount: number;
+    displayPaidAmount: string;
+    additionalData: any;
+    numberOfBets: number;
+    events: Event[];
+  }
+
+  export interface Event {
+    eventId: number;
+    displayEventId: string;
+    fullEventId: number;
+    eventName: string;
+    eventDate: string;
+    isLive: boolean;
+    isInProgress: boolean;
+    isTeamSport: boolean;
+    isTeamSwap: boolean;
+    team1Id: number;
+    team2Id: number;
+    team1Name: string;
+    team2Name: string;
+    sportId: number;
+    sportName: string;
+    leagueId: number;
+    leagueName: string;
+    eventTypeId: number;
+    lineTypeId: number;
+    rowTypeId: number;
+    gameData: GameData;
+    settleScore: any;
+    selectionsGroups: SelectionsGroup[];
+  }
+
+  export interface GameData {
+    eventScore: any;
+    liveGameState: any;
+    score: any;
+    eventScorecard: any;
+  }
+
+  export interface SelectionsGroup {
+    groupName: string;
+    groupType: string;
+    groupTypeId: number;
+    groupStatus: string;
+    groupStatusId: number;
+    groupOdds: string;
+    selections: Selection[];
+  }
+
+  export interface Selection {
+    selectionId: number;
+    encodedLineId: string;
+    selectionName: string;
+    selectionStatus: string;
+    selectionStatusId: number;
+    selectionOdds: string;
+    marketId: string;
+    marketName: string;
+    marketBlurb: string;
+    isSettled: boolean;
+    isCanceled: boolean;
+    isOutright: boolean;
+    cancelReason: string;
+    copySelectionData: CopySelectionData;
+  }
+
+  export interface CopySelectionData {}
 }
 
 export interface SelectionResult {
@@ -108,7 +446,7 @@ const getTimePeriod = (eventDate: Date, ticketStatus: TicketStatus) => {
   return timePeriod;
 };
 
-export const sanitizeTicket = (ticketResult: DraftkingsTicketResult) => {
+export const sanitizeTicket = (ticketResult: DraftkingsTicketResultOld) => {
   sanitizeStrings(ticketResult);
 };
 
@@ -117,6 +455,7 @@ export const sanitizeStrings = (obj: any) => {
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === "string") {
       obj[key] = value.replace("−", "-"); // Fix "heavy" minus returned from api
+      obj[key] = value.replace("$", ""); // Remove any $ signs returned from api
     }
     if (typeof value === "object") {
       sanitizeStrings(value);
@@ -133,7 +472,9 @@ const cleanupTeamPrefix = (team: string) => {
   return team;
 };
 
-export const calculateTicketValues = (ticketResult: DraftkingsTicketResult) => {
+export const calculateTicketValues = (
+  ticketResult: DraftkingsTicketResultOld
+) => {
   const selections = ticketResult.Selections;
   const firstSelection = selections[0];
   const searchStrings: string[] = [];
@@ -224,9 +565,10 @@ export const calculateTicketValues = (ticketResult: DraftkingsTicketResult) => {
 };
 
 export const filterTicketsBySearch = (
-  ticket: TicketRecord,
+  ticket: TicketRecordOld,
   searchValue: string
 ) => {
+  if (searchValue === "") return true;
   if (!ticket.ticketResult) return false;
   searchValue = searchValue.toLowerCase();
   for (const searchString of ticket.ticketResult.calculated.searchStrings) {
@@ -236,13 +578,13 @@ export const filterTicketsBySearch = (
 };
 
 interface TicketState {
-  tickets: TicketRecord[];
-  setTickets: (tickets: TicketRecord[]) => void;
-  updateTicket: (ticket: TicketRecord) => void;
+  tickets: TicketRecordOld[];
+  setTickets: (tickets: TicketRecordOld[]) => void;
+  updateTicket: (ticket: TicketRecordOld) => void;
   removeTicket: (ticketNumber: string) => void;
   archiveTicket: (ticketNumber: string, archived?: boolean) => void;
-  refreshTicket: (ticket: TicketRecord) => void;
-  refreshTickets: (filter?: (ticket: TicketRecord) => boolean) => void;
+  refreshTicket: (ticket: TicketRecordOld) => void;
+  refreshTickets: (filter?: (ticket: TicketRecordOld) => boolean) => void;
 }
 
 // Refresh current tickets on focusing the app
@@ -293,7 +635,7 @@ export const fetchUpdatedTicket = async (ticketNumber: string) => {
     useTicketState.getState().updateTicket(newTicket);
   }
 };
-const sortTickets = (tickets: TicketRecord[]) => {
+const sortTickets = (tickets: TicketRecordOld[]) => {
   tickets.sort((a, b) =>
     a.ticketResult && b.ticketResult
       ? b.ticketResult.calculated.EventDate.getTime() -
@@ -305,12 +647,14 @@ const sortTickets = (tickets: TicketRecord[]) => {
 const getTicketsFromStorage = () => {
   const ticketsStr = localStorageGet(TICKETS_KEY);
   if (!ticketsStr) return [];
-  const tickets = JSON.parse(ticketsStr) as TicketRecord[];
+
+  const tickets = JSON.parse(ticketsStr) as TicketRecordOld[];
   for (const ticket of tickets) {
     if (typeof ticket.ticketNumber === "number")
       ticket.ticketNumber = `${ticket.ticketNumber}`;
     if (ticket.ticketResult) calculateTicketValues(ticket.ticketResult);
   }
+
   sortTickets(tickets);
 
   // Fetch updates
@@ -329,12 +673,12 @@ const getTicketsFromStorage = () => {
 
 export const useTicketState = create<TicketState>((set, get) => ({
   tickets: getTicketsFromStorage(),
-  setTickets: (tickets: TicketRecord[]) => {
+  setTickets: (tickets: TicketRecordOld[]) => {
     sortTickets(tickets);
     localStorageSet(TICKETS_KEY, JSON.stringify(tickets));
     set({ tickets });
   },
-  updateTicket: (ticket: TicketRecord) => {
+  updateTicket: (ticket: TicketRecordOld) => {
     const tickets = [...get().tickets];
     const existingTicketIndex = tickets.findIndex(
       (t) => t.ticketNumber === ticket.ticketNumber
@@ -367,10 +711,10 @@ export const useTicketState = create<TicketState>((set, get) => ({
       get().updateTicket(existingTicket);
     }
   },
-  refreshTicket: (ticket: TicketRecord) => {
+  refreshTicket: (ticket: TicketRecordOld) => {
     fetchUpdatedTicket(ticket.ticketNumber);
   },
-  refreshTickets: (filter?: (ticket: TicketRecord) => boolean) => {
+  refreshTickets: (filter?: (ticket: TicketRecordOld) => boolean) => {
     const { tickets, setTickets } = get();
     tickets.forEach(
       (t) => (!filter || filter(t)) && fetchUpdatedTicket(t.ticketNumber)

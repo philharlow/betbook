@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components/macro';
 import {
   fetchUpdatedTicket,
-  TicketRecord,
+  TicketRecordOld,
   TicketStatus,
   useTicketState,
 } from '../store/ticketStore';
@@ -43,11 +43,10 @@ const VideoContainer = styled.div`
 
 const NotSecureWarning = styled.div`
   position: absolute;
-  top: 70%;
+  top: 50%;
   width: 100%;
   transform: translateY(-50%);
-  background: #dcdc5777;
-  color: #000;
+  color: #ffff00;
 `;
 
 const CameraLoading = styled.div`
@@ -101,7 +100,7 @@ function AddTicketModal() {
       if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
         showToast("Ticket already added");
       } else {
-        const ticket: TicketRecord = {
+        const ticket: TicketRecordOld = {
           ticketNumber,
           sportsbook: "DraftKings",
           status: TicketStatus.Unknown,
@@ -173,18 +172,17 @@ function AddTicketModal() {
   return (
     <AddTicketDiv>
       <TopBar>
-        Add Ticket
+        Scan Ticket
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
-      <TicketEntry>
-        <AddTicketButton onClick={() => onManuallyAddTicket()}>Manually Add Ticket</AddTicketButton>
-      </TicketEntry>
-      or scan QR code
       <VideoContainer>
-        <CameraLoading>Camera loading...</CameraLoading>
+        {isSecure && <CameraLoading>Camera loading...</CameraLoading>}
         <VideoView ref={videoRef} disablePictureInPicture playsInline />
         {!isSecure && <NotSecureWarning>QR code reading disabled on http!</NotSecureWarning>}
       </VideoContainer>
+      <TicketEntry>
+        <AddTicketButton onClick={() => onManuallyAddTicket()}>Manually Add Ticket</AddTicketButton>
+      </TicketEntry>
     </AddTicketDiv>
   );
 }

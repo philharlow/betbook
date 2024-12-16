@@ -1,11 +1,10 @@
 import React from 'react';
-import { TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
+import { TicketRecordOld, TicketStatus, useTicketState } from '../store/ticketStore';
 import { FilterLevel, useUIState } from '../store/uiStore';
 import FilterBar from './FilterBar';
 import TicketTable from './TicketTable';
-import TopBar from './TopBar';
 
-const shouldDisplay = (ticket: TicketRecord, filter: FilterLevel, showArchivedTickets: boolean) => {
+const shouldDisplay = (ticket: TicketRecordOld, filter: FilterLevel, showArchivedTickets: boolean) => {
   if (ticket.archived && !showArchivedTickets) return false;
   if (filter === FilterLevel.Open) return ticket.status === TicketStatus.Opened;
   if (filter === FilterLevel.Won) return ticket.status === TicketStatus.Won;
@@ -22,7 +21,6 @@ function MainTicketTable() {
 
   return (
     <>
-      <TopBar />
       <FilterBar />
       <TicketTable tickets={filteredTickets} mainTable={true} />
     </>

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import styled from 'styled-components/macro';
-import { SelectionResult, TimePeriod, useTicketState } from '../store/ticketStore';
+import { SelectionResult, TicketRecordOld, TimePeriod, useTicketState } from '../store/ticketStore';
 import { useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
 import Accordion from './Accordion';
@@ -10,22 +10,12 @@ import SelectionTile from './SelectionTile';
 import TicketTile from './TicketTile';
 import Toggle from './Toggle';
 
-const easeTime = 300;
-
 const ViewTicketDiv = styled.div`
-  position: absolute;
   background-color: var(--black);
   width: 100%;
   height: 100%;
-  top: 0;
-  z-index: 100;
   display: flex;
   flex-direction: column;
-  left: 100%;
-  transition: left ${easeTime}ms ease;
-  &.open {
-    left: 0%;
-  }
 `;
 
 const Content = styled.div`
@@ -35,6 +25,7 @@ const Content = styled.div`
   align-items: center;
   gap: 10px;
   padding: 15px;
+  padding-bottom: 50px;
   overflow-y: auto;
 `;
 
@@ -95,31 +86,34 @@ const BackButton = styled(Button)`
   padding: 10px 14px;
 `;
 
-const Footer = styled.div`
-  padding-bottom: 100px;
-`;
-
 function ViewTicketModal() {
   const navigate = useNavigate();
-  const viewingTicket = useUIState(state => state.viewingTicket);
-  const setViewingTicket = useUIState(state => state.setViewingTicket);
+  let { ticketNumber } = useParams();
+  const tickets = useTicketState(state => state.tickets);
+  const [viewingTicket, setViewingTicket] = useState<TicketRecordOld | undefined>(undefined);
+  // const setViewingTicket = useUIState(state => state.setViewingTicket);
   const setViewingBarcode = useUIState(state => state.setViewingBarcode);
   const removeTicket = useTicketState(state => state.removeTicket);
   const archiveTicket = useTicketState(state => state.archiveTicket);
   const refreshTicket = useTicketState(state => state.refreshTicket);
-  const [open, setOpen] = useState(false);
   
   const closeModal = () => {
-    setOpen(false);
-    setTimeout(() => {
+    // setOpen(false);
+    //setTimeout(() => {
       navigate(-1);
-    }, easeTime);
+    //}, easeTime);
   };
   
   useEffect(() => {
-    setOpen(viewingTicket !== undefined);
+    // setOpen(viewingTicket !== undefined);
     // console.log("viewing ticket useeffect", viewingTicket);
   }, [viewingTicket]);
+
+  useEffect(() => {
+    const ticket = tickets.find((ticket) => ticketNumber === ticket.ticketNumber);
+    setViewingTicket(ticket);
+    // console.log("viewing ticket useeffect", viewingTicket);
+  }, [ticketNumber, tickets]);
   
   const deleteTicket = () => {
     if (!viewingTicket) return;
@@ -162,7 +156,7 @@ function ViewTicketModal() {
   const expiresInDays = expiresInMs < 0 ? "" : `(${Math.floor(expiresInMs / 1000 / 60 / 60/ 24)} days)`;
 
   return (
-    <ViewTicketDiv className={open ? "open" : ""}>
+    <ViewTicketDiv>
       <TopBar>
         <BackButton onClick={closeModal}>&lt;</BackButton>
         DraftKings Ticket
@@ -213,7 +207,6 @@ function ViewTicketModal() {
           <RemoveButton onClick={deleteTicket}>Delete Ticket</RemoveButton>
           
           Ticket # {viewingTicket.ticketNumber}<br />
-          <Footer />
         </Content>
       </PullToRefresh>
     </ViewTicketDiv>

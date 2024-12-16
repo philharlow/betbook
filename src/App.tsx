@@ -4,16 +4,14 @@ import AddTicketModal from './components/AddTicketModal';
 import StatsModal from './components/StatsModal';
 import MainTicketTable from './components/MainTicketTable';
 import Toast from './components/Toast';
-import VersionDisplay from './components/VersionDisplay';
 import ViewTicketModal from './components/ViewTicketModal';
 import { GlobalStyles } from './styles/GlobalStyles';
-import { HashRouter } from 'react-router-dom';
+import { HashRouter, Route, Routes } from 'react-router-dom';
 import BarcodePopup from './components/BarcodePopup';
-import MenuPopup from './components/MenuPopup';
 import SettingsModal from './components/SettingsModal';
 import ManuallyAddTicketModal from './components/ManuallyAddTicketModal';
-import SearchTicketModal from './components/SearchTicketModal';
-import Router from './Router';
+import MenuBar from './components/MenuBar';
+import TopBar from './components/TopBar';
 
 const AppDiv = styled.div`
   position: absolute;
@@ -26,23 +24,32 @@ const AppDiv = styled.div`
   overflow: hidden;
 `;
 
+const ScrollPane = styled.div`
+  flex: 1;
+  overflow-y: auto;
+`;
+
 const App = () => {
   return (
     <AppDiv>
+      <GlobalStyles />
+
       <HashRouter>
-        <Router />
-        <ViewTicketModal />
-        <GlobalStyles />
-        <SettingsModal />
-        <StatsModal />
-        <SearchTicketModal />
-        <MainTicketTable />
+        <TopBar />
+        <ScrollPane>
+          <Routes>
+            <Route index element={<MainTicketTable />} />
+            <Route path="/stats" element={<StatsModal />} />
+            <Route path="/settings" element={<SettingsModal />} />
+            <Route path="/:ticketNumber" element={<ViewTicketModal />} />
+          </Routes>
+        </ScrollPane>
+        
         <AddTicketModal />
         <ManuallyAddTicketModal />
-        <MenuPopup />
         <BarcodePopup />
         <Toast />
-        <VersionDisplay />
+        <MenuBar />
       </HashRouter>
     </AppDiv>
   );

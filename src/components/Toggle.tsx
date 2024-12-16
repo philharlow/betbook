@@ -16,7 +16,10 @@ const ToggleDiv = styled.label`
   }
   
   & input:checked + .slider {
-    background-color: var(--blue);
+    background-color: var(--green);
+    &:before {
+      background-color: #424242;
+    }
   }
 
   & input:focus + .slider {
@@ -37,7 +40,7 @@ const RoundSlider = styled.span`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: #424242;
   -webkit-transition: .4s;
   transition: .4s;
   border-radius: 34px;
@@ -49,7 +52,7 @@ const RoundSlider = styled.span`
     width: 22px;
     left: 4px;
     bottom: 4px;
-    background-color: white;
+    background-color: #c4c4c4;
     -webkit-transition: .4s;
     transition: .4s;
     border-radius: 50%;

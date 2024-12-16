@@ -8,6 +8,7 @@ const SmallToggleDiv = styled.div`
   white-space: nowrap;
   font-size: 8px;
   cursor: pointer;
+  color: #d6d6d6;
 `;
 
 const ToggleDiv = styled.label`
@@ -25,11 +26,14 @@ const ToggleDiv = styled.label`
   }
   
   & input:checked + .slider {
-    background-color: var(--blue);
+    background-color: var(--green);
+    &:before {
+      background-color: #424242;
+    }
   }
 
   & input:focus + .slider {
-    box-shadow: 0 0 1px var(--blue);
+    box-shadow: 0 0 1px var(--green);
   }
 
   & input:checked + .slider:before {
@@ -46,7 +50,7 @@ const RoundSlider = styled.span`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: #424242;
   -webkit-transition: .4s;
   transition: .4s;
   border-radius: 34px;
@@ -58,7 +62,7 @@ const RoundSlider = styled.span`
     width: 16px;
     left: 2px;
     bottom: 2px;
-    background-color: white;
+    background-color: #c4c4c4;
     -webkit-transition: .4s;
     transition: .4s;
     border-radius: 50%;

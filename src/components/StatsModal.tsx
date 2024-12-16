@@ -1,23 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
-import { filterTicketsBySearch, isSettled, TicketRecord, TicketStatus, useTicketState } from '../store/ticketStore';
-import { Modal, useUIState } from '../store/uiStore';
-import { Button } from '../styles/GlobalStyles';
+import { filterTicketsBySearch, isSettled, TicketRecordOld, TicketStatus, useTicketState } from '../store/ticketStore';
+import { useUIState } from '../store/uiStore';
 import Accordion from './Accordion';
-import MenuButton from './MenuButton';
 import OptionBar from './OptionBar';
-import SmallToggle from './SmallToggle';
 import TicketTile from './TicketTile';
+import SearchBar from './SearchBar';
 
 const StatsModalDiv = styled.div`
-  position: absolute;
   background-color: var(--black);
   width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 10;
   display: flex;
   flex-direction: column;
 `;
@@ -62,30 +54,16 @@ const StatValue = styled.div`
   font-weight: 500;
 `;
 
-const TopBar = styled.div`
-  background-color: var(--grey);
-  font-size: var(--topbar-font-size);
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 15px;
-  align-items: center;
-`;
-
 const SubBar = styled.div`
   width: 100%;
   display: flex;
   justify-content: space-between;
-  gap: 30px;
+  padding: 5px 15px;
 `;
 
 const SearchQueryBar = styled.div`
   width: 100%;
   text-align: center;
-`;
-
-const CloseButton = styled(Button)`
-  padding: 10px 14px;
 `;
 
 interface StatGroup {
@@ -115,32 +93,23 @@ export const toCurrencyFormat = (val: number) => isNaN(val) ? "$--" : "$" + doll
 export const toPercentFormat = (val: number) =>  isNaN(val) ? "--%" : `${parseFloat((val * 100).toFixed(2))}%`;
 
 function StatsModal() {
-  const navigate = useNavigate();
-  const modalOpen = useUIState(state => state.modalOpen);
   const searchQuery = useUIState(state => state.searchQuery);
   const tickets = useTicketState(state => state.tickets);
   const [timeSpan, setTimeSpan] = useState(TimeSpan.AllTime);
-  const [filteredTickets, setFilteredTickets] = useState<TicketRecord[]>([]);
-  const [useSearch, setUseSearch] = useState(false);
+  const [filteredTickets, setFilteredTickets] = useState<TicketRecordOld[]>([]);
 
   useEffect(() => {
     const now = new Date();
     const timeSpanLimit = timeSpanOptions[timeSpan];
     const timeSpanResults = tickets.filter((ticket) => {
       if (!ticket.ticketResult) return false;
-      if (useSearch && !filterTicketsBySearch(ticket, searchQuery)) return false;
+      if (!filterTicketsBySearch(ticket, searchQuery)) return false;
       if (timeSpanLimit === -1) return true;
       const delta = now.getTime() - ticket.ticketResult.calculated.EventDate.getTime();
       return delta > 0 && delta < timeSpanLimit;
     });
     setFilteredTickets(timeSpanResults);
-  }, [tickets, timeSpan, searchQuery, useSearch]);
-  
-  const closeModal = () => {
-    navigate("/");
-  };
-
-  if (modalOpen !== Modal.Stats) return null;
+  }, [tickets, timeSpan, searchQuery]);
 
   const winningTickets = filteredTickets.filter((t) => t.status === TicketStatus.Won);
   const losingTickets = filteredTickets.filter((t) => t.status === TicketStatus.Lost);
@@ -227,7 +196,7 @@ function StatsModal() {
     },
   ];
 
-  const ticketsToShow: [string, TicketRecord][] = [];
+  const ticketsToShow: [string, TicketRecordOld][] = [];
   let bestOddsWin = winningTickets[0];
   let bestPayWin = winningTickets[0];
   for (const ticket of winningTickets) {
@@ -241,17 +210,12 @@ function StatsModal() {
 
   return (
     <StatsModalDiv>
-      <TopBar>
-        <MenuButton />
-        Stats
-        <CloseButton onClick={closeModal}>X</CloseButton>
-      </TopBar>
+      <SubBar>
+        <OptionBar options={Object.keys(timeSpanOptions)} selected={timeSpan} onSelectionChanged={(val) => setTimeSpan(val as TimeSpan)} />
+      </SubBar>
       <Content>
-        <SubBar>
-          <OptionBar options={Object.keys(timeSpanOptions)} selected={timeSpan} onSelectionChanged={(val) => setTimeSpan(val as TimeSpan)} />
-          <SmallToggle checked={useSearch} onChecked={(checked) => setUseSearch(checked)} label="Use Search" />
-        </SubBar>
-        {useSearch && searchQuery && <SearchQueryBar>Stats for tickets matching {`"${searchQuery}"`}</SearchQueryBar>}
+        <SearchBar />
+        {searchQuery && <SearchQueryBar>Stats for tickets matching {`"${searchQuery}"`}</SearchQueryBar>}
         {statGroups.map((statGroup, i) =>
           <Accordion label={statGroup.name} key={i} startOpen={statGroup.startOpen} >
             <StatGroupDiv>

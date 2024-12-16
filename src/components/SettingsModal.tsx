@@ -1,21 +1,13 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
-import { isSettled, TicketRecord, TICKETS_KEY, TicketStatus, useTicketState } from '../store/ticketStore';
+import { isSettled, TicketRecordOld, TICKETS_KEY, TicketStatus, useTicketState } from '../store/ticketStore';
 import { useToastState } from '../store/toastStore';
-import { Modal, useUIState } from '../store/uiStore';
 import { Button } from '../styles/GlobalStyles';
-import MenuButton from './MenuButton';
 import { localStorageGet, localStorageSet } from '../LocalStorageManager';
 
 const SettingsModalDiv = styled.div`
-  position: absolute;
   background-color: var(--black);
   width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 10;
   display: flex;
   flex-direction: column;
 `;
@@ -25,17 +17,7 @@ const Content = styled.div`
   flex-direction: column;
   overflow-y: auto;
   padding: 15px;
-  gap: 10px;
-`;
-
-const TopBar = styled.div`
-  background-color: var(--grey);
-  font-size: var(--topbar-font-size);
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 15px;
-  align-items: center;
+  gap: 25px;
 `;
 
 const Warning = styled.div`
@@ -43,8 +25,15 @@ const Warning = styled.div`
   font-size: 10px;
 `;
 
-const CloseButton = styled(Button)`
-  padding: 10px 14px;
+const Group = styled.div`
+  background-color: #222;
+  font-size: 24px;
+  padding: 24px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-self: center;
 `;
 
 const SettingButton = styled(Button)`
@@ -53,16 +42,10 @@ const SettingButton = styled(Button)`
 `;
 
 function SettingsModal() {
-  const navigate = useNavigate();
-  const modalOpen = useUIState(state => state.modalOpen);
   const tickets = useTicketState(state => state.tickets);
   const updateTicket = useTicketState(state => state.updateTicket);
   const refreshTickets = useTicketState(state => state.refreshTickets);
   const showToast = useToastState((state) => state.showToast);
-  
-  const closeModal = () => {
-    navigate("/");
-  };
 
   const onRefreshAll = () => {
     refreshTickets();
@@ -79,7 +62,7 @@ function SettingsModal() {
     const newTicketNumbers = ticketNumbers.filter((tn) => !tickets.find((t) => t.ticketNumber === tn));
     showToast(`Adding ${newTicketNumbers.length} new tickets`);
     newTicketNumbers.forEach((ticketNumber) => {
-      const ticket: TicketRecord = {
+      const ticket: TicketRecordOld = {
         ticketNumber,
         sportsbook: "DraftKings",
         status: TicketStatus.Unknown,
@@ -128,7 +111,7 @@ function SettingsModal() {
       setTimeout(() => {
         var a = window.document.createElement('a');
         a.href = window.URL.createObjectURL(new Blob([ticketStorage!], {type: 'application/json'}));
-        a.download = `BettBookData-${new Date().toISOString().substring(0, 10) }.json`;
+        a.download = `BetBookData-${new Date().toISOString().substring(0, 10) }.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -136,28 +119,25 @@ function SettingsModal() {
     }
   }
 
-  if (modalOpen !== Modal.Settings) return null;
-
   return (
     <SettingsModalDiv>
-      <TopBar>
-        <MenuButton />
-        Settings
-        <CloseButton onClick={closeModal}>X</CloseButton>
-      </TopBar>
       <Content>
-        Manual refesh
-        <SettingButton onClick={onRefreshAll}>Refresh All Tickets</SettingButton>
-        <SettingButton onClick={onRefreshOpen}>Refresh Open Tickets</SettingButton>
-        <hr />
-        Import/Export Numbers
-        <SettingButton onClick={onImport}>Import ticket numbers</SettingButton>
-        <SettingButton onClick={onExport}>Export ticket numbers</SettingButton>
-        <hr />
-        Import/Export Data
-        <Warning>(Warning, importing will overwrite existing data)</Warning>
-        <SettingButton onClick={onImportData}>Import ticket data</SettingButton>
-        <SettingButton onClick={onExportData}>Export ticket data</SettingButton>
+        <Group>
+          Manual refesh
+          <SettingButton onClick={onRefreshAll}>Refresh All Tickets</SettingButton>
+          <SettingButton onClick={onRefreshOpen}>Refresh Open Tickets</SettingButton>
+        </Group>
+        <Group>
+          Import/Export Numbers
+          <SettingButton onClick={onImport}>Import ticket numbers</SettingButton>
+          <SettingButton onClick={onExport}>Export ticket numbers</SettingButton>
+        </Group>
+        <Group>
+          Import/Export Data
+          <Warning>(Warning: Importing will overwrite existing data)</Warning>
+          <SettingButton onClick={onImportData}>Import ticket data</SettingButton>
+          <SettingButton onClick={onExportData}>Export ticket data</SettingButton>
+        </Group>
       </Content>
     </SettingsModalDiv>
   );

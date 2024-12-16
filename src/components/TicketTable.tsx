@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components/macro';
-import {  TicketRecord, TimePeriod, updateCurrentTickets } from '../store/ticketStore';
+import {  filterTicketsBySearch, TicketRecordOld, TimePeriod, updateCurrentTickets } from '../store/ticketStore';
 import { FilterLevel, useUIState } from '../store/uiStore';
 import Accordion from './Accordion';
 import TicketTile from './TicketTile';
 import PullToRefresh from 'react-simple-pull-to-refresh';
+import SearchBar from './SearchBar';
 
 const TableDiv = styled.div`
   width: 100%;
@@ -21,10 +22,6 @@ const Content = styled.div`
   flex-direction: column;
   flex: 1;
   gap: 10px;
-`;
-
-const Footer = styled.div`
-  padding-bottom: 100px;
 `;
 
 const AddTicketsMessage = styled.div`
@@ -46,40 +43,16 @@ const Disclaimer = styled.div`
   }
 `;
 
-const SearchInput = styled.input`
-  font-size: 20px;
-  border-radius: 10px;
-  padding: 4px;
-  background: #111;
-  border: 1px solid #222;
-  color: #fff;
-
-  &:focus {
-    outline: none;
-  }
-`;
-
 interface Props {
-  tickets: TicketRecord[];
+  tickets: TicketRecordOld[];
   mainTable?: boolean;
 }
 
 function TicketTable({ tickets, mainTable }: Props) {
   const filterLevel = useUIState(state => state.filterLevel);
   const searchQuery = useUIState(state => state.searchQuery);
-  const setSearchQuery = useUIState(state => state.setSearchQuery);
   
-  const [filteredTickets, setFilteredTickets] = useState<TicketRecord[]>([]);
-  
-  const filterTicketsBySearch = (ticket: TicketRecord, searchValue: string) => {
-    if (searchValue === "") return true;
-    if (!ticket.ticketResult) return false;
-    searchValue = searchValue.toLowerCase();
-    for (const searchString of ticket.ticketResult.calculated.searchStrings) {
-      if (searchString.indexOf(searchValue) > -1) return true;
-    }
-    return false;
-  };
+  const [filteredTickets, setFilteredTickets] = useState<TicketRecordOld[]>([]);
 
   useEffect(() => {
     const searchResults = tickets.filter((ticket) => filterTicketsBySearch(ticket, searchQuery));
@@ -94,7 +67,7 @@ function TicketTable({ tickets, mainTable }: Props) {
 
   // TODO remove hard coded time periods
 
-  const getTicketDisplay = (ticket: TicketRecord) => <TicketTile ticket={ticket} key={ticket.ticketNumber} />
+  const getTicketDisplay = (ticket: TicketRecordOld) => <TicketTile ticket={ticket} key={ticket.ticketNumber} />
 
   const handleRefresh = async () => {
     console.log("refreshed");
@@ -105,12 +78,7 @@ function TicketTable({ tickets, mainTable }: Props) {
     <TableDiv>
       <PullToRefresh onRefresh={handleRefresh}>
         <Content>
-          <SearchInput
-            type="text"
-            placeholder="Search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <SearchBar />
 
           {/* Pending */}
           <Accordion
@@ -141,8 +109,6 @@ function TicketTable({ tickets, mainTable }: Props) {
             label={`Past (${pastTickets.length})`}>
               {pastTickets.map(getTicketDisplay)}
           </Accordion>
-
-          <Footer />
 
           {/* No tickets */}
           {!hasTickets &&

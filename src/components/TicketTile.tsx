@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
-import { getStatusColor, TicketRecord } from '../store/ticketStore';
+import { getStatusColor, TicketRecordOld, TimePeriod } from '../store/ticketStore';
 import { getDateDisplay } from '../utils';
+import LiveIcon from './LiveIcon';
 
 const TicketTileDiv = styled.div`
   width: 100%;
@@ -38,6 +39,7 @@ const CellContent = styled.div`
   display: flex;
   flex-direction: row;
   gap: 10px;
+  align-items: center;
 `;
 
 const Info = styled.div`
@@ -87,7 +89,7 @@ const ClickArrow = styled.div`
 `;
 
 interface Props {
-  ticket: TicketRecord;
+  ticket: TicketRecordOld;
   hideArrow?: boolean;
 }
 
@@ -141,6 +143,8 @@ function TicketTile({ticket, hideArrow} : Props) {
       </Info>
       <CellContent className={className}>
         <TimeLabel>{dateStr}</TimeLabel>
+        {/*TODO do this better */}
+        {ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current && <LiveIcon />}
       </CellContent>
     </TicketTileDiv>
   );
