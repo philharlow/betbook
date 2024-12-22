@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components/macro';
-import { getStatusColor, TicketRecordOld, TimePeriod } from '../store/ticketStore';
+import { getStatusColor } from '../store/ticketStore';
 import { getDateDisplay } from '../utils';
 import LiveIcon from './LiveIcon';
+import { TicketRecordOld, TimePeriod } from '../store/ticketTypes';
 
 const TicketTileDiv = styled.div`
   width: 100%;

@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import styled from 'styled-components/macro';
-import { SelectionResult, TicketRecordOld, TimePeriod, useTicketState } from '../store/ticketStore';
-import { useUIState } from '../store/uiStore';
-import { Button } from '../styles/GlobalStyles';
-import Accordion from './Accordion';
-import SelectionTile from './SelectionTile';
-import TicketTile from './TicketTile';
-import Toggle from './Toggle';
+import { useTicketState } from '../../store/ticketStore';
+import { useUIState } from '../../store/uiStore';
+import { Button } from '../../styles/GlobalStyles';
+import Accordion from '../Accordion';
+import SelectionTile from '../SelectionTile';
+import TicketTile from '../TicketTile';
+import Toggle from '../Toggle';
+import { SelectionResultOld, TicketRecordOld, TimePeriod } from '../../store/ticketTypes';
 
 const ViewTicketDiv = styled.div`
   background-color: var(--black);
@@ -86,7 +87,7 @@ const BackButton = styled(Button)`
   padding: 10px 14px;
 `;
 
-function ViewTicketModal() {
+function TicketDetailsView() {
   const navigate = useNavigate();
   let { ticketNumber } = useParams();
   const tickets = useTicketState(state => state.tickets);
@@ -144,7 +145,7 @@ function ViewTicketModal() {
   const title = selections.length > 1 ? `${selections.length} Pick Parlay` : firstSelection?.EventName ?? "Loading...";
   const odds = viewingTicket.ticketResult?.TotalOdds;
   const className = viewingTicket.refreshing ? "scrolling-gradient" : "";
-  const getSelectionDisplay = (selection: SelectionResult, i: number) => <SelectionTile selection={selection} key={i} className={className}/>
+  const getSelectionDisplay = (selection: SelectionResultOld, i: number) => <SelectionTile selection={selection} key={i} className={className}/>
 
 
   const handleRefresh = async () => {
@@ -213,4 +214,4 @@ function ViewTicketModal() {
   );
 }
 
-export default ViewTicketModal;
+export default TicketDetailsView;

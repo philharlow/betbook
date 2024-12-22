@@ -2,15 +2,12 @@ import React, { useCallback, useState } from 'react';
 import styled from 'styled-components/macro';
 import {
   fetchUpdatedTicket,
-  TicketRecordOld,
-  TicketResultOld,
-  TicketStatus,
-  TimePeriod,
   useTicketState,
-} from '../store/ticketStore';
-import { Modal, useUIState } from '../store/uiStore';
-import { Button } from '../styles/GlobalStyles';
-import { useToastState } from '../store/toastStore';
+} from '../../store/ticketStore';
+import { Modal, useUIState } from '../../store/uiStore';
+import { Button } from '../../styles/GlobalStyles';
+import { useToastState } from '../../store/toastStore';
+import { TicketRecordOld, TicketResultOld, TicketStatus, TimePeriod } from '../../store/ticketTypes';
 
 const AddTicketDiv = styled.div`
   position: absolute;

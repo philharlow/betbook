@@ -5,7 +5,8 @@ import {
   localStorageSet,
   localStorageSetBool,
 } from "../LocalStorageManager";
-import { TicketRecordOld, useTicketState } from "./ticketStore";
+import { useTicketState } from "./ticketStore";
+import { TicketRecordOld } from "./ticketTypes";
 
 export enum FilterLevel {
   All = "All",
@@ -16,8 +17,8 @@ export enum FilterLevel {
 }
 export const FilterLevels = Object.values(FilterLevel);
 
-const FILTER_LEVEL = "FILTER_LEVEL";
-const SHOW_ARCHIVED_TICKETS = "SHOW_ARCHIVED_TICKETS";
+const FILTER_LEVEL_KEY = "FILTER_LEVEL";
+const SHOW_ARCHIVED_TICKETS_KEY = "SHOW_ARCHIVED_TICKETS";
 
 export enum Modal {
   None,
@@ -62,12 +63,12 @@ export const useUIState = create<UIState>((set, get) => ({
   setViewingBarcode: (viewingBarcode?: TicketRecordOld) => {
     set({ viewingBarcode });
   },
-  filterLevel: localStorageGet(FILTER_LEVEL)
-    ? (localStorageGet(FILTER_LEVEL) as FilterLevel)
+  filterLevel: localStorageGet(FILTER_LEVEL_KEY)
+    ? (localStorageGet(FILTER_LEVEL_KEY) as FilterLevel)
     : FilterLevel.All,
   setFilterLevel: (filterLevel: FilterLevel) => {
     set({ filterLevel });
-    localStorageSet(FILTER_LEVEL, filterLevel);
+    localStorageSet(FILTER_LEVEL_KEY, filterLevel);
   },
   modalOpen: undefined,
   setModalOpen: (modalOpen?: Modal) => {
@@ -81,9 +82,9 @@ export const useUIState = create<UIState>((set, get) => ({
   setSearchQuery: (searchQuery: string) => {
     set({ searchQuery });
   },
-  showArchivedTickets: localStorageGetBool(SHOW_ARCHIVED_TICKETS) ?? false,
+  showArchivedTickets: localStorageGetBool(SHOW_ARCHIVED_TICKETS_KEY) ?? false,
   setShowArchivedTickets: (showArchivedTickets: boolean) => {
     set({ showArchivedTickets });
-    localStorageSetBool(SHOW_ARCHIVED_TICKETS, showArchivedTickets);
+    localStorageSetBool(SHOW_ARCHIVED_TICKETS_KEY, showArchivedTickets);
   },
 }));

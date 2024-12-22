@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components/macro';
-import { filterTicketsBySearch, isSettled, TicketRecordOld, TicketStatus, useTicketState } from '../store/ticketStore';
-import { useUIState } from '../store/uiStore';
-import Accordion from './Accordion';
-import OptionBar from './OptionBar';
-import TicketTile from './TicketTile';
-import SearchBar from './SearchBar';
+import { filterTicketsBySearch, useTicketState } from '../../store/ticketStore';
+import { useUIState } from '../../store/uiStore';
+import Accordion from '../Accordion';
+import OptionBar from '../OptionBar';
+import TicketTile from '../TicketTile';
+import SearchBar from '../SearchBar';
+import { isSettled, TicketRecordOld, TicketStatus } from '../../store/ticketTypes';
+import { Button } from '../../styles/GlobalStyles';
 
-const StatsModalDiv = styled.div`
+const StatsViewDiv = styled.div`
   background-color: var(--black);
   width: 100%;
   display: flex;
@@ -18,7 +20,7 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding: 15px;
+  padding: 10px 15px;
   gap: 20px;
 `;
 
@@ -79,37 +81,62 @@ enum TimeSpan {
   PastWeek = "Past 7 days",
   PastMonth = "30 days",
   PastYear = "365 days",
+  Custom = "Custom",
 }
 
-const timeSpanOptions = {
+const allTimeSpans = Object.values(TimeSpan);
+
+const msBytimeSpan = {
   [TimeSpan.AllTime]: -1,
   [TimeSpan.PastWeek]: dayMs * 7,
   [TimeSpan.PastMonth]: dayMs * 30,
   [TimeSpan.PastYear]: dayMs * 365,
+  [TimeSpan.Custom]: 0, // Overridden
+}
+
+interface CustomTimeSpan {
+  start: Date;
+  end: Date;
 }
 
 const dollarUSLocale = Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const toCurrencyFormat = (val: number) => isNaN(val) ? "$--" : "$" + dollarUSLocale.format(val);
 export const toPercentFormat = (val: number) =>  isNaN(val) ? "--%" : `${parseFloat((val * 100).toFixed(2))}%`;
 
-function StatsModal() {
+function StatsView() {
   const searchQuery = useUIState(state => state.searchQuery);
   const tickets = useTicketState(state => state.tickets);
   const [timeSpan, setTimeSpan] = useState(TimeSpan.AllTime);
   const [filteredTickets, setFilteredTickets] = useState<TicketRecordOld[]>([]);
+  const [customTimeSpan, setCustomTimeSpan] = useState<CustomTimeSpan | null>(null);
+  const [customTimeInputOpen, setCustomTimeInputOpen] = useState(false);
 
   useEffect(() => {
-    const now = new Date();
-    const timeSpanLimit = timeSpanOptions[timeSpan];
+    const nowMs = new Date().getTime();
+    let start = nowMs;
+    let timeSpanMs = msBytimeSpan[timeSpan];
+    let end = nowMs - timeSpanMs;
+
+    if (timeSpan === TimeSpan.Custom && customTimeSpan) {
+      start = customTimeSpan.start.getTime();
+      end = customTimeSpan.end.getTime();
+    }
+    
     const timeSpanResults = tickets.filter((ticket) => {
       if (!ticket.ticketResult) return false;
       if (!filterTicketsBySearch(ticket, searchQuery)) return false;
-      if (timeSpanLimit === -1) return true;
-      const delta = now.getTime() - ticket.ticketResult.calculated.EventDate.getTime();
-      return delta > 0 && delta < timeSpanLimit;
+      if (timeSpanMs === -1) return true;
+      let ticketDate = ticket.ticketResult.calculated.EventDate.getTime();
+      return ticketDate > end && ticketDate < start;
     });
     setFilteredTickets(timeSpanResults);
-  }, [tickets, timeSpan, searchQuery]);
+  }, [tickets, timeSpan, searchQuery, customTimeSpan]);
+
+  useEffect(() => {
+    if (customTimeInputOpen === false && timeSpan === TimeSpan.Custom && customTimeSpan === null) {
+      setTimeSpan(TimeSpan.AllTime);
+    }
+  }, [customTimeInputOpen, timeSpan, customTimeSpan]);
 
   const winningTickets = filteredTickets.filter((t) => t.status === TicketStatus.Won);
   const losingTickets = filteredTickets.filter((t) => t.status === TicketStatus.Lost);
@@ -207,11 +234,18 @@ function StatsModal() {
   if (bestOddsWin) ticketsToShow.push(["Best Odds Win", bestOddsWin]);
   if (bestPayWin) ticketsToShow.push(["Best Payout Win", bestPayWin]);
 
+  const onTimeSpanChanged = (newTimeSpan: string) => {
+    setTimeSpan(newTimeSpan as TimeSpan)
+    if (newTimeSpan === TimeSpan.Custom) {
+      setCustomTimeInputOpen(true);
+    }
+  }
+
 
   return (
-    <StatsModalDiv>
+    <StatsViewDiv>
       <SubBar>
-        <OptionBar options={Object.keys(timeSpanOptions)} selected={timeSpan} onSelectionChanged={(val) => setTimeSpan(val as TimeSpan)} />
+        <OptionBar options={allTimeSpans} selected={timeSpan} onSelectionChanged={onTimeSpanChanged} />
       </SubBar>
       <Content>
         <SearchBar />
@@ -232,8 +266,111 @@ function StatsModal() {
           </Accordion>
         )}
       </Content>
-    </StatsModalDiv>
+      {customTimeInputOpen && <CustomTimeInputModal customTimeSpan={customTimeSpan} setCustomTimeSpan={setCustomTimeSpan} setCustomTimeInputOpen={setCustomTimeInputOpen} />}
+    </StatsViewDiv>
   );
 }
 
-export default StatsModal;
+export default StatsView;
+
+interface CustomTimeInputProps {
+  customTimeSpan: CustomTimeSpan | null;
+  setCustomTimeSpan: (span: CustomTimeSpan) => void;
+  setCustomTimeInputOpen: (open: boolean) => void;
+}
+
+const CustomTimeInputModalDiv = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  background-color: var(--grey);
+`;
+
+const CustomTimeInputDiv = styled.div`
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 30px;
+  font-size: 20px;
+`;
+
+const CustomTimeInputRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+`;
+
+const CustomTimeInputButton = styled(Button)`
+  padding: 10px;
+`;
+
+function CustomTimeInputModal({ customTimeSpan, setCustomTimeSpan, setCustomTimeInputOpen }: CustomTimeInputProps) {
+  const [start, setStart] = useState<Date>(new Date());
+  const [end, setEnd] = useState<Date>(new Date());
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (customTimeSpan) {
+      setStart(customTimeSpan.start);
+      setEnd(customTimeSpan.end);
+    }
+  }, [customTimeSpan]);
+
+  const handleStartChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const date = new Date(e.target.value);
+    if (isNaN(date.getTime())) {
+      setError("Invalid date");
+      return;
+    }
+    setStart(date);
+    setError(null);
+  }
+
+  const handleEndChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const date = new Date(e.target.value);
+    if (isNaN(date.getTime())) {
+      setError("Invalid date");
+      return;
+    }
+    setEnd(date);
+    setError(null);
+  }
+
+  const handleSetTimeSpan = () => {
+    if (!start || !end || start === end) {
+      setError("Both dates must be set");
+      return;
+    }
+    if (start.getTime() > end.getTime()) {
+      setCustomTimeSpan({ start, end });
+    } else {
+      setCustomTimeSpan({ start: end, end: start });
+    }
+    setCustomTimeInputOpen(false);
+  }
+
+  return (
+    <CustomTimeInputModalDiv>
+      <CustomTimeInputDiv>
+        <CustomTimeInputRow>
+          <h3>Set Custom Time Range</h3>
+        </CustomTimeInputRow>
+        <CustomTimeInputRow>
+          Start Date
+          <input type="date" onChange={handleStartChange} value={start.toISOString().substring(0, 10)} />
+        </CustomTimeInputRow>
+        <CustomTimeInputRow>
+          End Date
+          <input type="date" onChange={handleEndChange} value={end.toISOString().substring(0, 10)} />
+        </CustomTimeInputRow>
+        <CustomTimeInputButton onClick={handleSetTimeSpan}>Set Time Span</CustomTimeInputButton>
+        <CustomTimeInputButton onClick={() => setCustomTimeInputOpen(false)}>Cancel</CustomTimeInputButton>
+        {error && <div>{error}</div>}
+      </CustomTimeInputDiv>
+    </CustomTimeInputModalDiv>
+  );
+}

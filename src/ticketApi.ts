@@ -1,22 +1,17 @@
 import {
   calculateTicketValues,
   sanitizeTicket,
-  TicketRecordOld,
-  DraftkingsTicketResultOld,
-  TicketStatus,
-  TicketStatuses,
-  SelectionResult,
 } from "./store/ticketStore";
+import { DraftkingsTicketResultOld, getStatus, SelectionResultOld, TicketRecordOld } from "./store/ticketTypes";
 import { useToastState } from "./store/toastStore";
 
 // cors-anywhere router to get around api's cors restrictions
 // https://github.com/Rob--W/cors-anywhere
 const corsRouter = process.env.REACT_APP_CORS_ROUTER;
+
 // Draftkings ticket api endpoint
 const ticketDetailsEndpoint =
   "https://cashier-dkuswaretail-ticket-details.draftkings.com/api/tickets/";
-// "https://cashier-dkuswaretail-ticket-details.draftkings.com/async/ticketdetails.ashx/GetPublicTicket";
-//"https://cashier-dkuswaretail-ticket-details.sbtech.com/async/ticketdetails.ashx/GetPublicTicket";
 const request: RequestInit = { headers: { requesttarget: "AJAXService" } };
 
 export const fetchTicketStatus = async (ticketNumber: string) => {
@@ -60,7 +55,7 @@ const parseTicket = (
 
 // Draftkings updated their API around 12/10/2024, this parser handles the new format
 function parseNewTicketData(ticket: any): DraftkingsTicketResultOld {
-  let selections: SelectionResult[] = [];
+  let selections: SelectionResultOld[] = [];
   ticket.bets.forEach((bet: any) => {
     bet.events.forEach((event: any) => {
       event.selectionsGroups.forEach((group: any) => {
@@ -79,7 +74,7 @@ function parseNewTicketData(ticket: any): DraftkingsTicketResultOld {
             YourBetPrefix: selection.selectionName, // Adjust based on your logic
             Yourbet: `${selection.selectionName}`,
             Status: getStatus(selection.selectionStatus),
-          } as SelectionResult)
+          } as SelectionResultOld)
         );
       });
     });
@@ -99,9 +94,3 @@ function parseNewTicketData(ticket: any): DraftkingsTicketResultOld {
   console.log("parseNewTicketData", ticketObj);
   return ticketObj as DraftkingsTicketResultOld;
 }
-
-const getStatus = (status: string) => {
-  if (TicketStatuses.includes(status as TicketStatus))
-    return status as TicketStatus;
-  return TicketStatus.Error;
-};

@@ -1,11 +1,12 @@
 import React from 'react';
 import styled from 'styled-components/macro';
-import { isSettled, TicketRecordOld, TICKETS_KEY, TicketStatus, useTicketState } from '../store/ticketStore';
-import { useToastState } from '../store/toastStore';
-import { Button } from '../styles/GlobalStyles';
-import { localStorageGet, localStorageSet } from '../LocalStorageManager';
+import { useTicketState } from '../../store/ticketStore';
+import { useToastState } from '../../store/toastStore';
+import { Button } from '../../styles/GlobalStyles';
+import { localStorageGet, localStorageRemove, localStorageSet } from '../../LocalStorageManager';
+import { isSettled, TicketRecordOld, TICKETS_KEY, TicketStatus } from '../../store/ticketTypes';
 
-const SettingsModalDiv = styled.div`
+const SettingsViewDiv = styled.div`
   background-color: var(--black);
   width: 100%;
   display: flex;
@@ -36,12 +37,20 @@ const Group = styled.div`
   align-self: center;
 `;
 
-const SettingButton = styled(Button)`
+interface SettingsButtonProps {
+  danger?: boolean;
+}
+
+const SettingButton = styled(Button)<SettingsButtonProps>`
   padding: 10px 20px;
   align-self: center;
+  color: ${(props) => props.danger ? "red" : "unset"}
 `;
 
-function SettingsModal() {
+const Stat = styled.div`
+`;
+
+function SettingsView() {
   const tickets = useTicketState(state => state.tickets);
   const updateTicket = useTicketState(state => state.updateTicket);
   const refreshTickets = useTicketState(state => state.refreshTickets);
@@ -53,6 +62,15 @@ function SettingsModal() {
 
   const onRefreshOpen = () => {
     refreshTickets((ticket) => !isSettled(ticket.status));
+  }
+
+  const onClearRefreshing = () => {
+    tickets.forEach((ticket) => {
+      if (ticket.refreshing) {
+        ticket.refreshing = false;
+        updateTicket(ticket);
+      }
+    });
   }
 
   const onImport = () => {
@@ -119,13 +137,22 @@ function SettingsModal() {
     }
   }
 
+  const onEraseData = () => {
+    if (window.confirm("Are you sure you want to wipe all local data?\rTHIS CANNOT BE UNDONE")) {
+      localStorageRemove(TICKETS_KEY);
+      showToast(`Data wiped! Reloading...`);
+      setTimeout(() => window.location.reload(), 2000);
+    }
+  }
+
   return (
-    <SettingsModalDiv>
+    <SettingsViewDiv>
       <Content>
         <Group>
           Manual refesh
           <SettingButton onClick={onRefreshAll}>Refresh All Tickets</SettingButton>
           <SettingButton onClick={onRefreshOpen}>Refresh Open Tickets</SettingButton>
+          <SettingButton onClick={onClearRefreshing}>Clear All Refreshish Flags</SettingButton>
         </Group>
         <Group>
           Import/Export Numbers
@@ -137,10 +164,13 @@ function SettingsModal() {
           <Warning>(Warning: Importing will overwrite existing data)</Warning>
           <SettingButton onClick={onImportData}>Import ticket data</SettingButton>
           <SettingButton onClick={onExportData}>Export ticket data</SettingButton>
+          <SettingButton danger onClick={onEraseData}>Erase all ticket data</SettingButton>
         </Group>
+        <Stat>{tickets.length} total tickets</Stat>
+        <Stat>{tickets.filter(t => t.refreshing).length} refreshing tickets</Stat>
       </Content>
-    </SettingsModalDiv>
+    </SettingsViewDiv>
   );
 }
 
-export default SettingsModal;
+export default SettingsView;

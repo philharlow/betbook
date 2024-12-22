@@ -1,15 +1,15 @@
 import React from 'react';
 import styled from 'styled-components/macro';
-import AddTicketModal from './components/AddTicketModal';
-import StatsModal from './components/StatsModal';
-import MainTicketTable from './components/MainTicketTable';
+import ScanTicketModal from './components/modals/ScanTicketModal';
+import StatsView from './components/views/StatsView';
+import MainTicketsView from './components/views/MainTicketsView';
 import Toast from './components/Toast';
-import ViewTicketModal from './components/ViewTicketModal';
+import TicketDetailsView from './components/views/TicketDetailsView';
 import { GlobalStyles } from './styles/GlobalStyles';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import BarcodePopup from './components/BarcodePopup';
-import SettingsModal from './components/SettingsModal';
-import ManuallyAddTicketModal from './components/ManuallyAddTicketModal';
+import SettingsView from './components/views/SettingsView';
+import ManuallyAddTicketModal from './components/modals/ManuallyAddTicketModal';
 import MenuBar from './components/MenuBar';
 import TopBar from './components/TopBar';
 
@@ -27,6 +27,9 @@ const AppDiv = styled.div`
 const ScrollPane = styled.div`
   flex: 1;
   overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
 `;
 
 const App = () => {
@@ -38,14 +41,14 @@ const App = () => {
         <TopBar />
         <ScrollPane>
           <Routes>
-            <Route index element={<MainTicketTable />} />
-            <Route path="/stats" element={<StatsModal />} />
-            <Route path="/settings" element={<SettingsModal />} />
-            <Route path="/:ticketNumber" element={<ViewTicketModal />} />
+            <Route index element={<MainTicketsView />} />
+            <Route path="/:ticketNumber" element={<TicketDetailsView />} />
+            <Route path="/stats" element={<StatsView />} />
+            <Route path="/settings" element={<SettingsView />} />
           </Routes>
         </ScrollPane>
         
-        <AddTicketModal />
+        <ScanTicketModal />
         <ManuallyAddTicketModal />
         <BarcodePopup />
         <Toast />

@@ -1,8 +1,9 @@
 import React from 'react';
-import { TicketRecordOld, TicketStatus, useTicketState } from '../store/ticketStore';
-import { FilterLevel, useUIState } from '../store/uiStore';
-import FilterBar from './FilterBar';
-import TicketTable from './TicketTable';
+import { useTicketState } from '../../store/ticketStore';
+import { FilterLevel, useUIState } from '../../store/uiStore';
+import FilterBar from '../FilterBar';
+import TicketTable from '../TicketTable';
+import { TicketRecordOld, TicketStatus } from '../../store/ticketTypes';
 
 const shouldDisplay = (ticket: TicketRecordOld, filter: FilterLevel, showArchivedTickets: boolean) => {
   if (ticket.archived && !showArchivedTickets) return false;
@@ -13,7 +14,7 @@ const shouldDisplay = (ticket: TicketRecordOld, filter: FilterLevel, showArchive
   return true;
 }
 
-function MainTicketTable() {
+function MainTicketsView() {
   const tickets = useTicketState(state => state.tickets);
   const showArchivedTickets = useUIState(state => state.showArchivedTickets);
   const filterLevel = useUIState(state => state.filterLevel);
@@ -27,4 +28,4 @@ function MainTicketTable() {
   );
 }
 
-export default MainTicketTable;
+export default MainTicketsView;

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components/macro';
-import {  filterTicketsBySearch, TicketRecordOld, TimePeriod, updateCurrentTickets } from '../store/ticketStore';
+import { filterTicketsBySearch, updateCurrentTickets } from '../store/ticketStore';
 import { FilterLevel, useUIState } from '../store/uiStore';
 import Accordion from './Accordion';
 import TicketTile from './TicketTile';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import SearchBar from './SearchBar';
+import { TicketRecordOld, TimePeriod } from '../store/ticketTypes';
 
 const TableDiv = styled.div`
   width: 100%;
@@ -13,7 +14,7 @@ const TableDiv = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 15px;
+  padding: 0px 15px;
   overflow-y: auto;
 `;
 
@@ -22,6 +23,7 @@ const Content = styled.div`
   flex-direction: column;
   flex: 1;
   gap: 10px;
+  padding: 10px 0px;
 `;
 
 const AddTicketsMessage = styled.div`
@@ -119,7 +121,7 @@ function TicketTable({ tickets, mainTable }: Props) {
           }
           {mainTable && !hasTickets && filterLevel === FilterLevel.All &&
             <Disclaimer>
-              All data is stored securely on your device.
+              All data is stored locally on your device.
               <br/>
               Open source: <a href="https://github.com/philharlow/betbook">github.com/philharlow/betbook</a>
             </Disclaimer>

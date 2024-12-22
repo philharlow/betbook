@@ -2,14 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components/macro';
 import {
   fetchUpdatedTicket,
-  TicketRecordOld,
-  TicketStatus,
   useTicketState,
-} from '../store/ticketStore';
+} from '../../store/ticketStore';
 import QrScanner from 'qr-scanner';
-import { Modal, useUIState } from '../store/uiStore';
-import { Button } from '../styles/GlobalStyles';
-import { useToastState } from '../store/toastStore';
+import { Modal, useUIState } from '../../store/uiStore';
+import { Button } from '../../styles/GlobalStyles';
+import { useToastState } from '../../store/toastStore';
+import { TicketRecordOld, TicketStatus } from '../../store/ticketTypes';
 
 const AddTicketDiv = styled.div`
   position: absolute;
@@ -81,7 +80,7 @@ let listening = false;
 let found: string[] = [];
 let qrScanner: QrScanner | undefined;
 
-function AddTicketModal() {
+function ScanTicketModal() {
   const modalOpen = useUIState(state => state.modalOpen);
   const setModalOpen = useUIState(state => state.setModalOpen);
   const tickets = useTicketState(state => state.tickets);
@@ -160,7 +159,7 @@ function AddTicketModal() {
       qrScanner = undefined;
     }
   }, [modalOpen]);
-  // HACK to include addTicketModalOpen and settimeout. videoRef should be sufficient
+  // HACK to include ScanTicketModalOpen and settimeout. videoRef should be sufficient
 
   useEffect(() => {
     const secure = window.location.protocol === "https:";
@@ -187,4 +186,4 @@ function AddTicketModal() {
   );
 }
 
-export default AddTicketModal;
+export default ScanTicketModal;

@@ -1,7 +1,8 @@
 import React from 'react';
 import styled from 'styled-components/macro';
-import { getStatusColor, SelectionResult } from '../store/ticketStore';
+import { getStatusColor } from '../store/ticketStore';
 import { getDateDisplay } from '../utils';
+import { SelectionResultOld } from '../store/ticketTypes';
 
 const SelectionTileDiv = styled.div`
   width: 100%;
@@ -51,7 +52,7 @@ const GreyLabel = styled.div`
 `;
 
 interface Props {
-  selection: SelectionResult;
+  selection: SelectionResultOld;
   className?: string;
 }
 
