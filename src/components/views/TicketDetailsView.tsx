@@ -1,15 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import PullToRefresh from 'react-simple-pull-to-refresh';
-import styled from 'styled-components/macro';
-import { useTicketState } from '../../store/ticketStore';
-import { useUIState } from '../../store/uiStore';
-import { Button } from '../../styles/GlobalStyles';
-import Accordion from '../Accordion';
-import SelectionTile from '../SelectionTile';
-import TicketTile from '../TicketTile';
-import Toggle from '../Toggle';
-import { SelectionResultOld, TicketRecordOld, TimePeriod } from '../../store/ticketTypes';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import PullToRefresh from "react-simple-pull-to-refresh";
+import styled from "styled-components/macro";
+import { getBetTimePeriod, useTicketState } from "../../store/ticketStore";
+import { useUIState } from "../../store/uiStore";
+import { Button } from "../../styles/GlobalStyles";
+import Accordion from "../Accordion";
+import Toggle from "../Toggle";
+import {
+  BetDetails,
+  getOddsDisplay,
+  TicketDefinition,
+  TimePeriod,
+} from "../../data/ticketTypes";
+import TicketTile from "../TicketTile";
+import BetTile from "../BetTile";
 
 const ViewTicketDiv = styled.div`
   background-color: var(--black);
@@ -90,124 +95,147 @@ const BackButton = styled(Button)`
 function TicketDetailsView() {
   const navigate = useNavigate();
   let { ticketNumber } = useParams();
-  const tickets = useTicketState(state => state.tickets);
-  const [viewingTicket, setViewingTicket] = useState<TicketRecordOld | undefined>(undefined);
+  const tickets = useTicketState((state) => state.tickets);
+  const [viewingTicket, setViewingTicket] = useState<
+    TicketDefinition | undefined
+  >(undefined);
   // const setViewingTicket = useUIState(state => state.setViewingTicket);
-  const setViewingBarcode = useUIState(state => state.setViewingBarcode);
-  const removeTicket = useTicketState(state => state.removeTicket);
-  const archiveTicket = useTicketState(state => state.archiveTicket);
-  const refreshTicket = useTicketState(state => state.refreshTicket);
-  
+  const setViewingBarcode = useUIState((state) => state.setViewingBarcode);
+  const removeTicket = useTicketState((state) => state.removeTicket);
+  const archiveTicket = useTicketState((state) => state.archiveTicket);
+  const refreshTicket = useTicketState((state) => state.refreshTicket);
+
   const closeModal = () => {
-    // setOpen(false);
-    //setTimeout(() => {
-      navigate(-1);
-    //}, easeTime);
+    navigate(-1);
   };
-  
-  useEffect(() => {
-    // setOpen(viewingTicket !== undefined);
-    // console.log("viewing ticket useeffect", viewingTicket);
-  }, [viewingTicket]);
 
   useEffect(() => {
-    const ticket = tickets.find((ticket) => ticketNumber === ticket.ticketNumber);
+    const ticket = tickets.find(
+      (ticket) => ticketNumber === ticket.ticketNumber
+    );
     setViewingTicket(ticket);
-    // console.log("viewing ticket useeffect", viewingTicket);
   }, [ticketNumber, tickets]);
-  
+
   const deleteTicket = () => {
     if (!viewingTicket) return;
-    if (!window.confirm(`Are you sure you want to delete ticket ${viewingTicket.ticketNumber}?`)) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ticket ${viewingTicket.ticketNumber}?`
+      )
+    )
+      return;
     removeTicket(viewingTicket.ticketNumber);
     setViewingTicket(undefined);
   };
-  
+
   const redeemTicket = () => {
     if (!viewingTicket) return;
     setViewingBarcode(viewingTicket);
   };
-  
+
   const onArchiveTicket = () => {
     if (!viewingTicket) return;
-    archiveTicket(viewingTicket.ticketNumber, !viewingTicket.archived);
+    archiveTicket(viewingTicket.ticketNumber, !viewingTicket.archivedDate);
   };
 
   if (!viewingTicket) return <ViewTicketDiv />;
-  
-  const selections = viewingTicket.ticketResult?.Selections || [];
-  const isPending = viewingTicket.ticketResult === undefined;
-  const pastSelections = selections.filter((selection) => selection.calculated.TimePeriod === TimePeriod.Past);
-  const currentSelections = selections.filter((selection) => selection.calculated.TimePeriod === TimePeriod.Current);
-  const futureSelections = selections.filter((selection) => selection.calculated.TimePeriod === TimePeriod.Future);
-  
-  const firstSelection = selections[0];
-  const title = selections.length > 1 ? `${selections.length} Pick Parlay` : firstSelection?.EventName ?? "Loading...";
-  const odds = viewingTicket.ticketResult?.TotalOdds;
-  const className = viewingTicket.refreshing ? "scrolling-gradient" : "";
-  const getSelectionDisplay = (selection: SelectionResultOld, i: number) => <SelectionTile selection={selection} key={i} className={className}/>
 
+  const bets = viewingTicket.ticketDetails?.bets || [];
+  const isPending = viewingTicket.ticketDetails === undefined;
+
+  const betsByTimePeriod = bets.reduce((acc, bet) => {
+    const timePeriod = getBetTimePeriod(bet);
+    acc[timePeriod] = acc[timePeriod] ?? [];
+    acc[timePeriod]!.push(bet);
+    return acc;
+  }, {} as { [key in TimePeriod]?: BetDetails[] });
+
+  const pastSelections = betsByTimePeriod[TimePeriod.Past] || [];
+  const currentSelections = betsByTimePeriod[TimePeriod.Current] || [];
+  const futureSelections = betsByTimePeriod[TimePeriod.Future] || [];
+
+  const title = viewingTicket.ticketDetails?.title ?? "Loading...";
+  const odds = viewingTicket.ticketDetails?.totalOdds;
+  const className = viewingTicket.refreshing ? "scrolling-gradient" : "";
+  const getSelectionDisplay = (bet: BetDetails, i: number) => (
+    <BetTile bet={bet} key={i} className={className} />
+  );
 
   const handleRefresh = async () => {
     console.log("refreshed");
     refreshTicket(viewingTicket);
   };
 
-  const expiresInMs = viewingTicket.ticketResult ? viewingTicket.ticketResult?.calculated.ExpireDate.getTime() - Date.now() : -1;
-  const expiresInDays = expiresInMs < 0 ? "" : `(${Math.floor(expiresInMs / 1000 / 60 / 60/ 24)} days)`;
+  const now = new Date();
+  const expiresInMs = viewingTicket.ticketDetails
+    ? viewingTicket.ticketDetails?.expiresDate.getTime() - now.getTime()
+    : -1;
+  const expiresInDaysStr = `${Math.floor(
+    Math.abs(expiresInMs) / 1000 / 60 / 60 / 24
+  )} days`;
+  const expiresInDays =
+    expiresInMs < 0 ? `${expiresInDaysStr} ago` : `in ${expiresInDaysStr}`;
 
   return (
     <ViewTicketDiv>
       <TopBar>
         <BackButton onClick={closeModal}>&lt;</BackButton>
-        DraftKings Ticket
+        {viewingTicket.dataSource} Ticket
+        {/* {viewingTicket.ticketDetails?.betshopName} Ticket */}
         <span />
       </TopBar>
       <PullToRefresh onRefresh={handleRefresh}>
         <Content>
           <TicketTile ticket={viewingTicket} hideArrow={true} />
-
-          <Title className={className}>{title} {odds}</Title>
-          
+          <Title className={className}>
+            {title} {getOddsDisplay(odds)}
+          </Title>
           {/* Past */}
           <Accordion
             className={className}
             dontDrawEmpty={true}
-            label={`Past (${pastSelections.length})`}>
-              {pastSelections.map(getSelectionDisplay)}
+            label={`Past (${pastSelections.length})`}
+          >
+            {pastSelections.map(getSelectionDisplay)}
           </Accordion>
-
           {/* Current */}
           <Accordion
             dontDrawEmpty={true}
-            label={`Current (${currentSelections.length})`}>
-              {currentSelections.map(getSelectionDisplay)}
+            label={`Current (${currentSelections.length})`}
+          >
+            {currentSelections.map(getSelectionDisplay)}
           </Accordion>
-
           {/* Future */}
           <Accordion
             dontDrawEmpty={true}
-            label={`Future (${futureSelections.length})`}>
-              {futureSelections.map(getSelectionDisplay)}
+            label={`Future (${futureSelections.length})`}
+          >
+            {futureSelections.map(getSelectionDisplay)}
           </Accordion>
-
-          {isPending && 'Loading...'}
-
-          Created: {viewingTicket.ticketResult?.calculated.CreatedDate.toLocaleString() ?? ""}<br />
-          Expires: {viewingTicket.ticketResult?.calculated.ExpireDate.toLocaleString() ?? ""} {expiresInDays}<br />
-          
+          {isPending && "Loading..."}
+          Created: {viewingTicket.createdDate.toLocaleString() ?? ""}
+          <br />
+          Expires:{" "}
+          {viewingTicket.ticketDetails?.expiresDate.toLocaleString() ?? ""} (
+          {expiresInDays})<br />
           <ArchiveRow>
             <ToggleRow>
               <div onClick={onArchiveTicket}>Archive Ticket</div>
-              <Toggle checked={viewingTicket.archived ?? false} onChecked={onArchiveTicket} />
+              <Toggle
+                checked={viewingTicket.archivedDate !== undefined}
+                onChecked={onArchiveTicket}
+              />
             </ToggleRow>
           </ArchiveRow>
           <ButtonRow>
             <RedeemButton onClick={redeemTicket}>View Barcode</RedeemButton>
           </ButtonRow>
           <RemoveButton onClick={deleteTicket}>Delete Ticket</RemoveButton>
-          
-          Ticket # {viewingTicket.ticketNumber}<br />
+          Ticket # {viewingTicket.ticketNumber}
+          <br />
+          <Button onClick={() => console.log(viewingTicket)}>
+            Debug: Print ticket data
+          </Button>
         </Content>
       </PullToRefresh>
     </ViewTicketDiv>

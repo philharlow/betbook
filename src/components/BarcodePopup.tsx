@@ -56,7 +56,7 @@ function BarcodePopup() {
   return (
     <BarcodePopupDiv onClick={() => setViewingBarcode(undefined)}>
       <BarcodeDiv>
-        <SportsBook>{viewingBarcode.ticketResult?.BetShopName}</SportsBook>
+        <SportsBook>{viewingBarcode.ticketDetails?.betshopName}</SportsBook>
         <BigBarcode value={viewingBarcode.ticketNumber} options={{ format: 'ean13', flat: true }} />
         <Flex />
         <CloseMessage>Tap anywhere to close</CloseMessage>

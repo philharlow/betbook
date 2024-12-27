@@ -1,13 +1,10 @@
-import React, { useCallback, useState } from 'react';
-import styled from 'styled-components/macro';
-import {
-  fetchUpdatedTicket,
-  useTicketState,
-} from '../../store/ticketStore';
-import { Modal, useUIState } from '../../store/uiStore';
-import { Button } from '../../styles/GlobalStyles';
-import { useToastState } from '../../store/toastStore';
-import { TicketRecordOld, TicketResultOld, TicketStatus, TimePeriod } from '../../store/ticketTypes';
+import React, { useCallback, useState } from "react";
+import styled from "styled-components/macro";
+import { fetchUpdatedTicket, useTicketState } from "../../store/ticketStore";
+import { Modal, useUIState } from "../../store/uiStore";
+import { Button } from "../../styles/GlobalStyles";
+import { useToastState } from "../../store/toastStore";
+import { TicketDefinition, TicketSource } from "../../data/ticketTypes";
 
 const AddTicketDiv = styled.div`
   position: absolute;
@@ -46,54 +43,43 @@ const Input = styled.input`
   border-radius: 10px;
 `;
 
-const ManuallyAddedTicketResult: TicketResultOld = {
-  CreatedDate: new Date(),
-  EventDate: new Date(),
-  ExpireDate: new Date(),
-  searchStrings: [],
-  SubTitle: '',
-  Title: '',
-  TicketCost: 0,
-  TimePeriod: TimePeriod.Future,
-  ToPay: 0,
-  TotalOdds: 0,
-  ToWin: 0,
-};
-
 function ManuallyAddTicketModal() {
-  const modalOpen = useUIState(state => state.modalOpen);
-  const setModalOpen = useUIState(state => state.setModalOpen);
-  const tickets = useTicketState(state => state.tickets);
-  const updateTicket = useTicketState(state => state.updateTicket);
-  const showToast = useToastState(state => state.showToast);
-  const [value, setValue] = useState('');
+  const modalOpen = useUIState((state) => state.modalOpen);
+  const setModalOpen = useUIState((state) => state.setModalOpen);
+  const tickets = useTicketState((state) => state.tickets);
+  const updateTicket = useTicketState((state) => state.updateTicket);
+  const showToast = useToastState((state) => state.showToast);
+  const [value, setValue] = useState("");
 
   const handleChange = (e: any) => {
     const val = e.target.value;
     setValue(val);
   };
 
-  const addTicket = useCallback((ticketNumber: string) => {
-    const asNumber = parseInt(ticketNumber);
-    if (asNumber && !isNaN(asNumber)) {
-      setValue("");
-      if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
-        showToast("Ticket already added");
+  const addTicket = useCallback(
+    (ticketNumber: string) => {
+      const asNumber = parseInt(ticketNumber);
+      if (asNumber && !isNaN(asNumber)) {
+        setValue("");
+        if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
+          showToast("Ticket already added");
+        } else {
+          const ticket: TicketDefinition = {
+            ticketNumber,
+            createdDate: new Date(),
+            dataSource: TicketSource.Manual,
+            refreshing: true,
+          };
+          updateTicket(ticket);
+          fetchUpdatedTicket(ticket.ticketNumber);
+          showToast("Ticket added!");
+        }
       } else {
-        const ticket: TicketRecordOld = {
-          ticketNumber,
-          sportsbook: "DraftKings",
-          status: TicketStatus.Unknown,
-          refreshing: true,
-        };
-        updateTicket(ticket);
-        fetchUpdatedTicket(ticket.ticketNumber)
-        showToast("Ticket added!");
+        showToast("Ticket number invalid");
       }
-    } else {
-      showToast("Ticket number invalid");
-    }
-  }, [updateTicket, tickets, showToast]);
+    },
+    [updateTicket, tickets, showToast]
+  );
 
   const onAddTicket = () => {
     addTicket(value);
@@ -109,8 +95,15 @@ function ManuallyAddTicketModal() {
         <CloseButton onClick={() => setModalOpen(undefined)}>X</CloseButton>
       </TopBar>
       Ticket Number
-      <Input value={value} placeholder="Ticket number" onChange={handleChange} type='text' />
-      <AddTicketButton onClick={() => onAddTicket()}>Add Ticket</AddTicketButton>
+      <Input
+        value={value}
+        placeholder="Ticket number"
+        onChange={handleChange}
+        type="text"
+      />
+      <AddTicketButton onClick={() => onAddTicket()}>
+        Add Ticket
+      </AddTicketButton>
       {/* <hr />
       <ManuallyAddTicketFields /> */}
     </AddTicketDiv>
@@ -119,13 +112,13 @@ function ManuallyAddTicketModal() {
 
 export default ManuallyAddTicketModal;
 
+/*
 function ManuallyAddTicketFields() {
-  const [ticket, setTicket] = useState<TicketRecordOld>({
-    refreshing: false,
-    sportsbook: '',
-    status: TicketStatus.Unknown,
-    ticketNumber: '',
-    manuallyCreated: {...ManuallyAddedTicketResult},
+  const [ticket, setTicket] = useState<TicketDefinition>({
+      ticketNumber: '',
+      createdDate: new Date(),
+      dataSource: TicketSource.DraftKingsV2,
+      refreshing: false,
   });
 
   const handleChange = (e: any) => {
@@ -133,13 +126,13 @@ function ManuallyAddTicketFields() {
     // setValue(val);
   };
 
-  const updateLocalTicket = (ticket: Partial<TicketRecordOld>) => {
-    setTicket((prev: TicketRecordOld) => ({...prev, ...ticket}));
+  const updateLocalTicket = (ticket: Partial<TicketDefinition>) => {
+    setTicket((prev: TicketDefinition) => ({...prev, ...ticket}));
   };
 
   const updateManuallyCreated = (manuallyCreated: Partial<TicketResultOld>) => {
     const newTicket = {...ticket};
-    newTicket.manuallyCreated = {...ticket.manuallyCreated || ManuallyAddedTicketResult, ...manuallyCreated};
+    //newTicket.manuallyCreated = {...ticket.manuallyCreated || ManuallyAddedTicketResult, ...manuallyCreated};
     setTicket(newTicket);
   }
 
@@ -147,18 +140,15 @@ function ManuallyAddTicketFields() {
     <AddTicketDiv>
       Manual Ticket Entry<br />
       (Not done yet)
-      {/* TODO: Add auto complete with existing entries */}
       <Input placeholder="Name" onChange={(ev) => updateManuallyCreated({Title: ev.target.value})} type='text' value={ticket.manuallyCreated?.Title} />
       <Input placeholder="Sportsbook" onChange={(ev) => updateLocalTicket({sportsbook: ev.target.value})} type='text' />
       <Input placeholder="Ticket number" onChange={handleChange} type='text' />
       <Input placeholder="Wager" onChange={handleChange} type='text' />
       <Input placeholder="Odds" onChange={handleChange} type='text' />
       <Input placeholder="Event Date/Time" onChange={handleChange} type='text' />
-      {/* TODO: make dropdown */}
       <Input placeholder="Ticket Status" onChange={handleChange} type='text' />
       <Input placeholder="Notes" onChange={handleChange} type='text' />
-      {/* TODO: Add auto complete with existing entries */}
-      {/* <AddTicketButton onClick={() => onAddTicket()}>Add Ticket</AddTicketButton> */}
     </AddTicketDiv>
   );
 }
+  */

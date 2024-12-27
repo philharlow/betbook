@@ -1,0 +1,184 @@
+import { BetDetails, getStatus, EventScores, TicketDetails } from "./ticketTypes";
+
+
+export namespace DraftKingsDataV2 {
+  export const getTicketDetails = (ticketResponse: TicketResponse): TicketDetails => {
+    let bets: BetDetails[] = [];
+    let searchStrings: String[] = [];
+
+    let earliestEventDate = new Date(ticketResponse.bets[0].events[0].eventDate);
+    let latestEventDate = new Date(ticketResponse.bets[0].events[0].eventDate);
+
+    for (let bet of ticketResponse.bets) {
+      for (let event of bet.events) {
+        for (let group of event.selectionsGroups) {
+          for (let selection of group.selections) {
+            let betDetails = {
+              title: event.eventName,
+              subTitle: selection.selectionName,
+              lineType: selection.marketName,
+              eventDate: new Date(event.eventDate),
+              odds: Number(selection.selectionOdds),
+              scores: getEventScores(event),
+              status: getStatus(selection.selectionStatus)
+            };
+            bets.push(betDetails);
+
+            searchStrings.concat([event.team1Name, event.team1Name])
+            if (betDetails.eventDate < earliestEventDate) { earliestEventDate = betDetails.eventDate; }
+            if (betDetails.eventDate > latestEventDate) { latestEventDate = betDetails.eventDate; }
+          };
+        };
+      };
+    };
+    
+    let title = bets.length > 1 ? `${bets.length} Pick Parlay` : bets[0].title;
+    let subTitle = "TODO";
+
+    let searchStringSet = new Set<String>(searchStrings);
+
+    let ticket: TicketDetails = {
+      title: title,
+      subTitle: subTitle,
+      wager: ticketResponse.ticketCost,
+      toWin: ticketResponse.toWinAmount,
+      toPay: ticketResponse.toPayAmount,
+      totalOdds: Number(ticketResponse.totalOdds),
+      bets: bets,
+      betEventsStartDate: earliestEventDate,
+      betEventsEndDate: latestEventDate,
+      expiresDate: new Date(ticketResponse.expireDate),
+      searchStrings: Array.from(searchStringSet, s => s.toLowerCase()),
+      betshopName: ticketResponse.betshopName,
+      status: getStatus(ticketResponse.ticketStatus)
+    };
+    return ticket;
+  }
+
+  const getEventScores = ({ team1Name, settleScore, team2Name }: Event): EventScores | undefined => {
+    if (settleScore) {
+      return { teamA: team1Name, scoreA: settleScore.team1Score, teamB: team2Name, scoreB: settleScore.team2Score };
+    }
+  }
+
+  export interface TicketResponse {
+    ticketId: string;
+    ticketCost: number;
+    displayTicketCost: string;
+    ticketStatus: string;
+    ticketStatusId: number;
+    totalOdds: string;
+    totalOddsDecimal: number;
+    toWinAmount: number;
+    displayToWinAmount: string;
+    toPayAmount: number;
+    displayToPayAmount: string;
+    paidAmount: number;
+    displayPaidAmount: string;
+    placedDate: string;
+    settleDate: string;
+    paidDate: any;
+    paidBy: any;
+    displayPaidBy: string;
+    expireDate: string;
+    wasPaid: boolean;
+    canCalculateToWin: boolean;
+    canPayWin: boolean;
+    canRefund: boolean;
+    canCashOut: boolean;
+    canReprint: boolean;
+    canCancel: boolean;
+    isCanceled: boolean;
+    isExpired: boolean;
+    cancelActiveSeconds: number;
+    isEnabledPayoutPin: boolean;
+    siteId: number;
+    betshopName: string;
+    issuerId: number;
+    issuerType: string;
+    issuerName: string;
+    ticketExpPeriod: number;
+    bets: Bet[];
+  }
+
+  export interface Bet {
+    betId: string;
+    betStatus: string;
+    betStatusId: number;
+    betName: string;
+    betType: string;
+    betTypeId: number;
+    betOdds: string;
+    betStake: number;
+    displayBetStake: string;
+    toPayAmount: number;
+    displayToPayAmount: string;
+    paidAmount: number;
+    displayPaidAmount: string;
+    additionalData: any;
+    numberOfBets: number;
+    events: Event[];
+  }
+
+  export interface Event {
+    eventId: number;
+    displayEventId: string;
+    fullEventId: number;
+    eventName: string;
+    eventDate: string;
+    isLive: boolean;
+    isInProgress: boolean;
+    isTeamSport: boolean;
+    isTeamSwap: boolean;
+    team1Id: number;
+    team2Id: number;
+    team1Name: string;
+    team2Name: string;
+    sportId: number;
+    sportName: string;
+    leagueId: number;
+    leagueName: string;
+    eventTypeId: number;
+    lineTypeId: number;
+    rowTypeId: number;
+    gameData: GameData;
+    settleScore: any;
+    selectionsGroups: SelectionsGroup[];
+  }
+
+  export interface GameData {
+    eventScore: any;
+    liveGameState: any;
+    score: any;
+    eventScorecard: any;
+  }
+
+  export interface SelectionsGroup {
+    groupName: string;
+    groupType: string;
+    groupTypeId: number;
+    groupStatus: string;
+    groupStatusId: number;
+    groupOdds: string;
+    selections: Selection[];
+  }
+
+  export interface Selection {
+    selectionId: number;
+    encodedLineId: string;
+    selectionName: string;
+    selectionStatus: string;
+    selectionStatusId: number;
+    selectionOdds: string;
+    marketId: string;
+    marketName: string;
+    marketBlurb: string;
+    isSettled: boolean;
+    isCanceled: boolean;
+    isOutright: boolean;
+    cancelReason: string;
+    copySelectionData: CopySelectionData;
+  }
+
+  export interface CopySelectionData {}
+}

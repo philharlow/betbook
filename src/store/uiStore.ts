@@ -6,7 +6,7 @@ import {
   localStorageSetBool,
 } from "../LocalStorageManager";
 import { useTicketState } from "./ticketStore";
-import { TicketRecordOld } from "./ticketTypes";
+import { TicketDefinition } from "../data/ticketTypes";
 
 export enum FilterLevel {
   All = "All",
@@ -24,17 +24,14 @@ export enum Modal {
   None,
   AddTicket,
   ManuallyAddTicket,
-  Search,
-  Stats,
-  Settings,
 }
 
 interface UIState {
-  viewingTicket?: TicketRecordOld;
-  setViewingTicket: (viewingTicket?: TicketRecordOld) => void;
+  viewingTicket?: TicketDefinition;
+  setViewingTicket: (viewingTicket?: TicketDefinition) => void;
   setViewingTicketNumber: (ticketNumber?: string) => void;
-  viewingBarcode?: TicketRecordOld;
-  setViewingBarcode: (viewingBarcode?: TicketRecordOld) => void;
+  viewingBarcode?: TicketDefinition;
+  setViewingBarcode: (viewingBarcode?: TicketDefinition) => void;
   filterLevel: FilterLevel;
   setFilterLevel: (filterLevel: FilterLevel) => void;
   modalOpen?: Modal;
@@ -49,7 +46,7 @@ interface UIState {
 
 export const useUIState = create<UIState>((set, get) => ({
   viewingTicket: undefined,
-  setViewingTicket: (viewingTicket?: TicketRecordOld) => {
+  setViewingTicket: (viewingTicket?: TicketDefinition) => {
     if (viewingTicket) viewingTicket = { ...viewingTicket };
     set({ viewingTicket });
   },
@@ -60,7 +57,7 @@ export const useUIState = create<UIState>((set, get) => ({
     set({ viewingTicket });
   },
   viewingBarcode: undefined,
-  setViewingBarcode: (viewingBarcode?: TicketRecordOld) => {
+  setViewingBarcode: (viewingBarcode?: TicketDefinition) => {
     set({ viewingBarcode });
   },
   filterLevel: localStorageGet(FILTER_LEVEL_KEY)

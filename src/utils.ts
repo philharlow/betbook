@@ -34,3 +34,13 @@ export const getDateDisplay = (date?: Date) => {
   if (!date) return "";
   return `${getDateStr(date)} @ ${getTimeStr(date)}`;
 };
+
+export const getCurrencyDisplay = (amount?: number) => {
+  if (!amount) return "";
+  return parseFloat(amount.toFixed(2));
+}
+
+// Print takes in any number of arguments and prints them to the console
+export const print = (...args: any[]) => {
+  console.log(...args);
+}

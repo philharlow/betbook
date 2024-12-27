@@ -1,10 +1,14 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components/macro';
-import { getStatusColor } from '../store/ticketStore';
-import { getDateDisplay } from '../utils';
-import LiveIcon from './LiveIcon';
-import { TicketRecordOld, TimePeriod } from '../store/ticketTypes';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components/macro";
+import { getStatusColor, getTicketTimePeriod } from "../store/ticketStore";
+import { getCurrencyDisplay, getDateDisplay } from "../utils";
+import LiveIcon from "./LiveIcon";
+import {
+  getOddsDisplay,
+  TicketDefinition,
+  TimePeriod,
+} from "../data/ticketTypes";
 
 const TicketTileDiv = styled.div`
   width: 100%;
@@ -90,62 +94,73 @@ const ClickArrow = styled.div`
 `;
 
 interface Props {
-  ticket: TicketRecordOld;
+  ticket: TicketDefinition;
   hideArrow?: boolean;
 }
 
-function TicketTile({ticket, hideArrow} : Props) {
+function TicketTile({ ticket, hideArrow }: Props) {
   const navigate = useNavigate();
   const className = ticket.refreshing ? "scrolling-gradient" : "";
 
-  const eventDate = ticket.ticketResult?.calculated.EventDate;
-  const dateStr = getDateDisplay(eventDate);
+  let { betEventsStartDate, betEventsEndDate } = ticket.ticketDetails ?? {};
 
   return (
-    <TicketTileDiv onClick={() => hideArrow !== true && navigate("/" + ticket.ticketNumber)}>
+    <TicketTileDiv
+      onClick={() => hideArrow !== true && navigate("/" + ticket.ticketNumber)}
+    >
       {!hideArrow && <ClickArrow>&gt;</ClickArrow>}
       <TopRow>
-        <Title className={(ticket.archived ? "archived " : "") + className}>
-          {ticket.ticketResult?.calculated.Title}
-          {ticket.ticketResult === undefined && <Title>Loading...</Title>}
+        <Title className={(ticket.archivedDate ? "archived " : "") + className}>
+          {ticket.ticketDetails?.title ?? "Loading..."}
         </Title>
-        <TicketResult style={{ color: "var(--" + getStatusColor(ticket.status) + ")" }} className={className}>
-          {ticket.status}
+        <TicketResult
+          style={{
+            color:
+              "var(--" + getStatusColor(ticket.ticketDetails?.status) + ")",
+          }}
+          className={className}
+        >
+          {ticket.ticketDetails?.status}
         </TicketResult>
       </TopRow>
 
-
-      {ticket.ticketResult?.calculated.SubTitle &&
+      {ticket.ticketDetails?.subTitle && (
         <SubTitle className={className}>
-          {ticket.ticketResult?.calculated.SubTitle}
+          {ticket.ticketDetails?.subTitle}
         </SubTitle>
-      }
+      )}
       <Info className={className}>
         <InfoCol>
           <CellContent>
-            <GreyLabel>Wager:</GreyLabel>
-            ${ticket.ticketResult?.TicketCost}
+            <GreyLabel>Wager:</GreyLabel>$
+            {getCurrencyDisplay(ticket.ticketDetails?.wager)}
           </CellContent>
           <CellContent>
-            <GreyLabel>To Pay:</GreyLabel>
-            ${ticket.ticketResult?.ToPay}
+            <GreyLabel>To Pay:</GreyLabel>$
+            {getCurrencyDisplay(ticket.ticketDetails?.toPay)}
           </CellContent>
         </InfoCol>
         <InfoCol>
           <CellContent>
             <GreyLabel>Odds:</GreyLabel>
-            {ticket.ticketResult?.TotalOdds}
+            {getOddsDisplay(ticket.ticketDetails?.totalOdds)}
           </CellContent>
           <CellContent>
-            <GreyLabel>To Win:</GreyLabel>
-            ${ticket.ticketResult?.ToWin}
+            <GreyLabel>To Win:</GreyLabel>$
+            {getCurrencyDisplay(ticket.ticketDetails?.toWin)}
           </CellContent>
         </InfoCol>
       </Info>
       <CellContent className={className}>
-        <TimeLabel>{dateStr}</TimeLabel>
+        <TimeLabel>
+          {getDateDisplay(betEventsStartDate)}
+          {betEventsStartDate?.getTime() !== betEventsEndDate?.getTime() &&
+            " - " + getDateDisplay(betEventsEndDate)}
+        </TimeLabel>
         {/*TODO do this better */}
-        {ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current && <LiveIcon />}
+        {getTicketTimePeriod(ticket.ticketDetails) === TimePeriod.Current && (
+          <LiveIcon />
+        )}
       </CellContent>
     </TicketTileDiv>
   );

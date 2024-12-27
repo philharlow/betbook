@@ -1,14 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import styled from 'styled-components/macro';
-import {
-  fetchUpdatedTicket,
-  useTicketState,
-} from '../../store/ticketStore';
-import QrScanner from 'qr-scanner';
-import { Modal, useUIState } from '../../store/uiStore';
-import { Button } from '../../styles/GlobalStyles';
-import { useToastState } from '../../store/toastStore';
-import { TicketRecordOld, TicketStatus } from '../../store/ticketTypes';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import styled from "styled-components/macro";
+import { fetchUpdatedTicket, useTicketState } from "../../store/ticketStore";
+import QrScanner from "qr-scanner";
+import { Modal, useUIState } from "../../store/uiStore";
+import { Button } from "../../styles/GlobalStyles";
+import { useToastState } from "../../store/toastStore";
+import { TicketDefinition, TicketSource } from "../../data/ticketTypes";
 
 const AddTicketDiv = styled.div`
   position: absolute;
@@ -75,44 +72,46 @@ const AddTicketButton = styled(Button)`
   font-size: 20px;
 `;
 
-
 let listening = false;
 let found: string[] = [];
 let qrScanner: QrScanner | undefined;
 
 function ScanTicketModal() {
-  const modalOpen = useUIState(state => state.modalOpen);
-  const setModalOpen = useUIState(state => state.setModalOpen);
-  const tickets = useTicketState(state => state.tickets);
+  const modalOpen = useUIState((state) => state.modalOpen);
+  const setModalOpen = useUIState((state) => state.setModalOpen);
+  const tickets = useTicketState((state) => state.tickets);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const updateTicket = useTicketState(state => state.updateTicket);
-  const showToast = useToastState(state => state.showToast);
+  const updateTicket = useTicketState((state) => state.updateTicket);
+  const showToast = useToastState((state) => state.showToast);
   const [isSecure, setIsSecure] = useState(false);
 
   const closeModal = () => {
     setModalOpen(undefined);
   };
 
-  const addTicket = useCallback((ticketNumber: string) => {
-    const asNumber = parseInt(ticketNumber);
-    if (asNumber && !isNaN(asNumber)) {
-      if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
-        showToast("Ticket already added");
+  const addTicket = useCallback(
+    (ticketNumber: string) => {
+      const asNumber = parseInt(ticketNumber);
+      if (asNumber && !isNaN(asNumber)) {
+        if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
+          showToast("Ticket already added");
+        } else {
+          const ticket: TicketDefinition = {
+            ticketNumber,
+            createdDate: new Date(),
+            dataSource: TicketSource.DraftKingsV2,
+            refreshing: true,
+          };
+          updateTicket(ticket);
+          fetchUpdatedTicket(ticket.ticketNumber);
+          showToast("Ticket added!");
+        }
       } else {
-        const ticket: TicketRecordOld = {
-          ticketNumber,
-          sportsbook: "DraftKings",
-          status: TicketStatus.Unknown,
-          refreshing: true,
-        };
-        updateTicket(ticket);
-        fetchUpdatedTicket(ticket.ticketNumber)
-        showToast("Ticket added!");
+        showToast("Ticket number invalid");
       }
-    } else {
-      showToast("Ticket number invalid");
-    }
-  }, [updateTicket, tickets, showToast]);
+    },
+    [updateTicket, tickets, showToast]
+  );
 
   const onManuallyAddTicket = () => {
     setModalOpen(Modal.ManuallyAddTicket);
@@ -131,18 +130,18 @@ function ScanTicketModal() {
             // Show the qr code outline for a smidge
             setTimeout(() => addTicket(ticketNumber), 100);
           }
-        }
+        };
 
         const scanner = new QrScanner(
           videoRef.current,
-          result => handleResult(result.data),
+          (result) => handleResult(result.data),
           {
             highlightScanRegion: true,
             highlightCodeOutline: true,
-          },
+          }
         );
         qrScanner = scanner;
-        console.log('created scanner', scanner);
+        console.log("created scanner", scanner);
         scanner.start();
         listening = true;
       }
@@ -177,10 +176,14 @@ function ScanTicketModal() {
       <VideoContainer>
         {isSecure && <CameraLoading>Camera loading...</CameraLoading>}
         <VideoView ref={videoRef} disablePictureInPicture playsInline />
-        {!isSecure && <NotSecureWarning>QR code reading disabled on http!</NotSecureWarning>}
+        {!isSecure && (
+          <NotSecureWarning>QR code reading disabled on http!</NotSecureWarning>
+        )}
       </VideoContainer>
       <TicketEntry>
-        <AddTicketButton onClick={() => onManuallyAddTicket()}>Manually Add Ticket</AddTicketButton>
+        <AddTicketButton onClick={() => onManuallyAddTicket()}>
+          Manually Add Ticket
+        </AddTicketButton>
       </TicketEntry>
     </AddTicketDiv>
   );

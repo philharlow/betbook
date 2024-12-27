@@ -1,17 +1,17 @@
-import React from 'react';
-import styled from 'styled-components/macro';
-import ScanTicketModal from './components/modals/ScanTicketModal';
-import StatsView from './components/views/StatsView';
-import MainTicketsView from './components/views/MainTicketsView';
-import Toast from './components/Toast';
-import TicketDetailsView from './components/views/TicketDetailsView';
-import { GlobalStyles } from './styles/GlobalStyles';
-import { HashRouter, Route, Routes } from 'react-router-dom';
-import BarcodePopup from './components/BarcodePopup';
-import SettingsView from './components/views/SettingsView';
-import ManuallyAddTicketModal from './components/modals/ManuallyAddTicketModal';
-import MenuBar from './components/MenuBar';
-import TopBar from './components/TopBar';
+import React from "react";
+import styled from "styled-components/macro";
+import ScanTicketModal from "./components/modals/ScanTicketModal";
+import StatsView from "./components/views/StatsView";
+import MainTicketsView from "./components/views/MainTicketsView";
+import Toast from "./components/Toast";
+import TicketDetailsView from "./components/views/TicketDetailsView";
+import { GlobalStyles } from "./styles/GlobalStyles";
+import { HashRouter, Route, Routes } from "react-router-dom";
+import BarcodePopup from "./components/BarcodePopup";
+import SettingsView from "./components/views/SettingsView";
+import ManuallyAddTicketModal from "./components/modals/ManuallyAddTicketModal";
+import MenuBar from "./components/MenuBar";
+import TopBar from "./components/TopBar";
 
 const AppDiv = styled.div`
   position: absolute;
@@ -47,7 +47,7 @@ const App = () => {
             <Route path="/settings" element={<SettingsView />} />
           </Routes>
         </ScrollPane>
-        
+
         <ScanTicketModal />
         <ManuallyAddTicketModal />
         <BarcodePopup />
@@ -56,6 +56,6 @@ const App = () => {
       </HashRouter>
     </AppDiv>
   );
-}
+};
 
 export default App;

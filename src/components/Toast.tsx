@@ -7,10 +7,10 @@ const ToastDiv = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #3339;
+  background: #333c;
   max-width: 80%;
   padding: 50px;
-  font-size: 30px;
+  font-size: 20px;
   color: #fff;
   border-radius: 30px;
   opacity: 0;

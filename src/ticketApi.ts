@@ -1,8 +1,4 @@
-import {
-  calculateTicketValues,
-  sanitizeTicket,
-} from "./store/ticketStore";
-import { DraftkingsTicketResultOld, getStatus, SelectionResultOld, TicketRecordOld } from "./store/ticketTypes";
+import { sanitizeResponse } from "./store/ticketStore";
 import { useToastState } from "./store/toastStore";
 
 // cors-anywhere router to get around api's cors restrictions
@@ -14,37 +10,33 @@ const ticketDetailsEndpoint =
   "https://cashier-dkuswaretail-ticket-details.draftkings.com/api/tickets/";
 const request: RequestInit = { headers: { requesttarget: "AJAXService" } };
 
-export const fetchTicketStatus = async (ticketNumber: string) => {
+export const fetchTicketData = async (ticketNumber: string) => {
   const url = `${corsRouter}${ticketDetailsEndpoint}${ticketNumber}`;
   const response = await fetch(url, request).catch((e) =>
     useToastState.getState().showToast("Failed to update ticket")
   );
   if (response) {
     const responseJson = await response.json();
-    // console.log("got response:", responseJson.data);
-    const ticket = parseTicket(ticketNumber, responseJson.data);
-    return ticket;
+    sanitizeResponse(responseJson);
+    return responseJson;
   }
 };
 
+/*
 const parseTicket = (
   ticketNumber: string,
   ticketResult: DraftkingsTicketResultOld
 ) => {
-  if (!ticketResult.ToPay) {
-    ticketResult = parseNewTicketData(ticketResult);
-  }
   if (ticketResult.ToPay) {
-    sanitizeTicket(ticketResult);
+    sanitizeResponse(ticketResult);
 
     // Update calculated values
     calculateTicketValues(ticketResult);
 
-    const ticket: TicketRecordOld = {
+    const ticket: TicketDefinition = {
       ticketNumber,
-      sportsbook: "DraftKings", // TODO
-      status: ticketResult.Status,
-      ticketResult,
+      createdDate: new Date(),
+      dataSource: TicketSource.DraftKingsV2,
       refreshing: false,
     };
     return ticket;
@@ -52,6 +44,7 @@ const parseTicket = (
     console.error("failed to parse ticket", ticketResult, ticketNumber);
   }
 };
+
 
 // Draftkings updated their API around 12/10/2024, this parser handles the new format
 function parseNewTicketData(ticket: any): DraftkingsTicketResultOld {
@@ -94,3 +87,4 @@ function parseNewTicketData(ticket: any): DraftkingsTicketResultOld {
   console.log("parseNewTicketData", ticketObj);
   return ticketObj as DraftkingsTicketResultOld;
 }
+  */
