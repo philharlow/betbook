@@ -6,12 +6,10 @@ import Accordion from "../Accordion";
 import OptionBar from "../OptionBar";
 import TicketTile from "../TicketTile";
 import SearchBar from "../SearchBar";
-import {
-  isSettled,
-  TicketDefinition,
-  TicketStatus,
-} from "../../data/ticketTypes";
+import { isSettled, TicketDefinition, TicketStatus } from "../../data/ticketTypes";
 import { Button } from "../../styles/GlobalStyles";
+import { AxisOptions, Chart } from "react-charts";
+import useDemoConfig from "../useDemoConfig";
 
 const StatsViewDiv = styled.div`
   background-color: var(--black);
@@ -65,11 +63,18 @@ const SubBar = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 5px 15px;
+  overflow-x: auto;
+  white-space: nowrap;
 `;
 
 const SearchQueryBar = styled.div`
   width: 100%;
   text-align: center;
+`;
+
+const ChartDiv = styled.div`
+  width: 100%;
+  height: 300px;
 `;
 
 interface StatGroup {
@@ -107,21 +112,15 @@ const dollarUSLocale = Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
-export const toCurrencyFormat = (val: number) =>
-  isNaN(val) ? "$--" : "$" + dollarUSLocale.format(val);
-export const toPercentFormat = (val: number) =>
-  isNaN(val) ? "--%" : `${parseFloat((val * 100).toFixed(2))}%`;
+export const toCurrencyFormat = (val: number) => (isNaN(val) ? "$--" : "$" + dollarUSLocale.format(val));
+export const toPercentFormat = (val: number) => (isNaN(val) ? "--%" : `${parseFloat((val * 100).toFixed(2))}%`);
 
 function StatsView() {
   const searchQuery = useUIState((state) => state.searchQuery);
   const tickets = useTicketState((state) => state.tickets);
   const [timeSpan, setTimeSpan] = useState(TimeSpan.AllTime);
-  const [filteredTickets, setFilteredTickets] = useState<TicketDefinition[]>(
-    []
-  );
-  const [customTimeSpan, setCustomTimeSpan] = useState<CustomTimeSpan | null>(
-    null
-  );
+  const [filteredTickets, setFilteredTickets] = useState<TicketDefinition[]>([]);
+  const [customTimeSpan, setCustomTimeSpan] = useState<CustomTimeSpan | null>(null);
   const [customTimeInputOpen, setCustomTimeInputOpen] = useState(false);
 
   useEffect(() => {
@@ -146,64 +145,53 @@ function StatsView() {
   }, [tickets, timeSpan, searchQuery, customTimeSpan]);
 
   useEffect(() => {
-    if (
-      customTimeInputOpen === false &&
-      timeSpan === TimeSpan.Custom &&
-      customTimeSpan === null
-    ) {
+    if (customTimeInputOpen === false && timeSpan === TimeSpan.Custom && customTimeSpan === null) {
       setTimeSpan(TimeSpan.AllTime);
     }
   }, [customTimeInputOpen, timeSpan, customTimeSpan]);
 
-  const winningTickets = filteredTickets.filter(
-    (t) => t.ticketDetails?.status === TicketStatus.Won
-  );
-  const losingTickets = filteredTickets.filter(
-    (t) => t.ticketDetails?.status === TicketStatus.Lost
-  );
-  const drawingTickets = filteredTickets.filter(
-    (t) => t.ticketDetails?.status === TicketStatus.Draw
-  );
-  const openTickets = filteredTickets.filter(
-    (t) => t.ticketDetails?.status === TicketStatus.Opened
-  );
-  const settledTickets = filteredTickets.filter((t) =>
-    isSettled(t.ticketDetails?.status)
-  );
+  const winningTickets = filteredTickets.filter((t) => t.ticketDetails?.status === TicketStatus.Won);
+  const losingTickets = filteredTickets.filter((t) => t.ticketDetails?.status === TicketStatus.Lost);
+  const drawingTickets = filteredTickets.filter((t) => t.ticketDetails?.status === TicketStatus.Draw);
+  const openTickets = filteredTickets.filter((t) => t.ticketDetails?.status === TicketStatus.Opened);
+  const settledTickets = filteredTickets.filter((t) => isSettled(t.ticketDetails?.status));
 
-  const totalOpenWagers = openTickets.reduce(
-    (acc, t) => acc + (t.ticketDetails?.wager ?? 0),
-    0
-  );
-  const totalSettledWagers = settledTickets.reduce(
-    (acc, t) => acc + (t.ticketDetails?.wager ?? 0),
-    0
-  );
+  const totalOpenWagers = openTickets.reduce((acc, t) => acc + (t.ticketDetails?.wager ?? 0), 0);
+  const totalSettledWagers = settledTickets.reduce((acc, t) => acc + (t.ticketDetails?.wager ?? 0), 0);
   // const totalLost = losingTickets.reduce((acc, t) => acc + (t.ticketResult?.calculated?.TicketCost ?? 0), 0);
   const totalWagers = totalOpenWagers + totalSettledWagers;
 
-  const totalWon = winningTickets.reduce(
-    (acc, t) => acc + (t.ticketDetails?.toPay ?? 0),
-    0
-  );
-  const totalDrawn = drawingTickets.reduce(
-    (acc, t) => acc + (t.ticketDetails?.toPay ?? 0),
-    0
-  );
+  const totalWon = winningTickets.reduce((acc, t) => acc + (t.ticketDetails?.toPay ?? 0), 0);
+  const totalDrawn = drawingTickets.reduce((acc, t) => acc + (t.ticketDetails?.toPay ?? 0), 0);
   const totalReceived = totalWon + totalDrawn;
 
-  const maxRemainingPay = openTickets.reduce(
-    (acc, t) => acc + (t.ticketDetails?.toPay ?? 0),
-    0
-  );
+  const maxRemainingPay = openTickets.reduce((acc, t) => acc + (t.ticketDetails?.toPay ?? 0), 0);
   const archivedTickets = filteredTickets.filter((t) => t.archivedDate);
   const nonArchivedSettledTickets = filteredTickets.filter(
     (t) => !t.archivedDate && isSettled(t.ticketDetails?.status)
   );
 
-  const nonArchivedPay = nonArchivedSettledTickets.reduce(
-    (acc, t) => acc + (t.ticketDetails?.toPay ?? 0),
-    0
+  const nonArchivedPay = nonArchivedSettledTickets.reduce((acc, t) => acc + (t.ticketDetails?.toPay ?? 0), 0);
+
+  const { data } = useDemoConfig({
+    series: 10,
+    dataType: "time",
+  });
+
+  const primaryAxis = React.useMemo<AxisOptions<(typeof data)[number]["data"][number]>>(
+    () => ({
+      getValue: (datum) => datum.primary as unknown as Date,
+    }),
+    []
+  );
+
+  const secondaryAxes = React.useMemo<AxisOptions<(typeof data)[number]["data"][number]>[]>(
+    () => [
+      {
+        getValue: (datum) => datum.secondary,
+      },
+    ],
+    []
   );
 
   const getStatDiv = (label: string, value: any) => {
@@ -220,28 +208,16 @@ function StatsView() {
       name: "Ticket Totals",
       stats: [
         ["Total Tickets", filteredTickets.length],
-        [
-          "Won/Lost/Drawn",
-          `${winningTickets.length}/${losingTickets.length}/${drawingTickets.length}`,
-        ],
+        ["Won/Lost/Drawn", `${winningTickets.length}/${losingTickets.length}/${drawingTickets.length}`],
         ["Open Tickets", openTickets.length],
       ],
     },
     {
       name: "Ticket %",
       stats: [
-        [
-          "Winning Ticket %",
-          toPercentFormat(winningTickets.length / settledTickets.length),
-        ],
-        [
-          "Losing Ticket %",
-          toPercentFormat(losingTickets.length / settledTickets.length),
-        ],
-        [
-          "Drawing Ticket %",
-          toPercentFormat(drawingTickets.length / settledTickets.length),
-        ],
+        ["Winning Ticket %", toPercentFormat(winningTickets.length / settledTickets.length)],
+        ["Losing Ticket %", toPercentFormat(losingTickets.length / settledTickets.length)],
+        ["Drawing Ticket %", toPercentFormat(drawingTickets.length / settledTickets.length)],
       ],
     },
     {
@@ -259,30 +235,18 @@ function StatsView() {
     {
       name: "Current profit/loss",
       stats: [
-        [
-          "Current $ profit/loss",
-          toCurrencyFormat(totalReceived - totalSettledWagers),
-        ],
-        [
-          "Current % profit/loss",
-          toPercentFormat(totalReceived / totalSettledWagers - 1),
-        ],
+        ["Current $ profit/loss", toCurrencyFormat(totalReceived - totalSettledWagers)],
+        ["Current % profit/loss", toPercentFormat(totalReceived / totalSettledWagers - 1)],
       ],
     },
     {
       name: "Maximum/Minimum",
       stats: [
         ["Max remaining payout", toCurrencyFormat(maxRemainingPay)],
-        [
-          "Max $ profit/loss",
-          toCurrencyFormat(maxRemainingPay + totalReceived - totalWagers),
-        ],
-        [
-          "Max % profit/loss",
-          toPercentFormat((maxRemainingPay + totalReceived) / totalWagers - 1),
-        ],
         ["Min $ profit/loss", toCurrencyFormat(totalReceived - totalWagers)],
+        ["Max $ profit/loss", toCurrencyFormat(maxRemainingPay + totalReceived - totalWagers)],
         ["Min % profit/loss", toPercentFormat(totalReceived / totalWagers - 1)],
+        ["Max % profit/loss", toPercentFormat((maxRemainingPay + totalReceived) / totalWagers - 1)],
       ],
     },
     {
@@ -290,10 +254,7 @@ function StatsView() {
       startOpen: false,
       stats: [
         ["Archived Tickets", archivedTickets.length],
-        [
-          "Archived %",
-          toPercentFormat(archivedTickets.length / filteredTickets.length),
-        ],
+        ["Archived %", toPercentFormat(archivedTickets.length / filteredTickets.length)],
       ],
     },
   ];
@@ -303,13 +264,8 @@ function StatsView() {
   let bestPayWin = winningTickets[0];
   for (const ticket of winningTickets) {
     if (!ticket.ticketDetails) break;
-    if (
-      ticket.ticketDetails?.totalOdds >
-      (bestOddsWin.ticketDetails?.totalOdds ?? 0)
-    )
-      bestOddsWin = ticket;
-    if (ticket.ticketDetails?.toPay > (bestPayWin.ticketDetails?.toPay ?? 0))
-      bestPayWin = ticket;
+    if (ticket.ticketDetails?.totalOdds > (bestOddsWin.ticketDetails?.totalOdds ?? 0)) bestOddsWin = ticket;
+    if (ticket.ticketDetails?.toPay > (bestPayWin.ticketDetails?.toPay ?? 0)) bestPayWin = ticket;
   }
   if (bestOddsWin) ticketsToShow.push(["Best Odds Win", bestOddsWin]);
   if (bestPayWin) ticketsToShow.push(["Best Payout Win", bestPayWin]);
@@ -324,28 +280,14 @@ function StatsView() {
   return (
     <StatsViewDiv>
       <SubBar>
-        <OptionBar
-          options={allTimeSpans}
-          selected={timeSpan}
-          onSelectionChanged={onTimeSpanChanged}
-        />
+        <OptionBar options={allTimeSpans} selected={timeSpan} onSelectionChanged={onTimeSpanChanged} />
       </SubBar>
       <Content>
         <SearchBar />
-        {searchQuery && (
-          <SearchQueryBar>
-            Stats for tickets matching {`"${searchQuery}"`}
-          </SearchQueryBar>
-        )}
+        {searchQuery && <SearchQueryBar>Stats for tickets matching {`"${searchQuery}"`}</SearchQueryBar>}
         {statGroups.map((statGroup, i) => (
-          <Accordion
-            label={statGroup.name}
-            key={i}
-            startOpen={statGroup.startOpen}
-          >
-            <StatGroupDiv>
-              {statGroup.stats.map((stat) => getStatDiv(stat[0], stat[1]))}
-            </StatGroupDiv>
+          <Accordion label={statGroup.name} key={i} startOpen={statGroup.startOpen}>
+            <StatGroupDiv>{statGroup.stats.map((stat) => getStatDiv(stat[0], stat[1]))}</StatGroupDiv>
           </Accordion>
         ))}
         {ticketsToShow.map(([label, ticket]) => (
@@ -361,6 +303,15 @@ function StatsView() {
           setCustomTimeInputOpen={setCustomTimeInputOpen}
         />
       )}
+      <ChartDiv>
+        <Chart
+          options={{
+            data,
+            primaryAxis,
+            secondaryAxes,
+          }}
+        />
+      </ChartDiv>
     </StatsViewDiv>
   );
 }
@@ -402,11 +353,7 @@ const CustomTimeInputButton = styled(Button)`
   padding: 10px;
 `;
 
-function CustomTimeInputModal({
-  customTimeSpan,
-  setCustomTimeSpan,
-  setCustomTimeInputOpen,
-}: CustomTimeInputProps) {
+function CustomTimeInputModal({ customTimeSpan, setCustomTimeSpan, setCustomTimeInputOpen }: CustomTimeInputProps) {
   const [start, setStart] = useState<Date>(new Date());
   const [end, setEnd] = useState<Date>(new Date());
   const [error, setError] = useState<string | null>(null);
@@ -459,26 +406,14 @@ function CustomTimeInputModal({
         </CustomTimeInputRow>
         <CustomTimeInputRow>
           Start Date
-          <input
-            type="date"
-            onChange={handleStartChange}
-            value={start.toISOString().substring(0, 10)}
-          />
+          <input type="date" onChange={handleStartChange} value={start.toISOString().substring(0, 10)} />
         </CustomTimeInputRow>
         <CustomTimeInputRow>
           End Date
-          <input
-            type="date"
-            onChange={handleEndChange}
-            value={end.toISOString().substring(0, 10)}
-          />
+          <input type="date" onChange={handleEndChange} value={end.toISOString().substring(0, 10)} />
         </CustomTimeInputRow>
-        <CustomTimeInputButton onClick={handleSetTimeSpan}>
-          Set Time Span
-        </CustomTimeInputButton>
-        <CustomTimeInputButton onClick={() => setCustomTimeInputOpen(false)}>
-          Cancel
-        </CustomTimeInputButton>
+        <CustomTimeInputButton onClick={handleSetTimeSpan}>Set Time Span</CustomTimeInputButton>
+        <CustomTimeInputButton onClick={() => setCustomTimeInputOpen(false)}>Cancel</CustomTimeInputButton>
         {error && <div>{error}</div>}
       </CustomTimeInputDiv>
     </CustomTimeInputModalDiv>

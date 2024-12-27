@@ -1,11 +1,17 @@
-import { BetDetails, getStatus, TicketDefinition, TicketDetails, TicketSource, EventScores } from "./ticketTypes";
+import { BetDetails, getStatus, TicketDefinition, TicketDetails, TicketSource, EventScores, sanitizeString, getTeams } from "./ticketTypes";
 
+// TODOv2 make some common protocol for DraftKingsDataV1 and DraftKingsDataV2
 export namespace DraftKingsDataV1 {
+  export const isValidTicket = (ticket: TicketDefinition): boolean => {
+    if (ticket.dataSource !== TicketSource.DraftKings) return false;
+    return ticket.rawData?.ticketResult?.Selections?.length > 0;
+  }
+
   export const getTicketDefinition = (ticketResponse: TicketResponse): TicketDefinition => {
     let ticketDetails = getTicketDetails(ticketResponse);
     let ticket: TicketDefinition = {
       ticketNumber: ticketResponse.ticketNumber,
-      dataSource: TicketSource.DraftKingsV1,
+      dataSource: TicketSource.DraftKings,
       createdDate: new Date(ticketResponse.ticketResult.CreatedDate),
       refreshing: ticketResponse.refreshing,
       ticketDetails: ticketDetails,
@@ -13,15 +19,6 @@ export namespace DraftKingsDataV1 {
       archivedDate: ticketResponse.archived ? new Date() : undefined
     };
     return ticket;
-
-    // return {
-    //   ticketNumber: ticket.ticketNumber,
-    //   createdDate: new Date(ticket.ticketResult.CreatedDate),
-    //   dataSource: TicketSource.DraftKingsV1,
-    //   ticketDetails,
-    //   refreshing: false,
-    //   rawData: ticket,
-    // };
   }
 
   export const getTicketDetails = (ticketResponse: TicketResponse): TicketDetails => {
@@ -31,15 +28,19 @@ export namespace DraftKingsDataV1 {
     let latestEventDate = new Date(ticketResponse.ticketResult.Selections[0].EventDate);
 
     for(let selection of ticketResponse.ticketResult.Selections) {
-      let teams = getTeams(selection);
-      let subTitle = sanitizeString(selection.EventName);
-      let title = sanitizeString(`${selection.YourBetPrefix} - ${selection.Yourbet}`);
-      if (subTitle === selection.YourBetPrefix) title = selection.Yourbet;
-      title = title.replace(subTitle + " - ", "");
+      let betName = selection.Yourbet;
+      let eventName = selection.EventName;
+      betName = betName.replace(eventName + " - ", "");
+
+      let betType = selection.EventTypeName;
+      if (betType === eventName) betType = selection.LineTypeName;
+
+      let teams = getTeams(selection.EventName);
+
       let betDetails: BetDetails = {
-        title,
-        subTitle,
-        lineType: selection.LineTypeName,
+        betName: sanitizeString(betName),
+        eventName: sanitizeString(eventName),
+        betType: sanitizeString(betType),
         eventDate: new Date(selection.EventDate),
         odds: Number(selection.Odds),
         scores: getEventScores(teams, selection),
@@ -56,24 +57,18 @@ export namespace DraftKingsDataV1 {
       if (betDetails.eventDate < earliestEventDate) { earliestEventDate = betDetails.eventDate; }
       if (betDetails.eventDate > latestEventDate) { latestEventDate = betDetails.eventDate; }
     };
-    
-    let title = bets[0].title + " - " + bets[0].subTitle;
-    if (bets.length > 1) title = `Parlay (${bets.length} pick)`;
-    let subTitle = getSubtitle(ticketResponse.ticketResult.Selections);
 
     let searchStringSet = new Set<String>(searchStrings);
     let wager = Number(ticketResponse.ticketResult.TicketCost);
     let totalOdds = Number(ticketResponse.ticketResult.TotalOdds);
     const getOddsAsRatio = (odds: number) => {
-      if (odds < 0) return 100 / odds;
+      if (odds < 0) return 100 / -odds;
       return odds / 100;
     }
-    let toWin = Number(ticketResponse.ticketResult.ToPay) || wager * getOddsAsRatio(totalOdds) / 100;
+    let toWin = Number(ticketResponse.ticketResult.ToPay) || wager * getOddsAsRatio(totalOdds);
     let toPay = wager + toWin;
 
     let ticket: TicketDetails = {
-      title,
-      subTitle,
       wager,
       toWin,
       toPay,
@@ -94,186 +89,6 @@ export namespace DraftKingsDataV1 {
       return { teamA: teams[0], scoreA: selection.MatchScore1, teamB: teams[1], scoreB: selection.MatchScore2 };
     }
   }
-
-  const getTeams = (selection: Selection): string[] => {
-    let Teams: string[] = [];
-    if (selection.EventName.indexOf(" vs ") > -1)
-      Teams.push(...selection.EventName.split(" vs "));
-    if (selection.EventName.indexOf(" @ ") > -1)
-      Teams.push(...selection.EventName.split(" @ "));
-    return Teams.map((team) => cleanupTeamPrefix(team));
-  }
-
-  const cleanupTeamPrefix = (team: string) => {
-    const split = team.split(" ");
-    const prefix = split[0];
-    if (prefix.length <= 3 && prefix === prefix.toUpperCase()) {
-      return team.substring(prefix.length + 1);
-    }
-    return team;
-  };
-
-  const replaceAll = (str: string, replace: { [key: string]: string }) => {
-    for (let key of Object.keys(replace)) {
-      let value = replace[key];
-      str = str.replace(key, value);
-    }
-    return str;
-  }
-  const removeAll = (str: string, remove: string[]) => {
-    return str.split(" ")
-      .filter((word) => !remove.includes(word))
-      .join(" ");
-  }
-
-  const stringsToRemove = ["Alternate", "Yards", "Total"];
-  const stringsToReplace = {
-    "Moneyline FT": "Moneyline",
-    "Money Line FT": "Money Line",
-    "Touchdown Scorer": "Touchdown",
-  };
-  const stringsToReplaceShort = {
-    "Moneyline FT": "ML",
-    "Moneyline": "ML",
-    "Money Line FT": "ML",
-    "Money Line": "ML",
-    "Touchdown Scorer": "TD",
-    "Touchdowns": "TDs",
-  };
-
-  const sanitizeString = (str: string, long = true) => {
-    let replaced = replaceAll(str, long ? stringsToReplace : stringsToReplaceShort);
-    return removeAll(replaced, stringsToRemove);
-  }
-
-  const getSubtitle = (selections: Selection[]): string => {
-    const allTeams = new Set();
-    for (const selection of selections) {
-      if (selection.IsTeamSwapEnabled) {
-        const temp = selection.MatchScore1;
-        selection.MatchScore1 = selection.MatchScore2;
-        selection.MatchScore2 = temp;
-      }
-
-      let Teams: string[] = [];
-      if (selection.EventName.indexOf(" vs ") > -1)
-        Teams.push(...selection.EventName.split(" vs "));
-      if (selection.EventName.indexOf(" @ ") > -1)
-        Teams.push(...selection.EventName.split(" @ "));
-      Teams = Teams.map((team) => replaceAll(cleanupTeamPrefix(team), stringsToReplaceShort));
-
-      const yourBetPrefix = sanitizeString(selection.YourBetPrefix, false);
-      const yourBet =
-        cleanupTeamPrefix(
-          selection.Yourbet.split(" - ")[1] ?? selection.Yourbet
-        ) +
-        " " +
-        yourBetPrefix;
-      // Teams.push(yourBet);
-      if (selections.length > 1) {
-        allTeams.add(yourBet);
-      } else {
-        Teams.forEach((team) => allTeams.add(team));
-      }
-    }
-    const subTitle = Array.from(allTeams.values()).join(", ");
-    // console.log("subtitle:", subTitle, allTeams)
-    return subTitle;
-  }
-
-  // TODOv2
-  /*
-  export const calculateTicketValues = (
-    ticketResult: TicketResult
-  ) => {
-    const selections = ticketResult.Selections;
-    const firstSelection = selections[0];
-    const searchStrings: string[] = [];
-
-    let earliestEventDate = new Date(firstSelection.EventDate);
-    const allTeams = new Set();
-    for (const selection of selections) {
-      if (selection.IsTeamSwapEnabled) {
-        const temp = selection.MatchScore1;
-        selection.MatchScore1 = selection.MatchScore2;
-        selection.MatchScore2 = temp;
-      }
-
-      let Teams: string[] = [];
-      if (selection.EventName.indexOf(" vs ") > -1)
-        Teams.push(...selection.EventName.split(" vs "));
-      if (selection.EventName.indexOf(" @ ") > -1)
-        Teams.push(...selection.EventName.split(" @ "));
-      Teams = Teams.map((team) => cleanupTeamPrefix(team));
-
-      const remove = ["Alternate", "Spread", "Yards", "Total"];
-      const replace: any = {
-        Moneyline: "ML",
-        "Touchdown Scorer": "TD",
-      };
-      let betPrefix = selection.YourBetPrefix;
-      // TODO dont be lazy
-      Object.entries(replace).forEach(
-        ([key, str]) => (betPrefix = betPrefix.replace(key, str as string))
-      );
-      const prefixSplit = betPrefix.split(" ");
-      const yourBetPrefix = prefixSplit
-        .filter((p) => !remove.includes(p))
-        .join(" ");
-      const yourBet =
-        cleanupTeamPrefix(
-          selection.Yourbet.split(" - ")[1] ?? selection.Yourbet
-        ) +
-        " " +
-        yourBetPrefix;
-      // Teams.push(yourBet);
-      if (selections.length > 1) {
-        allTeams.add(yourBet);
-      } else {
-        Teams.forEach((team) => allTeams.add(team));
-      }
-
-      const EventDate = new Date(selection.EventDate);
-      if (EventDate < earliestEventDate) earliestEventDate = EventDate;
-      const timePeriod = TimePeriod.Past; // getTimePeriod(EventDate, ticketResult.Status);t
-      // selection.calculated = {
-      //   Teams,
-      //   EventDate,
-      //   TimePeriod: timePeriod,
-      // };
-      searchStrings.push(selection.EventName);
-      searchStrings.push(selection.YourBetPrefix);
-      searchStrings.push(selection.Yourbet);
-      searchStrings.push(selection.LeagueName);
-      searchStrings.push(...Teams);
-    }
-    const SubTitle = Array.from(allTeams.values()).join(", ");
-    searchStrings.push(SubTitle);
-
-    const yourBet = cleanupTeamPrefix(
-      firstSelection.Yourbet.split(" - ")[1] ?? firstSelection.Yourbet
-    );
-    let Title = firstSelection.YourBetPrefix + " - " + yourBet;
-    if (selections.length > 1) Title = `Parlay (${selections.length} pick)`;
-
-    const EventDate = earliestEventDate;
-    // const timePeriod = getTimePeriod(EventDate, ticketResult.Status);
-
-    // ticketResult.calculated = {
-    //   Title,
-    //   SubTitle: SubTitle === yourBet ? "" : SubTitle,
-    //   EventDate,
-    //   TimePeriod: timePeriod,
-    //   TicketCost: parseFloat(ticketResult.TicketCost),
-    //   ToPay: parseFloat(ticketResult.ToPay),
-    //   ToWin: parseFloat(ticketResult.ToWin),
-    //   TotalOdds: parseFloat(ticketResult.TotalOdds),
-    //   CreatedDate: new Date(ticketResult.CreatedDate),
-    //   ExpireDate: new Date(ticketResult.ExpireDate),
-    //   searchStrings: searchStrings.map((s) => s.toLowerCase()),
-    // };
-  };
-  */
 
   export interface TicketResponse {
     ticketNumber: string;

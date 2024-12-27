@@ -99,7 +99,7 @@ function ScanTicketModal() {
           const ticket: TicketDefinition = {
             ticketNumber,
             createdDate: new Date(),
-            dataSource: TicketSource.DraftKingsV2,
+            dataSource: TicketSource.DraftKings,
             refreshing: true,
           };
           updateTicket(ticket);
@@ -132,14 +132,10 @@ function ScanTicketModal() {
           }
         };
 
-        const scanner = new QrScanner(
-          videoRef.current,
-          (result) => handleResult(result.data),
-          {
-            highlightScanRegion: true,
-            highlightCodeOutline: true,
-          }
-        );
+        const scanner = new QrScanner(videoRef.current, (result) => handleResult(result.data), {
+          highlightScanRegion: true,
+          highlightCodeOutline: true,
+        });
         qrScanner = scanner;
         console.log("created scanner", scanner);
         scanner.start();
@@ -176,14 +172,10 @@ function ScanTicketModal() {
       <VideoContainer>
         {isSecure && <CameraLoading>Camera loading...</CameraLoading>}
         <VideoView ref={videoRef} disablePictureInPicture playsInline />
-        {!isSecure && (
-          <NotSecureWarning>QR code reading disabled on http!</NotSecureWarning>
-        )}
+        {!isSecure && <NotSecureWarning>QR code reading disabled on http!</NotSecureWarning>}
       </VideoContainer>
       <TicketEntry>
-        <AddTicketButton onClick={() => onManuallyAddTicket()}>
-          Manually Add Ticket
-        </AddTicketButton>
+        <AddTicketButton onClick={() => onManuallyAddTicket()}>Manually Add Ticket</AddTicketButton>
       </TicketEntry>
     </AddTicketDiv>
   );

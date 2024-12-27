@@ -5,20 +5,22 @@ import {
   localStorageSet,
   localStorageSetBool,
 } from "../LocalStorageManager";
-import { useTicketState } from "./ticketStore";
 import { TicketDefinition } from "../data/ticketTypes";
 
-export enum FilterLevel {
+export enum StatusFilter {
   All = "All",
   Open = "Open",
   Settled = "Settled",
   Won = "Won",
   Lost = "Lost",
 }
-export const FilterLevels = Object.values(FilterLevel);
+export const StatusFilters = Object.values(StatusFilter);
 
-const FILTER_LEVEL_KEY = "FILTER_LEVEL";
+const STATUS_FILTER_KEY = "STATUS_FILTER";
 const SHOW_ARCHIVED_TICKETS_KEY = "SHOW_ARCHIVED_TICKETS";
+const STARTING_BALANCE_KEY = "STARTING_BALANCE";
+const SHOW_BALANCE_KEY = "SHOW_BALANCE";
+const USER_NAME_KEY = "USER_NAME";
 
 export enum Modal {
   None,
@@ -27,53 +29,39 @@ export enum Modal {
 }
 
 interface UIState {
-  viewingTicket?: TicketDefinition;
-  setViewingTicket: (viewingTicket?: TicketDefinition) => void;
-  setViewingTicketNumber: (ticketNumber?: string) => void;
   viewingBarcode?: TicketDefinition;
   setViewingBarcode: (viewingBarcode?: TicketDefinition) => void;
-  filterLevel: FilterLevel;
-  setFilterLevel: (filterLevel: FilterLevel) => void;
+  statusFilter: StatusFilter;
+  setStatusFilter: (statusFilter: StatusFilter) => void;
   modalOpen?: Modal;
   setModalOpen: (modal?: Modal) => void;
-  menuOpen: boolean;
-  setMenuOpen: (menuOpen: boolean) => void;
   searchQuery: string;
   setSearchQuery: (searchQuery: string) => void;
   showArchivedTickets: boolean;
   setShowArchivedTickets: (showArchivedTickets: boolean) => void;
+  showBalance: boolean;
+  setShowBalance: (showBalance: boolean) => void;
+  startingBalance: number;
+  setStartingBalance: (startingBalance: number) => void;
+  userName: string;
+  setUserName: (userName: string) => void;
 }
 
 export const useUIState = create<UIState>((set, get) => ({
-  viewingTicket: undefined,
-  setViewingTicket: (viewingTicket?: TicketDefinition) => {
-    if (viewingTicket) viewingTicket = { ...viewingTicket };
-    set({ viewingTicket });
-  },
-  setViewingTicketNumber: (ticketNumber?: string) => {
-    const viewingTicket = useTicketState
-      .getState()
-      .tickets.find((t) => t.ticketNumber === ticketNumber);
-    set({ viewingTicket });
-  },
   viewingBarcode: undefined,
   setViewingBarcode: (viewingBarcode?: TicketDefinition) => {
     set({ viewingBarcode });
   },
-  filterLevel: localStorageGet(FILTER_LEVEL_KEY)
-    ? (localStorageGet(FILTER_LEVEL_KEY) as FilterLevel)
-    : FilterLevel.All,
-  setFilterLevel: (filterLevel: FilterLevel) => {
-    set({ filterLevel });
-    localStorageSet(FILTER_LEVEL_KEY, filterLevel);
+  statusFilter: localStorageGet(STATUS_FILTER_KEY)
+    ? (localStorageGet(STATUS_FILTER_KEY) as StatusFilter)
+    : StatusFilter.All,
+  setStatusFilter: (statusFilter: StatusFilter) => {
+    set({ statusFilter });
+    localStorageSet(STATUS_FILTER_KEY, statusFilter);
   },
   modalOpen: undefined,
   setModalOpen: (modalOpen?: Modal) => {
     set({ modalOpen });
-  },
-  menuOpen: false,
-  setMenuOpen: (menuOpen: boolean) => {
-    set({ menuOpen });
   },
   searchQuery: "",
   setSearchQuery: (searchQuery: string) => {
@@ -83,5 +71,20 @@ export const useUIState = create<UIState>((set, get) => ({
   setShowArchivedTickets: (showArchivedTickets: boolean) => {
     set({ showArchivedTickets });
     localStorageSetBool(SHOW_ARCHIVED_TICKETS_KEY, showArchivedTickets);
+  },
+  showBalance: localStorageGetBool(SHOW_BALANCE_KEY) ?? true,
+  setShowBalance: (showBalance: boolean) => {
+    set({ showBalance });
+    localStorageSetBool(SHOW_BALANCE_KEY, showBalance);
+  },
+  startingBalance: Number(localStorageGet(STARTING_BALANCE_KEY) ?? 0),
+  setStartingBalance: (startingBalance: number) => {
+    set({ startingBalance });
+    localStorageSet(STARTING_BALANCE_KEY, ""+startingBalance);
+  },
+  userName: localStorageGet(USER_NAME_KEY) ?? "User",
+  setUserName: (userName: string) => {
+    set({ userName });
+    localStorageSet(USER_NAME_KEY, userName);
   },
 }));

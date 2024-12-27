@@ -1,8 +1,8 @@
 import React from "react";
 import styled from "styled-components/macro";
 import { getStatusColor } from "../store/ticketStore";
-import { getDateDisplay } from "../utils";
-import { BetDetails, getOddsDisplay } from "../data/ticketTypes";
+import { getOddsDisplay, getRelativeDateDisplay } from "../utils";
+import { BetDetails, sanitizeString } from "../data/ticketTypes";
 
 const BetTileDiv = styled.div`
   width: 100%;
@@ -51,18 +51,41 @@ const GreyLabel = styled.div`
   color: #ccc;
 `;
 
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 5px;
+`;
+
+const ContentRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+`;
+
+const TimeLabel = styled.div`
+  color: #ccc;
+  font-size: 14px;
+`;
+
 interface Props {
   bet: BetDetails;
   className?: string;
 }
 
+const getBetTitle = (bet: BetDetails): string => {
+  let title = sanitizeString(`${bet.betType} - ${bet.betName}`, true);
+  let eventName = bet.eventName;
+  if (eventName === bet.betType) title = bet.betName;
+  //  subtitle = subtitle.replace(eventName + " - ", "");
+  return title;
+};
+
 function BetTile({ bet, className }: Props) {
   const hasScore = bet.scores !== undefined;
   const score1 = `${bet.scores?.teamA} : ${bet.scores?.scoreA}`;
   const score2 = `${bet.scores?.teamB} : ${bet.scores?.scoreB}`;
-
-  const eventDate = bet.eventDate;
-  const dateStr = getDateDisplay(eventDate);
 
   return (
     <BetTileDiv>
@@ -74,22 +97,26 @@ function BetTile({ bet, className }: Props) {
           className={className}
         />
       </Column>
-      <Column style={{ flex: 1 }} className={className}>
-        <Title>{bet.title}</Title>
-        <SubTitle>{bet.subTitle}</SubTitle>
-        <SubTitle>{bet.lineType}</SubTitle>
-        <GreyLabel>{dateStr}</GreyLabel>
-      </Column>
-      <RightColumn className={className}>
-        {!!bet.odds && <div>Odds: {getOddsDisplay(bet.odds)}</div>}
-        {hasScore && (
-          <GreyLabel>
-            {score1}
-            <br />
-            {score2}
-          </GreyLabel>
-        )}
-      </RightColumn>
+      <Content>
+        <ContentRow>
+          <Column style={{ flex: 1 }} className={className}>
+            <Title>{getBetTitle(bet)}</Title>
+            <SubTitle>{bet.eventName}</SubTitle>
+          </Column>
+          <RightColumn className={className}>
+            {!!bet.odds && <div>{getOddsDisplay(bet.odds)}</div>}
+            {hasScore && (
+              <GreyLabel>
+                {score1}
+                <br />
+                {score2}
+              </GreyLabel>
+            )}
+          </RightColumn>
+        </ContentRow>
+        <SubTitle>{bet.betType}</SubTitle>
+        <TimeLabel>{getRelativeDateDisplay(bet.eventDate)}</TimeLabel>
+      </Content>
     </BetTileDiv>
   );
 }

@@ -1,10 +1,10 @@
 import create from "zustand";
 import { localStorageGet, localStorageSet } from "../LocalStorageManager";
 import { fetchTicketData } from "../ticketApi";
-import { useUIState } from "./uiStore";
-import { BetDetails, TicketDb, TicketDbVersion, TicketDefinition, TicketDetails, TICKETS_DB_KEY, TicketSource, TicketStatus, TimePeriod } from "../data/ticketTypes";
+import { BetDetails, isSettled, TicketDb, TicketDbVersion, TicketDefinition, TicketDetails, TICKETS_DB_KEY, TicketStatus, TimePeriod } from "../data/ticketTypes";
 import { DraftKingsDataV1 } from "../data/DraftKingsDataV1";
 import { DraftKingsDataV2 } from "../data/DraftKingsDataV2";
+import { useToastState } from "./toastStore";
 
 export const getStatusColor = (status?: TicketStatus) => {
   if (status === TicketStatus.Opened) return "orange";
@@ -25,6 +25,7 @@ export const getBetTimePeriod = (betDetails?: BetDetails) => {
 };
 
 const getTimePeriod = (eventDate: Date, ticketStatus: TicketStatus) => {
+  if (isSettled(ticketStatus)) return TimePeriod.Past;
   const now = new Date();
   const timePeriod = now > eventDate ? TimePeriod.Past : TimePeriod.Future;
   if (timePeriod === TimePeriod.Past && ticketStatus === TicketStatus.Opened)
@@ -38,10 +39,11 @@ export const sanitizeResponse = (data: any) => {
 
 export const sanitizeStrings = (obj: any) => {
   if (!obj) return;
+
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === "string") {
-      obj[key] = value.replace("−", "-"); // Fix "heavy" minus returned from api
-      obj[key] = value.replace("$", ""); // Remove any $ signs returned from api
+      obj[key] = obj[key].replace("−", "-"); // Fix "heavy" minus returned from api
+      obj[key] = obj[key].replace("$", ""); // Remove any $ signs returned from api
     }
     if (typeof value === "object") {
       sanitizeStrings(value);
@@ -62,23 +64,12 @@ export const filterTicketsBySearch = (
   return false;
 };
 
-interface TicketState {
-  tickets: TicketDefinition[];
-  setTickets: (tickets: TicketDefinition[]) => void;
-  updateTicket: (ticket: TicketDefinition) => void;
-  removeTicket: (ticketNumber: string) => void;
-  archiveTicket: (ticketNumber: string, archived?: boolean) => void;
-  refreshTicket: (ticket: TicketDefinition) => void;
-  refreshTickets: (filter?: (ticket: TicketDefinition) => boolean) => void;
-}
-
 // Refresh current tickets on focusing the app
 let lastRefreshed = Date.now();
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState !== "visible") return;
   if (Date.now() - lastRefreshed > 60 * 1000) {
     console.log("focused, refreshing");
-    lastRefreshed = Date.now();
     // TODO force tickets to update their own timeperiod, then use that to update
     updateCurrentTickets();
   } else console.log("focused too soon", Date.now() - lastRefreshed);
@@ -86,6 +77,7 @@ document.addEventListener("visibilitychange", () => {
 
 // TODOv2
 export const updateCurrentTickets = () => {
+  lastRefreshed = Date.now();
   useTicketState.getState().refreshTickets((ticket) => {
     if (ticket.ticketDetails) {
       const newTimePeriod = getTicketTimePeriod(ticket.ticketDetails);
@@ -97,7 +89,7 @@ export const updateCurrentTickets = () => {
 
 export const fetchUpdatedTicket = async (ticketNumber: string) => {
   const ticketState = useTicketState.getState();
-  const uiState = useUIState.getState();
+  const useToast = useToastState.getState();
   const existingTicket = ticketState.tickets.find(
     (t) => t.ticketNumber === ticketNumber
   );
@@ -108,25 +100,31 @@ export const fetchUpdatedTicket = async (ticketNumber: string) => {
     );
 
   existingTicket.refreshing = true;
-  uiState.setViewingTicket(existingTicket);
+  ticketState.updateTicket(existingTicket);
+  // uiState.setViewingTicket(existingTicket);
 
   console.log("fetching ticket", existingTicket.ticketNumber);
   const newTicketData = await fetchTicketData(existingTicket.ticketNumber);
   console.log("newTicketData", newTicketData);
+
+  existingTicket.refreshing = false;
+  ticketState.updateTicket(existingTicket);
 
   if (newTicketData) {
     let newTicket = {...existingTicket};
     newTicket.rawData = newTicketData;
     newTicket.refreshing = false;
     computeTicketDetails(newTicket);
-    useTicketState.getState().updateTicket(newTicket);
+    ticketState.updateTicket(newTicket);
+  } else {
+    useToast.showToast("Failed to get ticket data");
   }
 };
 
 export const computeTicketDetails = (ticket: TicketDefinition) => {
   if (!ticket.rawData) return;
 
-  if (ticket.dataSource === TicketSource.DraftKingsV1) {
+  if (DraftKingsDataV1.isValidTicket(ticket)) {
     let ticketData = ticket.rawData as DraftKingsDataV1.TicketResponse
     let ticketDetails = DraftKingsDataV1.getTicketDetails(ticketData);
     if (ticketDetails) {
@@ -134,8 +132,7 @@ export const computeTicketDetails = (ticket: TicketDefinition) => {
       ticket.createdDate = new Date(ticketData.ticketResult.CreatedDate);
       ticket.archivedDate = ticketData.archived ? new Date() : undefined;
     }
-  }
-  if (ticket.dataSource === TicketSource.DraftKingsV2) {
+  } else if (DraftKingsDataV2.isValidTicket(ticket)) {
     let ticketData = ticket.rawData as DraftKingsDataV2.TicketResponse
     let ticketDetails = DraftKingsDataV2.getTicketDetails(ticketData);
     if (ticketDetails) {
@@ -189,6 +186,16 @@ const getTicketsFromStorage = () => {
   return ticketDb.tickets;
 };
 
+interface TicketState {
+  tickets: TicketDefinition[];
+  setTickets: (tickets: TicketDefinition[]) => void;
+  updateTicket: (ticket: TicketDefinition) => void;
+  removeTicket: (ticketNumber: string) => void;
+  archiveTicket: (ticketNumber: string, archived?: boolean) => void;
+  refreshTicket: (ticket: TicketDefinition) => void;
+  refreshTickets: (filter?: (ticket: TicketDefinition) => boolean) => void;
+}
+
 export const useTicketState = create<TicketState>((set, get) => ({
   tickets: getTicketsFromStorage(),
   setTickets: (tickets: TicketDefinition[]) => {
@@ -208,11 +215,6 @@ export const useTicketState = create<TicketState>((set, get) => ({
     } else tickets.push(ticket);
 
     get().setTickets(tickets);
-
-    // TODO fix this, this is bad
-    const uiState = useUIState.getState();
-    if (uiState.viewingTicket?.ticketNumber === ticket.ticketNumber)
-      uiState.setViewingTicket(ticket);
   },
   removeTicket: (ticketNumber: string) => {
     const tickets = [...get().tickets].filter(

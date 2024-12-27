@@ -12,6 +12,7 @@ import SettingsView from "./components/views/SettingsView";
 import ManuallyAddTicketModal from "./components/modals/ManuallyAddTicketModal";
 import MenuBar from "./components/MenuBar";
 import TopBar from "./components/TopBar";
+import UserView from "./components/views/UserView";
 
 const AppDiv = styled.div`
   position: absolute;
@@ -45,6 +46,7 @@ const App = () => {
             <Route path="/:ticketNumber" element={<TicketDetailsView />} />
             <Route path="/stats" element={<StatsView />} />
             <Route path="/settings" element={<SettingsView />} />
+            <Route path="/user" element={<UserView />} />
           </Routes>
         </ScrollPane>
 

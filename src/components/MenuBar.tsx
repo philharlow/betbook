@@ -1,9 +1,8 @@
-import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import styled from 'styled-components/macro';
-import { Modal, useUIState } from '../store/uiStore';
-import { TbReceipt, TbChartHistogram, TbPlus, TbSettings } from "react-icons/tb";
-
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import styled from "styled-components/macro";
+import { Modal, useUIState } from "../store/uiStore";
+import { TbReceipt, TbChartHistogram, TbPlus, TbSettings, TbUserCircle } from "react-icons/tb";
 
 const MenuBarDiv = styled.div`
   background-color: #1a1a1a;
@@ -24,7 +23,7 @@ interface MenuButtonProps {
 }
 
 const MenuOption = styled.div<MenuButtonProps>`
-  background-color: ${p => p.selected ? "#444" : "#1a1a1a"};
+  background-color: ${(p) => (p.selected ? "#444" : "#1a1a1a")};
   border-radius: 10px;
   font-size: 12px;
   cursor: pointer;
@@ -46,49 +45,39 @@ const AddOption = styled(MenuOption)`
   margin-top: -10px;
 `;
 
-const Spacer = styled.div`
-  flex: 1;
-`;
-
 function MenuBar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const setModalOpen = useUIState(state => state.setModalOpen);
-  const setMenuOpen = useUIState(state => state.setMenuOpen);
-  
-  const closeModal = () => {
-    setMenuOpen(false);
-  };
-
-  const onHome = () => {
-    closeModal();
-    navigate("/");
-  };
-
-  const onSettings = () => {
-    closeModal();
-    navigate("/settings");
-  };
-
-  const onStats = () => {
-    closeModal();
-    navigate("/stats");
-  };
-
-  const addTicket = () => {
-    setModalOpen(Modal.AddTicket);
-  };
+  const setModalOpen = useUIState((state) => state.setModalOpen);
+  const userName = useUIState((state) => state.userName);
 
   let settingsSelected = location.pathname === "/settings";
   let statsSelected = location.pathname === "/stats";
+  let userSelected = location.pathname === "/user";
+  let homeSelected = !statsSelected && !settingsSelected && !userSelected;
 
   return (
-    <MenuBarDiv onClick={() => setMenuOpen(false)}>
-        <MenuOption selected={!statsSelected && !settingsSelected} onClick={onHome}><TbReceipt />My Bets</MenuOption>
-        <MenuOption selected={statsSelected} onClick={onStats}><TbChartHistogram  />Stats</MenuOption>
-        <AddOption onClick={addTicket}><TbPlus />Add</AddOption>
-        <Spacer />
-        <MenuOption selected={settingsSelected} onClick={onSettings}><TbSettings />Settings</MenuOption>
+    <MenuBarDiv>
+      <MenuOption selected={homeSelected} onClick={() => navigate("/")}>
+        <TbReceipt />
+        My Bets
+      </MenuOption>
+      <MenuOption selected={statsSelected} onClick={() => navigate("/stats")}>
+        <TbChartHistogram />
+        Stats
+      </MenuOption>
+      <AddOption onClick={() => setModalOpen(Modal.AddTicket)}>
+        <TbPlus />
+        Add
+      </AddOption>
+      <MenuOption selected={userSelected} onClick={() => navigate("/user")}>
+        <TbUserCircle />
+        {userName}
+      </MenuOption>
+      <MenuOption selected={settingsSelected} onClick={() => navigate("/settings")}>
+        <TbSettings />
+        Settings
+      </MenuOption>
     </MenuBarDiv>
   );
 }

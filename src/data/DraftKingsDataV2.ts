@@ -1,7 +1,12 @@
-import { BetDetails, getStatus, EventScores, TicketDetails } from "./ticketTypes";
+import { BetDetails, getStatus, EventScores, TicketDetails, TicketDefinition, TicketSource, sanitizeString } from "./ticketTypes";
 
-
+// TODOv2 make some common protocol for DraftKingsDataV1 and DraftKingsDataV2
 export namespace DraftKingsDataV2 {
+  export const isValidTicket = (ticket: TicketDefinition): boolean => {
+      if (ticket.dataSource !== TicketSource.DraftKings) return false;
+      return ticket.rawData?.bets?.length > 0;
+  }
+
   export const getTicketDetails = (ticketResponse: TicketResponse): TicketDetails => {
     let bets: BetDetails[] = [];
     let searchStrings: String[] = [];
@@ -14,9 +19,9 @@ export namespace DraftKingsDataV2 {
         for (let group of event.selectionsGroups) {
           for (let selection of group.selections) {
             let betDetails = {
-              title: event.eventName,
-              subTitle: selection.selectionName,
-              lineType: selection.marketName,
+              betName: sanitizeString(selection.selectionName),
+              eventName: sanitizeString(event.eventName),
+              betType: sanitizeString(selection.marketName, true),
               eventDate: new Date(event.eventDate),
               odds: Number(selection.selectionOdds),
               scores: getEventScores(event),
@@ -31,15 +36,10 @@ export namespace DraftKingsDataV2 {
         };
       };
     };
-    
-    let title = bets.length > 1 ? `${bets.length} Pick Parlay` : bets[0].title;
-    let subTitle = "TODO";
 
     let searchStringSet = new Set<String>(searchStrings);
 
     let ticket: TicketDetails = {
-      title: title,
-      subTitle: subTitle,
       wager: ticketResponse.ticketCost,
       toWin: ticketResponse.toWinAmount,
       toPay: ticketResponse.toPayAmount,
@@ -57,7 +57,7 @@ export namespace DraftKingsDataV2 {
 
   const getEventScores = ({ team1Name, settleScore, team2Name }: Event): EventScores | undefined => {
     if (settleScore) {
-      return { teamA: team1Name, scoreA: settleScore.team1Score, teamB: team2Name, scoreB: settleScore.team2Score };
+      return { teamA: team1Name, scoreA: settleScore.homeScore, teamB: team2Name, scoreB: settleScore.awayScore };
     }
   }
 
@@ -101,7 +101,7 @@ export namespace DraftKingsDataV2 {
     bets: Bet[];
   }
 
-  export interface Bet {
+  interface Bet {
     betId: string;
     betStatus: string;
     betStatusId: number;
@@ -120,7 +120,7 @@ export namespace DraftKingsDataV2 {
     events: Event[];
   }
 
-  export interface Event {
+  interface Event {
     eventId: number;
     displayEventId: string;
     fullEventId: number;
@@ -142,18 +142,23 @@ export namespace DraftKingsDataV2 {
     lineTypeId: number;
     rowTypeId: number;
     gameData: GameData;
-    settleScore: any;
+    settleScore: Score;
     selectionsGroups: SelectionsGroup[];
   }
 
-  export interface GameData {
+  interface Score {
+    homeScore: string;
+    awayScore: string;
+  }
+
+  interface GameData {
     eventScore: any;
     liveGameState: any;
     score: any;
     eventScorecard: any;
   }
 
-  export interface SelectionsGroup {
+  interface SelectionsGroup {
     groupName: string;
     groupType: string;
     groupTypeId: number;
@@ -163,7 +168,7 @@ export namespace DraftKingsDataV2 {
     selections: Selection[];
   }
 
-  export interface Selection {
+  interface Selection {
     selectionId: number;
     encodedLineId: string;
     selectionName: string;
@@ -180,5 +185,5 @@ export namespace DraftKingsDataV2 {
     copySelectionData: CopySelectionData;
   }
 
-  export interface CopySelectionData {}
+  interface CopySelectionData {}
 }

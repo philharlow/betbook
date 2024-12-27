@@ -1,23 +1,13 @@
-import React from 'react';
-import styled from 'styled-components/macro';
-import { useUIState } from '../store/uiStore';
-import Barcode from 'react-jsbarcode';
-
-const BarcodePopupDiv = styled.div`
-  position: absolute;
-  background-color: var(--black);
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-`;
+import React from "react";
+import styled from "styled-components/macro";
+import { useUIState } from "../store/uiStore";
+import Barcode from "react-jsbarcode";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 const BarcodeDiv = styled.div`
   position: absolute;
   background-color: var(--white);
+  color: black;
   width: 100%;
   height: 100%;
   top: 0;
@@ -26,6 +16,7 @@ const BarcodeDiv = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 15px;
+  z-index: 1000;
 `;
 
 const BigBarcode = styled(Barcode)`
@@ -47,21 +38,26 @@ const Flex = styled.div`
   flex: 1;
 `;
 
+const Error = styled.div`
+  color: red;
+  flex: 1;
+  align-content: center;
+`;
 
 function BarcodePopup() {
-  const viewingBarcode = useUIState(state => state.viewingBarcode);
-  const setViewingBarcode = useUIState(state => state.setViewingBarcode);
+  const viewingBarcode = useUIState((state) => state.viewingBarcode);
+  const setViewingBarcode = useUIState((state) => state.setViewingBarcode);
 
   if (!viewingBarcode) return null;
   return (
-    <BarcodePopupDiv onClick={() => setViewingBarcode(undefined)}>
-      <BarcodeDiv>
-        <SportsBook>{viewingBarcode.ticketDetails?.betshopName}</SportsBook>
-        <BigBarcode value={viewingBarcode.ticketNumber} options={{ format: 'ean13', flat: true }} />
-        <Flex />
-        <CloseMessage>Tap anywhere to close</CloseMessage>
-      </BarcodeDiv>
-    </BarcodePopupDiv>
+    <BarcodeDiv onClick={() => setViewingBarcode(undefined)}>
+      <SportsBook>{viewingBarcode.ticketDetails?.betshopName}</SportsBook>
+      <ErrorBoundary errorDisplay={<Error>Barcode error</Error>}>
+        <BigBarcode value={viewingBarcode.ticketNumber} options={{ format: "ean13", flat: true }} />
+      </ErrorBoundary>
+      <Flex />
+      <CloseMessage>Tap anywhere to close</CloseMessage>
+    </BarcodeDiv>
   );
 }
 

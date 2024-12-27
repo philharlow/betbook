@@ -1,19 +1,10 @@
 import React from "react";
 import styled from "styled-components/macro";
-import { computeTicketDetails, useTicketState } from "../../store/ticketStore";
+import { computeTicketDetails, sanitizeStrings, useTicketState } from "../../store/ticketStore";
 import { useToastState } from "../../store/toastStore";
 import { Button } from "../../styles/GlobalStyles";
-import {
-  localStorageGet,
-  localStorageRemove,
-  localStorageSet,
-} from "../../LocalStorageManager";
-import {
-  isSettled,
-  TicketDb,
-  TicketDbVersion,
-  TICKETS_DB_KEY,
-} from "../../data/ticketTypes";
+import { localStorageGet, localStorageRemove, localStorageSet } from "../../LocalStorageManager";
+import { isSettled, TicketDb, TicketDbVersion, TICKETS_DB_KEY } from "../../data/ticketTypes";
 import { DraftKingsDataV1 } from "../../data/DraftKingsDataV1";
 
 const SettingsViewDiv = styled.div`
@@ -45,6 +36,13 @@ const Group = styled.div`
   flex-direction: column;
   gap: 20px;
   align-self: center;
+  align-items: center;
+`;
+
+const SettingButton = styled(Button)<{ danger?: boolean }>`
+  padding: 10px 20px;
+  align-self: center;
+  color: ${(props) => (props.danger ? "red" : "unset")};
 `;
 
 const Stat = styled.div``;
@@ -78,30 +76,6 @@ function SettingsView() {
       updateTicket(ticket);
     });
   };
-  /*
-  const onImport = () => {
-    const ticketNumbersStr = prompt("Enter comma-delimited ticket number list");
-    if (!ticketNumbersStr) return;
-    const ticketNumbers = ticketNumbersStr.split(",").map((tn) => tn.trim());
-    const newTicketNumbers = ticketNumbers.filter((tn) => !tickets.find((t) => t.ticketNumber === tn));
-    showToast(`Adding ${newTicketNumbers.length} new tickets`);
-    newTicketNumbers.forEach((ticketNumber) => {
-      const ticket: TicketDefinition = {
-        ticketNumber,
-        createdDate: new Date(),
-        dataSource: TicketSource.DraftKingsV2,
-        refreshing: true,
-      };
-      updateTicket(ticket);
-    });
-  }
-
-  const onExport = () => {
-    const ticketNumbers = tickets.map((t) => t.ticketNumber);
-    navigator.clipboard.writeText(ticketNumbers.join(", "));
-    showToast(`Copied ${tickets.length} ticket numbers to clipboard`);
-  }
-    */
 
   const onImportData = () => {
     var input = window.document.createElement("input") as HTMLInputElement;
@@ -126,6 +100,7 @@ function SettingsView() {
   const parseFile = async (file: File) => {
     const text = await file.text();
     let json = JSON.parse(text);
+    sanitizeStrings(json);
 
     // Check if the file is a db or a ticket list
     let db = json as TicketDb;
@@ -140,10 +115,8 @@ function SettingsView() {
       };
     }
     localStorageSet(TICKETS_DB_KEY, JSON.stringify(db));
-    showToast(
-      `Imported ${db.tickets.length} tickets from v${dbVersion} data. Reloading...`
-    );
-    setTimeout(() => window.location.reload(), 2000);
+    showToast(`Imported ${db.tickets.length} tickets from v${dbVersion} data. Refreshing...`);
+    setTimeout(() => window.location.reload(), 1000);
   };
 
   const onExportData = () => {
@@ -153,12 +126,8 @@ function SettingsView() {
       showToast(`Exporting ${tickets.length} tickets' data`);
       setTimeout(() => {
         var a = window.document.createElement("a");
-        a.href = window.URL.createObjectURL(
-          new Blob([ticketStorage!], { type: "application/json" })
-        );
-        a.download = `BetBookData-${new Date()
-          .toISOString()
-          .substring(0, 10)}.json`;
+        a.href = window.URL.createObjectURL(new Blob([ticketStorage!], { type: "application/json" }));
+        a.download = `BetBookData-${new Date().toISOString().substring(0, 10)}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -167,11 +136,7 @@ function SettingsView() {
   };
 
   const onEraseData = () => {
-    if (
-      window.confirm(
-        "Are you sure you want to wipe all local data?\rTHIS CANNOT BE UNDONE"
-      )
-    ) {
+    if (window.confirm("Are you sure you want to wipe all local data?\rTHIS CANNOT BE UNDONE")) {
       localStorageRemove(TICKETS_DB_KEY);
       showToast(`Data wiped! Reloading...`);
       setTimeout(() => window.location.reload(), 2000);
@@ -182,56 +147,26 @@ function SettingsView() {
     <SettingsViewDiv>
       <Content>
         <Group>
-          Debug
-          <SettingButton onClick={onRefreshAll}>
-            Refresh All Tickets
-          </SettingButton>
-          <SettingButton onClick={onRefreshOpen}>
-            Refresh Open Tickets
-          </SettingButton>
-          <SettingButton onClick={onClearRefreshing}>
-            Clear All Refreshish Flags
-          </SettingButton>
-          <SettingButton onClick={onRecomputeAll}>
-            Re-compute All Tickets
-          </SettingButton>
-        </Group>
-        {/* <Group>
-          Import/Export Numbers
-          <SettingButton onClick={onImport}>Import ticket numbers</SettingButton>
-          <SettingButton onClick={onExport}>Export ticket numbers</SettingButton>
-        </Group> */}
-        <Group>
           Import/Export Data
           <Warning>(Warning: Importing will overwrite existing data)</Warning>
-          <SettingButton onClick={onImportData}>
-            Import ticket data
-          </SettingButton>
-          <SettingButton onClick={onExportData}>
-            Export ticket data
-          </SettingButton>
+          <SettingButton onClick={onImportData}>Import ticket data</SettingButton>
+          <SettingButton onClick={onExportData}>Export ticket data</SettingButton>
           <SettingButton danger onClick={onEraseData}>
             Erase all ticket data
           </SettingButton>
         </Group>
         <Stat>{tickets.length} total tickets</Stat>
-        <Stat>
-          {tickets.filter((t) => t.refreshing).length} refreshing tickets
-        </Stat>
+        <Stat>{tickets.filter((t) => t.refreshing).length} refreshing tickets</Stat>
+        <Group>
+          Debug
+          <SettingButton onClick={onRefreshAll}>Refresh All Tickets</SettingButton>
+          <SettingButton onClick={onRefreshOpen}>Refresh Open Tickets</SettingButton>
+          <SettingButton onClick={onClearRefreshing}>Clear All Refreshing Flags</SettingButton>
+          <SettingButton onClick={onRecomputeAll}>Re-compute All Tickets</SettingButton>
+        </Group>
       </Content>
     </SettingsViewDiv>
   );
 }
-
-// Down here because the type after styled breaks the syntax highlighting
-interface SettingsButtonProps {
-  danger?: boolean;
-}
-
-const SettingButton = styled(Button)<SettingsButtonProps>`
-  padding: 10px 20px;
-  align-self: center;
-  color: ${(props) => (props.danger ? "red" : "unset")};
-`;
 
 export default SettingsView;

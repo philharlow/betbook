@@ -1,4 +1,4 @@
-import styled from 'styled-components/macro';
+import styled from "styled-components/macro";
 
 interface LiveIconProps {
   size: number;
@@ -6,8 +6,8 @@ interface LiveIconProps {
 
 const LiveIconDiv = styled.div<LiveIconProps>`
   position: relative;
-  width: ${p => p.size}px;
-  height: ${p => p.size}px;
+  width: ${(p) => p.size}px;
+  height: ${(p) => p.size}px;
 
   &:before {
     content: "";
@@ -60,9 +60,7 @@ const LiveIconDiv = styled.div<LiveIconProps>`
 `;
 
 function LiveIcon() {
-  return (
-    <LiveIconDiv size={10} />
-  );
+  return <LiveIconDiv size={10} />;
 }
 
 export default LiveIcon;

@@ -67,7 +67,7 @@ function ManuallyAddTicketModal() {
           const ticket: TicketDefinition = {
             ticketNumber,
             createdDate: new Date(),
-            dataSource: TicketSource.Manual,
+            dataSource: TicketSource.DraftKings,
             refreshing: true,
           };
           updateTicket(ticket);
@@ -95,15 +95,8 @@ function ManuallyAddTicketModal() {
         <CloseButton onClick={() => setModalOpen(undefined)}>X</CloseButton>
       </TopBar>
       Ticket Number
-      <Input
-        value={value}
-        placeholder="Ticket number"
-        onChange={handleChange}
-        type="text"
-      />
-      <AddTicketButton onClick={() => onAddTicket()}>
-        Add Ticket
-      </AddTicketButton>
+      <Input value={value} placeholder="Ticket number" onChange={handleChange} type="text" />
+      <AddTicketButton onClick={() => onAddTicket()}>Add Ticket</AddTicketButton>
       {/* <hr />
       <ManuallyAddTicketFields /> */}
     </AddTicketDiv>

@@ -1,5 +1,5 @@
-import React from 'react';
-import styled from 'styled-components/macro';
+import React from "react";
+import styled from "styled-components/macro";
 
 const ToggleDiv = styled.label`
   position: relative;
@@ -7,16 +7,16 @@ const ToggleDiv = styled.label`
   width: 56px;
   height: 30px;
   cursor: pointer;
-  
+
   /* Hide default HTML checkbox */
   & input {
     opacity: 0;
     width: 0;
     height: 0;
   }
-  
+
   & input:checked + .slider {
-    background-color: var(--green);
+    background-color: var(--blue);
     &:before {
       background-color: #424242;
     }
@@ -41,10 +41,10 @@ const RoundSlider = styled.span`
   right: 0;
   bottom: 0;
   background-color: #424242;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
   border-radius: 34px;
-  
+
   &:before {
     position: absolute;
     content: "";
@@ -53,8 +53,8 @@ const RoundSlider = styled.span`
     left: 4px;
     bottom: 4px;
     background-color: #c4c4c4;
-    -webkit-transition: .4s;
-    transition: .4s;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
     border-radius: 50%;
   }
 `;
