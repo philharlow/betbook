@@ -13,6 +13,7 @@ import { localStorageGet, localStorageRemove } from "../../LocalStorageManager";
 import { isSettled, TicketDb, TICKETS_DB_KEY } from "../../data/ticketTypes";
 import { DraftKingsDataV1 } from "../../data/DraftKingsDataV1";
 import { LogLevel, useConsoleLogState } from "../../store/consoleLogStore";
+import { Top } from "./TicketDetailsView";
 
 const SettingsViewDiv = styled.div`
   background-color: var(--black);
@@ -102,14 +103,17 @@ function SettingsView() {
   const clearLogMessage = useConsoleLogState((state) => state.clearLogMessage);
 
   const onRefreshAll = () => {
+    console.log("Refreshing ALL tickets");
     refreshTickets();
   };
 
   const onRefreshOpen = () => {
+    console.log("Refreshing all open tickets");
     refreshTickets((ticket) => !isSettled(ticket.ticketDetails?.status));
   };
 
   const onClearRefreshing = () => {
+    console.log("Clear all refreshing flags");
     tickets.forEach((ticket) => {
       if (ticket.refreshing) {
         ticket.refreshing = false;
@@ -119,6 +123,7 @@ function SettingsView() {
   };
 
   const onRecomputeAll = () => {
+    console.log("Recomputing all ticket data");
     tickets.forEach((ticket) => {
       computeTicketDetails(ticket);
       updateTicket(ticket);
@@ -134,6 +139,7 @@ function SettingsView() {
     let handleFiles = async () => {
       try {
         const file = input.files?.item(0);
+        console.log("Importing file", file?.name);
         if (file) {
           parseFile(file);
         }
@@ -181,6 +187,7 @@ function SettingsView() {
 
   const onEraseData = () => {
     if (window.confirm("Are you sure you want to wipe all local data?\rTHIS CANNOT BE UNDONE")) {
+      console.log("Erasing all data");
       useTicketState.getState().setTickets([]);
       localStorageRemove(TICKETS_DB_KEY);
       showToast(`Data wiped!`);
@@ -189,6 +196,7 @@ function SettingsView() {
 
   const onEraseLegacyData = () => {
     if (window.confirm("Are you sure you want to wipe all legacy data?\rTHIS CANNOT BE UNDONE")) {
+      console.log("Erasing all legacy data");
       localStorage.removeItem(LEGACY_TICKETS_ARRAY_KEY);
       showToast(`Data wiped!`);
     }
@@ -209,6 +217,7 @@ function SettingsView() {
   return (
     <SettingsViewDiv>
       <Content>
+        <Top id="top" />
         <Group>
           Import/Export Data
           <SettingButton onClick={onExportData}>Export ticket data</SettingButton>

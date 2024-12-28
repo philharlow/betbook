@@ -1,15 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components/macro';
-import { useToastState } from '../store/toastStore';
+import React, { useEffect, useRef, useState } from "react";
+import styled from "styled-components/macro";
+import { useToastState } from "../store/toastStore";
 
 const ToastDiv = styled.div`
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #333c;
+  background: #333;
   max-width: 80%;
-  padding: 50px;
+  padding: 25px;
   font-size: 20px;
   color: #fff;
   border-radius: 30px;
@@ -22,9 +22,9 @@ const ToastDiv = styled.div`
 let timeout: NodeJS.Timeout;
 
 function Toast() {
-  const toast = useToastState(state => state.toast);
-  const showToast = useToastState(state => state.showToast);
-  const toastDuration = useToastState(state => state.toastDuration);
+  const toast = useToastState((state) => state.toast);
+  const showToast = useToastState((state) => state.showToast);
+  const toastDuration = useToastState((state) => state.toastDuration);
   const [currenToast, setCurrentToast] = useState("");
   const ref = useRef<HTMLDivElement>(null);
 
@@ -44,12 +44,8 @@ function Toast() {
       ref.current.style.opacity = "0";
     }
   }, [toast, toastDuration, ref, showToast]);
-  
-  return (
-    <ToastDiv ref={ref}>
-      {currenToast}
-    </ToastDiv>
-  );
+
+  return <ToastDiv ref={ref}>{currenToast}</ToastDiv>;
 }
 
 export default Toast;

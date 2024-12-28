@@ -20,12 +20,22 @@ interface ConsoleLogState {
   // messageCountByLevel: { [key in LogLevel]: number };
 }
 
+const tryJsonStringify = (obj: any) => {
+  if (typeof obj !== "object") return `${obj}`;
+  try {
+    return JSON.stringify(obj, null, 2);
+  } catch (error) {
+    return `${obj}`;
+  }
+};
+
 export const useConsoleLogState = create<ConsoleLogState>((set, get) => ({
   logMessages: [],
   addLogMessage: (message: any, level: LogLevel) => {
     let messageString = message;
     if (Array.isArray(message)) {
-      messageString = message.join(" ");
+      let msgArr = message.map(tryJsonStringify);
+      messageString = msgArr.join(" ");
     }
     let newLog = {
       message: messageString,
@@ -59,7 +69,6 @@ export const bindConsole = () => {
   const originalWarn = console.warn;
   const originalError = console.error;
 
-
   console.log = function (...args: any) {
     originalLog.apply(console, args);
     useConsoleLogState.getState().addLogMessage(args, LogLevel.Log);
@@ -77,11 +86,11 @@ export const bindConsole = () => {
 
   window.onerror = function (message, source, lineno, colno, error) {
     useConsoleLogState.getState().addLogMessage(message, LogLevel.Error);
-  }
+  };
 
   window.addEventListener("unhandledrejection", function (event) {
     useConsoleLogState.getState().addLogMessage(event.reason, LogLevel.Error);
   });
 
-  console.log("Console logging bound to store", "v"+pjson.version);
-}
+  console.log("BetBook starting up", "v" + pjson.version);
+};

@@ -6,6 +6,7 @@ import { Modal, useUIState } from "../../store/uiStore";
 import { Button } from "../../styles/GlobalStyles";
 import { useToastState } from "../../store/toastStore";
 import { TicketDefinition, TicketSource } from "../../data/ticketTypes";
+import { useNavigate } from "react-router-dom";
 
 const AddTicketDiv = styled.div`
   position: absolute;
@@ -77,6 +78,7 @@ let found: string[] = [];
 let qrScanner: QrScanner | undefined;
 
 function ScanTicketModal() {
+  const navigate = useNavigate();
   const modalOpen = useUIState((state) => state.modalOpen);
   const setModalOpen = useUIState((state) => state.setModalOpen);
   const tickets = useTicketState((state) => state.tickets);
@@ -105,12 +107,13 @@ function ScanTicketModal() {
           updateTicket(ticket);
           fetchUpdatedTicket(ticket.ticketNumber);
           showToast("Ticket added!");
+          navigate("/");
         }
       } else {
         showToast("Ticket number invalid");
       }
     },
-    [updateTicket, tickets, showToast]
+    [updateTicket, tickets, showToast, navigate]
   );
 
   const onManuallyAddTicket = () => {

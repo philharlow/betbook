@@ -106,42 +106,75 @@ function ManuallyAddTicketModal() {
 export default ManuallyAddTicketModal;
 
 /*
-function ManuallyAddTicketFields() {
+let startingTicketDetails: TicketDetails = {
+  status: TicketStatus.Unknown,
+  betEventsStartDate: new Date(),
+  betEventsEndDate: new Date(),
+  wager: 0,
+  toWin: 0,
+  toPay: 0,
+  totalOdds: 0,
+  bets: [],
+  betshopName: "",
+  expiresDate: new Date(),
+  searchStrings: [],
+};
+
+function ManuallyCreateTicketModal() {
   const [ticket, setTicket] = useState<TicketDefinition>({
-      ticketNumber: '',
-      createdDate: new Date(),
-      dataSource: TicketSource.DraftKingsV2,
-      refreshing: false,
+    ticketNumber: "",
+    createdDate: new Date(),
+    dataSource: TicketSource.Manual,
+    refreshing: true,
+    ticketDetails: startingTicketDetails,
   });
-
-  const handleChange = (e: any) => {
-    // const val = e.target.value;
-    // setValue(val);
-  };
-
-  const updateLocalTicket = (ticket: Partial<TicketDefinition>) => {
-    setTicket((prev: TicketDefinition) => ({...prev, ...ticket}));
-  };
-
-  const updateManuallyCreated = (manuallyCreated: Partial<TicketResultOld>) => {
-    const newTicket = {...ticket};
-    //newTicket.manuallyCreated = {...ticket.manuallyCreated || ManuallyAddedTicketResult, ...manuallyCreated};
-    setTicket(newTicket);
-  }
 
   return (
     <AddTicketDiv>
-      Manual Ticket Entry<br />
-      (Not done yet)
-      <Input placeholder="Name" onChange={(ev) => updateManuallyCreated({Title: ev.target.value})} type='text' value={ticket.manuallyCreated?.Title} />
-      <Input placeholder="Sportsbook" onChange={(ev) => updateLocalTicket({sportsbook: ev.target.value})} type='text' />
-      <Input placeholder="Ticket number" onChange={handleChange} type='text' />
-      <Input placeholder="Wager" onChange={handleChange} type='text' />
-      <Input placeholder="Odds" onChange={handleChange} type='text' />
-      <Input placeholder="Event Date/Time" onChange={handleChange} type='text' />
-      <Input placeholder="Ticket Status" onChange={handleChange} type='text' />
-      <Input placeholder="Notes" onChange={handleChange} type='text' />
+      <TopBar>
+        Manually Add Ticket
+        <CloseButton>X</CloseButton>
+      </TopBar>
+      <Input autoFocus placeholder="Ticket number" type="text" />
+      <TicketDetailsFields ticket={ticket} setTicket={setTicket} />
+      <AddTicketButton>Add Ticket</AddTicketButton>
     </AddTicketDiv>
   );
 }
-  */
+
+function TicketDetailsFields({
+  ticket,
+  setTicket,
+}: {
+  ticket: TicketDefinition;
+  setTicket: (ticket: TicketDefinition) => void;
+}) {
+  let details: TicketDetails = ticket.ticketDetails!;
+  return (
+    <>
+      <Input placeholder="Status" type="text" />
+      <Input placeholder="Bet Events Start Date" type="text" />
+      <Input placeholder="Bet Events End Date" type="text" />
+      <Input placeholder="Wager" type="text" />
+      <Input placeholder="To Win" type="text" />
+      <Input placeholder="To Pay" type="text" />
+      <Input placeholder="Total Odds" type="text" />
+      <Input placeholder="Betshop Name" type="text" />
+      <Input placeholder="Expires Date" type="text" />
+      <Input placeholder="Search Strings" type="text" />
+    </>
+  );
+}
+function BetDetailsFields({ bet }: { bet: any }) {
+  return (
+    <>
+      <Input placeholder="Bet Event" type="text" />
+      <Input placeholder="Bet Event Date" type="text" />
+      <Input placeholder="Bet Event Time" type="text" />
+      <Input placeholder="Bet Event Odds" type="text" />
+      <Input placeholder="Bet Event Result" type="text" />
+      <Input placeholder="Bet Event Status" type="text" />
+    </>
+  );
+}
+*/

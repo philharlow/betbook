@@ -4,7 +4,8 @@ import VersionDisplay from "./VersionDisplay";
 import { useUIState } from "../store/uiStore";
 import { useTicketState } from "../store/ticketStore";
 import { toCurrencyFormat } from "./views/StatsView";
-import { isPaying } from "../data/ticketTypes";
+import { isAPayingTicketStatus } from "../data/ticketTypes";
+import { useNavigate } from "react-router-dom";
 
 const TopBarDiv = styled.div`
   width: 100%;
@@ -43,9 +44,11 @@ const Balance = styled.div<{ positive: boolean }>`
   border-radius: 10px;
   color: ${(p) => (p.positive ? "var(--green)" : "#ff4d4d")};
   height: 30px;
+  cursor: pointer;
 `;
 
 function TopBar() {
+  let navigate = useNavigate();
   const startingBalance = useUIState((state) => state.startingBalance);
   const showBalance = useUIState((state) => state.showBalance);
   const tickets = useTicketState((state) => state.tickets);
@@ -53,21 +56,40 @@ function TopBar() {
     ? tickets.reduce(
         (acc, ticket) =>
           acc +
-          (isPaying(ticket.ticketDetails?.status) ? ticket.ticketDetails?.toPay ?? 0 : 0) -
+          (isAPayingTicketStatus(ticket.ticketDetails?.status) ? ticket.ticketDetails?.toPay ?? 0 : 0) -
           (ticket.ticketDetails?.wager ?? 0),
         0
       )
     : startingBalance;
 
+  const scrollToTop = () => {
+    const topElement = document.getElementById("top");
+    // console.log("scrolling to top", topElement);
+    let elements = [
+      topElement,
+      topElement?.parentElement,
+      topElement?.parentElement?.parentElement,
+      topElement?.parentElement?.parentElement?.parentElement,
+    ];
+    // Gross hack to scroll to top of parent element
+    for (let element of elements) {
+      element?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
-    <TopBarDiv>
-      <Title>
+    <TopBarDiv onClick={scrollToTop}>
+      <Title onClick={() => navigate("/")}>
         <Logo src="logo192.png" alt="logo" />
         BetBook
         <OffsetVersionDisplay />
       </Title>
 
-      {showBalance && <Balance positive={currentBalance >= 0}>{toCurrencyFormat(currentBalance)}</Balance>}
+      {showBalance && (
+        <Balance positive={currentBalance >= 0} onClick={() => navigate("/user")}>
+          {toCurrencyFormat(currentBalance)}
+        </Balance>
+      )}
     </TopBarDiv>
   );
 }

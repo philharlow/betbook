@@ -3,6 +3,7 @@ import styled from "styled-components/macro";
 import { Button } from "../../styles/GlobalStyles";
 import { useUIState } from "../../store/uiStore";
 import Toggle from "../Toggle";
+import { Top } from "./TicketDetailsView";
 
 const SettingsViewDiv = styled.div`
   background-color: var(--black);
@@ -68,6 +69,7 @@ function UserView() {
   return (
     <SettingsViewDiv>
       <Content>
+        <Top id="top" />
         <Group>
           User Name
           <InputRow>

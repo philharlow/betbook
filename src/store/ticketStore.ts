@@ -1,7 +1,17 @@
 import create from "zustand";
 import { localStorageGet, localStorageSet } from "../LocalStorageManager";
 import { fetchTicketData } from "../ticketApi";
-import { BetDetails, isSettled, TicketDb, TicketDbVersion, TicketDefinition, TicketDetails, TICKETS_DB_KEY, TicketStatus, TimePeriod } from "../data/ticketTypes";
+import {
+  BetDetails,
+  isSettled,
+  TicketDb,
+  TicketDbVersion,
+  TicketDefinition,
+  TicketDetails,
+  TICKETS_DB_KEY,
+  TicketStatus,
+  TimePeriod,
+} from "../data/ticketTypes";
 import { DraftKingsDataV1 } from "../data/DraftKingsDataV1";
 import { DraftKingsDataV2 } from "../data/DraftKingsDataV2";
 import { useToastState } from "./toastStore";
@@ -28,8 +38,7 @@ const getTimePeriod = (eventDate: Date, ticketStatus: TicketStatus) => {
   if (isSettled(ticketStatus)) return TimePeriod.Past;
   const now = new Date();
   const timePeriod = now > eventDate ? TimePeriod.Past : TimePeriod.Future;
-  if (timePeriod === TimePeriod.Past && ticketStatus === TicketStatus.Opened)
-    return TimePeriod.Current;
+  if (timePeriod === TimePeriod.Past && ticketStatus === TicketStatus.Opened) return TimePeriod.Current;
   return timePeriod;
 };
 
@@ -52,10 +61,7 @@ export const sanitizeStrings = (obj: any) => {
   }
 };
 
-export const filterTicketsBySearch = (
-  ticket: TicketDefinition,
-  searchValue: string
-) => {
+export const filterTicketsBySearch = (ticket: TicketDefinition, searchValue: string) => {
   if (searchValue === "") return true;
   if (!ticket.ticketDetails) return false;
   searchValue = searchValue.toLowerCase();
@@ -91,14 +97,8 @@ export const updateCurrentTickets = () => {
 export const fetchUpdatedTicket = async (ticketNumber: string) => {
   const ticketState = useTicketState.getState();
   const useToast = useToastState.getState();
-  const existingTicket = ticketState.tickets.find(
-    (t) => t.ticketNumber === ticketNumber
-  );
-  if (!existingTicket)
-    return console.warn(
-      "fetchUpdatedTicket() Could not find ticket",
-      ticketNumber
-    );
+  const existingTicket = ticketState.tickets.find((t) => t.ticketNumber === ticketNumber);
+  if (!existingTicket) return console.warn("fetchUpdatedTicket() Could not find ticket", ticketNumber);
 
   existingTicket.refreshing = true;
   ticketState.updateTicket(existingTicket);
@@ -112,7 +112,7 @@ export const fetchUpdatedTicket = async (ticketNumber: string) => {
   ticketState.updateTicket(existingTicket);
 
   if (newTicketData) {
-    let newTicket = {...existingTicket};
+    let newTicket = { ...existingTicket };
     newTicket.rawData = newTicketData;
     newTicket.refreshing = false;
     computeTicketDetails(newTicket);
@@ -126,7 +126,7 @@ export const computeTicketDetails = (ticket: TicketDefinition) => {
   if (!ticket.rawData) return;
 
   if (DraftKingsDataV1.isValidTicket(ticket)) {
-    let ticketData = ticket.rawData as DraftKingsDataV1.TicketResponse
+    let ticketData = ticket.rawData as DraftKingsDataV1.TicketResponse;
     let ticketDetails = DraftKingsDataV1.getTicketDetails(ticketData);
     if (ticketDetails) {
       ticket.ticketDetails = ticketDetails;
@@ -134,7 +134,7 @@ export const computeTicketDetails = (ticket: TicketDefinition) => {
       ticket.archivedDate = ticketData.archived ? new Date() : undefined;
     }
   } else if (DraftKingsDataV2.isValidTicket(ticket)) {
-    let ticketData = ticket.rawData as DraftKingsDataV2.TicketResponse
+    let ticketData = ticket.rawData as DraftKingsDataV2.TicketResponse;
     let ticketDetails = DraftKingsDataV2.getTicketDetails(ticketData);
     if (ticketDetails) {
       ticket.ticketDetails = ticketDetails;
@@ -144,7 +144,6 @@ export const computeTicketDetails = (ticket: TicketDefinition) => {
   // Fix fup pay outs
   if (ticket.ticketDetails) {
     if (!ticket.ticketDetails.toPay || isNaN(ticket.ticketDetails.toPay)) {
-
       let totalOdds = ticket.ticketDetails.totalOdds;
       let oddsRatio = totalOdds / 100;
       if (totalOdds < 0) oddsRatio = 100 / -totalOdds;
@@ -153,18 +152,15 @@ export const computeTicketDetails = (ticket: TicketDefinition) => {
       ticket.ticketDetails.toPay = ticket.ticketDetails.wager + ticket.ticketDetails.toWin;
     }
   }
-}
+};
 
-
+// Sort tickets so that the most recent are at the top
 const sortTickets = (tickets: TicketDefinition[]) => {
   tickets.sort((a, b) => {
-
     return a.ticketDetails && b.ticketDetails
-      ? b.ticketDetails.betEventsStartDate.getTime() -
-        a.ticketDetails.betEventsStartDate.getTime()
-      : 0
-}
-  );
+      ? b.ticketDetails.betEventsStartDate.getTime() - a.ticketDetails.betEventsStartDate.getTime()
+      : 0;
+  });
 };
 
 export const LEGACY_TICKETS_ARRAY_KEY = "MBTB_tickets";
@@ -178,14 +174,14 @@ const tryLegacyImport = () => {
   const ticketDefs = tickets.map(DraftKingsDataV1.getTicketDefinition);
   importTickets(ticketDefs, "legacy");
   // localStorage.removeItem(legacyLSKey);
-}
+};
 
 export const importTickets = (tickets: TicketDefinition[], version: string) => {
   tickets.forEach(sanitizeResponse);
   tickets.forEach(computeTicketDetails);
   useTicketState.getState().setTickets(tickets);
   useToastState.getState().showToast(`Imported ${tickets.length} tickets from ${version} data`);
-}
+};
 
 const getTicketsFromStorage = () => {
   const ticketsStr = localStorageGet(TICKETS_DB_KEY);
@@ -197,7 +193,9 @@ const getTicketsFromStorage = () => {
   const ticketDb = JSON.parse(ticketsStr) as TicketDb;
   if (!ticketDb) return [];
   if (ticketDb.ticketsDbVersion !== TicketDbVersion) {
-    console.error("Ticket db version mismatch", ticketDb.ticketsDbVersion, TicketDbVersion);
+    setTimeout(() => {
+      console.error("Ticket db version mismatch", ticketDb.ticketsDbVersion, TicketDbVersion);
+    }, 100); // Hack for the console store to init, yuck
     // TODOv2 handle version mismatch
     return [];
   }
@@ -211,16 +209,11 @@ const getTicketsFromStorage = () => {
   sortTickets(ticketDb.tickets);
 
   // Fetch updates
-  setTimeout(
-    () =>
-      ticketDb.tickets.forEach((ticket) => {
-        // Only update current bets
-        let timePeriod = getTicketTimePeriod(ticket.ticketDetails);
-        if (timePeriod === TimePeriod.Current)
-          fetchUpdatedTicket(ticket.ticketNumber);
-      }),
-    1
-  );
+  setTimeout(() => {
+    useTicketState
+      .getState()
+      .refreshTickets((ticket) => getTicketTimePeriod(ticket.ticketDetails) === TimePeriod.Current);
+  }, 100);
 
   return ticketDb.tickets;
 };
@@ -236,7 +229,7 @@ interface TicketState {
 }
 
 export const useTicketState = create<TicketState>((set, get) => ({
-  tickets: [],
+  tickets: getTicketsFromStorage(),
   setTickets: (tickets: TicketDefinition[]) => {
     sortTickets(tickets);
     let db = { ticketsDbVersion: TicketDbVersion, tickets };
@@ -245,9 +238,7 @@ export const useTicketState = create<TicketState>((set, get) => ({
   },
   updateTicket: (ticket: TicketDefinition) => {
     const tickets = [...get().tickets];
-    const existingTicketIndex = tickets.findIndex(
-      (t) => t.ticketNumber === ticket.ticketNumber
-    );
+    const existingTicketIndex = tickets.findIndex((t) => t.ticketNumber === ticket.ticketNumber);
     if (existingTicketIndex > -1) {
       ticket = { ...tickets[existingTicketIndex], ...ticket };
       tickets[existingTicketIndex] = ticket;
@@ -256,16 +247,12 @@ export const useTicketState = create<TicketState>((set, get) => ({
     get().setTickets(tickets);
   },
   removeTicket: (ticketNumber: string) => {
-    const tickets = [...get().tickets].filter(
-      (t) => t.ticketNumber !== ticketNumber
-    );
+    const tickets = [...get().tickets].filter((t) => t.ticketNumber !== ticketNumber);
 
     get().setTickets(tickets);
   },
   archiveTicket: (ticketNumber: string, archived = true) => {
-    const existingTicket = get().tickets.find(
-      (t) => t.ticketNumber === ticketNumber
-    );
+    const existingTicket = get().tickets.find((t) => t.ticketNumber === ticketNumber);
     if (existingTicket) {
       existingTicket.archivedDate = archived ? new Date() : undefined;
       get().updateTicket(existingTicket);
@@ -276,14 +263,7 @@ export const useTicketState = create<TicketState>((set, get) => ({
   },
   refreshTickets: (filter?: (ticket: TicketDefinition) => boolean) => {
     const { tickets, setTickets } = get();
-    tickets.forEach(
-      (t) => (!filter || filter(t)) && fetchUpdatedTicket(t.ticketNumber)
-    );
+    tickets.forEach((t) => (!filter || filter(t)) && fetchUpdatedTicket(t.ticketNumber));
     setTickets([...tickets]);
   },
 }));
-
-// Hack to wait for the console catcher to init
-setTimeout(() => {
-  useTicketState.getState().setTickets(getTicketsFromStorage());
-}, 10);

@@ -1,14 +1,14 @@
-import React, { PropsWithChildren } from "react";
+import React, { Component, ErrorInfo, PropsWithChildren, ReactNode } from "react";
 
 interface Props {
-  errorDisplay?: React.ReactNode;
+  errorDisplay?: ReactNode;
 }
 
 interface State {
   hasError: boolean;
 }
 
-export class ErrorBoundary extends React.Component<PropsWithChildren<Props>, State> {
+export class ErrorBoundary extends Component<PropsWithChildren<Props>, State> {
   constructor(props: PropsWithChildren) {
     super(props);
     this.state = { hasError: false };
@@ -19,7 +19,7 @@ export class ErrorBoundary extends React.Component<PropsWithChildren<Props>, Sta
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // You can also log the error to an error reporting service
     //logErrorToMyService(error, errorInfo);
   }

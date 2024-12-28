@@ -1,22 +1,21 @@
 export const TicketDbVersion = "v2.0";
 
 export interface TicketDb {
-    ticketsDbVersion: string
-    tickets: TicketDefinition[]
+  ticketsDbVersion: string;
+  tickets: TicketDefinition[];
 }
 
 export enum TicketStatus {
-    Unknown = "Updating",
-    Error = "Error",
-    Opened = "Opened",
-    Lost = "Lost",
-    Draw = "Draw",
-    Won = "Won",
-  }
+  Unknown = "Updating",
+  Error = "Error",
+  Opened = "Opened",
+  Lost = "Lost",
+  Draw = "Draw",
+  Won = "Won",
+}
 export const TicketStatuses = Object.values(TicketStatus);
 export const getStatus = (status: string) => {
-  if (TicketStatuses.includes(status as TicketStatus))
-    return status as TicketStatus;
+  if (TicketStatuses.includes(status as TicketStatus)) return status as TicketStatus;
   return TicketStatus.Error;
 };
 
@@ -29,18 +28,11 @@ export enum TimePeriod {
 }
 
 export const isSettled = (status?: TicketStatus) => {
-  return (
-    status === TicketStatus.Won ||
-    status === TicketStatus.Lost ||
-    status === TicketStatus.Draw
-  );
+  return status === TicketStatus.Won || status === TicketStatus.Lost || status === TicketStatus.Draw;
 };
 
-export const isPaying = (status?: TicketStatus) => {
-  return (
-    status === TicketStatus.Won ||
-    status === TicketStatus.Draw
-  );
+export const isAPayingTicketStatus = (status?: TicketStatus) => {
+  return status === TicketStatus.Won || status === TicketStatus.Draw;
 };
 
 export enum TicketSource {
@@ -106,15 +98,12 @@ export interface EventScores {
   scoreB: string;
 }
 
-
 export const getTeams = (eventName: string): string[] => {
   let teams: string[] = [];
-  if (eventName.indexOf(" vs ") > -1)
-    teams.push(...eventName.split(" vs "));
-  if (eventName.indexOf(" @ ") > -1)
-    teams.push(...eventName.split(" @ "));
+  if (eventName.indexOf(" vs ") > -1) teams.push(...eventName.split(" vs "));
+  if (eventName.indexOf(" @ ") > -1) teams.push(...eventName.split(" @ "));
   return teams;
-}
+};
 /*
 export const cleanupTeamPrefix = (team: string): string => {
   // TODOv2 find a better way
@@ -141,12 +130,13 @@ export const replaceAll = (str: string, replace: { [key: string]: string }) => {
     str = str.replace(key, value);
   }
   return str;
-}
+};
 export const removeAll = (str: string, remove: string[]) => {
-  return str.split(" ")
+  return str
+    .split(" ")
     .filter((word) => !remove.includes(word))
     .join(" ");
-}
+};
 
 const stringsToRemove = ["Alternate"];
 const stringsToReplace = {
@@ -158,17 +148,17 @@ const stringsToReplace = {
 };
 const stringsToReplaceShort = {
   "Moneyline FT": "ML",
-  "Moneyline": "ML",
+  Moneyline: "ML",
   "Money Line FT": "ML",
   "Money Line": "ML",
   "Total FT": "Total",
   "Spread FT": "Spread",
   "Touchdown Scorer": "TD",
-  "Touchdowns": "TDs",
-  "Yards": "Yds",
+  Touchdowns: "TDs",
+  Yards: "Yds",
 };
 
 export const sanitizeString = (str: string, short = false) => {
   let replaced = replaceAll(str, short ? stringsToReplaceShort : stringsToReplace);
   return removeAll(replaced, stringsToRemove);
-}
+};

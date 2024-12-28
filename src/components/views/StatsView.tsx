@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import styled from "styled-components/macro";
 import { filterTicketsBySearch, useTicketState } from "../../store/ticketStore";
 import { useUIState } from "../../store/uiStore";
@@ -6,10 +6,11 @@ import Accordion from "../Accordion";
 import OptionBar from "../OptionBar";
 import TicketTile from "../TicketTile";
 import SearchBar from "../SearchBar";
-import { isSettled, TicketDefinition, TicketStatus } from "../../data/ticketTypes";
+import { isAPayingTicketStatus, isSettled, TicketDefinition, TicketStatus } from "../../data/ticketTypes";
 import { Button } from "../../styles/GlobalStyles";
-import { AxisOptions, Chart } from "react-charts";
-import useDemoConfig from "../useDemoConfig";
+import { AxisOptions, Chart, Series } from "react-charts";
+import { Top } from "./TicketDetailsView";
+import { useScrollRestoration } from "./MainTicketsView";
 
 const StatsViewDiv = styled.div`
   background-color: var(--black);
@@ -115,6 +116,16 @@ const dollarUSLocale = Intl.NumberFormat("en-US", {
 export const toCurrencyFormat = (val: number) => (isNaN(val) ? "$--" : "$" + dollarUSLocale.format(val));
 export const toPercentFormat = (val: number) => (isNaN(val) ? "--%" : `${parseFloat((val * 100).toFixed(2))}%`);
 
+type DailyValue = {
+  date: Date;
+  value: number;
+};
+
+type DailyValueSeries = {
+  label: string;
+  data: DailyValue[];
+};
+
 function StatsView() {
   const searchQuery = useUIState((state) => state.searchQuery);
   const tickets = useTicketState((state) => state.tickets);
@@ -122,6 +133,7 @@ function StatsView() {
   const [filteredTickets, setFilteredTickets] = useState<TicketDefinition[]>([]);
   const [customTimeSpan, setCustomTimeSpan] = useState<CustomTimeSpan | null>(null);
   const [customTimeInputOpen, setCustomTimeInputOpen] = useState(false);
+  const scrollRef = useScrollRestoration("StatsView");
 
   useEffect(() => {
     const nowMs = new Date().getTime();
@@ -173,26 +185,55 @@ function StatsView() {
 
   const nonArchivedPay = nonArchivedSettledTickets.reduce((acc, t) => acc + (t.ticketDetails?.toPay ?? 0), 0);
 
-  const { data } = useDemoConfig({
-    series: 10,
-    dataType: "time",
-  });
-
-  const primaryAxis = React.useMemo<AxisOptions<(typeof data)[number]["data"][number]>>(
-    () => ({
-      getValue: (datum) => datum.primary as unknown as Date,
+  const primaryAxis = useMemo(
+    (): AxisOptions<DailyValue> => ({
+      getValue: (datum) => datum.date,
     }),
     []
   );
 
-  const secondaryAxes = React.useMemo<AxisOptions<(typeof data)[number]["data"][number]>[]>(
-    () => [
+  const secondaryAxes = useMemo(
+    (): AxisOptions<DailyValue>[] => [
       {
-        getValue: (datum) => datum.secondary,
+        getValue: (datum) => datum.value,
       },
     ],
     []
   );
+
+  const data: DailyValueSeries[] = useMemo(() => {
+    let profitLoss: DailyValueSeries = {
+      label: "Profit/Loss",
+      data: [],
+    };
+    let wagered: DailyValueSeries = {
+      label: "Amount Wagered",
+      data: [],
+    };
+    let currentWagered = 0;
+    let currentProfit = 0;
+    let reversedTickets = filteredTickets.slice().reverse();
+    for (const ticket of reversedTickets) {
+      if (!ticket.ticketDetails) continue;
+      currentWagered += ticket.ticketDetails.wager;
+      let delta = -ticket.ticketDetails.wager;
+      if (isAPayingTicketStatus(ticket.ticketDetails.status)) delta += ticket.ticketDetails.toPay;
+      if (!isNaN(delta)) currentProfit += delta;
+      const date = ticket.ticketDetails.betEventsStartDate;
+      profitLoss.data.push({ date, value: currentProfit });
+      wagered.data.push({ date, value: currentWagered });
+    }
+
+    return [profitLoss, wagered];
+  }, [filteredTickets]);
+  // console.log("data", data);
+
+  const getSeriesStyle = useCallback((series: Series<DailyValue>) => {
+    let colorPalette = ["var(--green)", "var(--blue)", "#cd56fc"];
+    return {
+      color: colorPalette[series.index],
+    };
+  }, []);
 
   const getStatDiv = (label: string, value: any) => {
     return (
@@ -259,16 +300,19 @@ function StatsView() {
     },
   ];
 
-  const ticketsToShow: [string, TicketDefinition][] = [];
   let bestOddsWin = winningTickets[0];
   let bestPayWin = winningTickets[0];
+  let mostParlayLegsWin: TicketDefinition | undefined;
   for (const ticket of winningTickets) {
     if (!ticket.ticketDetails) break;
     if (ticket.ticketDetails?.totalOdds > (bestOddsWin.ticketDetails?.totalOdds ?? 0)) bestOddsWin = ticket;
     if (ticket.ticketDetails?.toPay > (bestPayWin.ticketDetails?.toPay ?? 0)) bestPayWin = ticket;
+    if (ticket.ticketDetails?.bets.length > (bestPayWin.ticketDetails?.bets.length ?? 0)) mostParlayLegsWin = ticket;
   }
+  const ticketsToShow: [string, TicketDefinition][] = [];
   if (bestOddsWin) ticketsToShow.push(["Best Odds Win", bestOddsWin]);
   if (bestPayWin) ticketsToShow.push(["Best Payout Win", bestPayWin]);
+  if (mostParlayLegsWin) ticketsToShow.push(["Most Parlay Legs Win", mostParlayLegsWin]);
 
   const onTimeSpanChanged = (newTimeSpan: string) => {
     setTimeSpan(newTimeSpan as TimeSpan);
@@ -277,8 +321,11 @@ function StatsView() {
     }
   };
 
+  const hasChartData = data.some((series) => series.data.length > 0);
+
   return (
-    <StatsViewDiv>
+    <StatsViewDiv ref={scrollRef}>
+      <Top id="top" />
       <SubBar>
         <OptionBar options={allTimeSpans} selected={timeSpan} onSelectionChanged={onTimeSpanChanged} />
       </SubBar>
@@ -292,9 +339,24 @@ function StatsView() {
         ))}
         {ticketsToShow.map(([label, ticket]) => (
           <Accordion key={label} label={label}>
-            {ticket && <TicketTile ticket={ticket} />}
+            {ticket && <TicketTile ticket={ticket} clickable />}
           </Accordion>
         ))}
+        {hasChartData && (
+          <Accordion label="Chart">
+            <ChartDiv>
+              <Chart
+                options={{
+                  data,
+                  primaryAxis,
+                  secondaryAxes,
+                  dark: true,
+                  getSeriesStyle: getSeriesStyle,
+                }}
+              />
+            </ChartDiv>
+          </Accordion>
+        )}
       </Content>
       {customTimeInputOpen && (
         <CustomTimeInputModal
@@ -303,15 +365,6 @@ function StatsView() {
           setCustomTimeInputOpen={setCustomTimeInputOpen}
         />
       )}
-      <ChartDiv>
-        <Chart
-          options={{
-            data,
-            primaryAxis,
-            secondaryAxes,
-          }}
-        />
-      </ChartDiv>
     </StatsViewDiv>
   );
 }

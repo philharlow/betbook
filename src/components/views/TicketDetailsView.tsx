@@ -125,6 +125,10 @@ const Title = styled.div`
   color: #888;
 `;
 
+export const Top = styled.div`
+  display: none;
+`;
+
 function TicketDetailsView() {
   const navigate = useNavigate();
   let { ticketNumber } = useParams();
@@ -202,6 +206,7 @@ function TicketDetailsView() {
     <ViewTicketDiv>
       <PullToRefresh onRefresh={handleRefresh}>
         <Content>
+          <Top id="top" />
           <Title>{ticket.ticketDetails?.betshopName}</Title>
           <TicketTile ticket={ticket} />
           {getBetsAccordion(TimePeriod.Past)}
@@ -222,6 +227,10 @@ function TicketDetailsView() {
                 <TbTrash />
                 Delete Ticket
               </RemoveButton>
+              <RefreshButton onClick={handleRefresh}>
+                <TbRefresh />
+                Refresh Ticket
+              </RefreshButton>
               <ArchiveButton onClick={onArchiveTicket} className={ticket.archivedDate ? "archived" : ""}>
                 <TbArchive />
                 {ticket.archivedDate ? "Unarchive" : "Archive"}
@@ -230,10 +239,6 @@ function TicketDetailsView() {
                 <TbBarcode />
                 View Barcode
               </BarcodeButton>
-              <RefreshButton onClick={handleRefresh}>
-                <TbRefresh />
-                Refresh Ticket
-              </RefreshButton>
             </ButtonRow>
             <Debug>
               <br />

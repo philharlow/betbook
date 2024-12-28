@@ -63,7 +63,7 @@ function BarcodePopup() {
 
   const onArchiveTicket = () => {
     if (viewingBarcode) {
-      console.log("Archiving ticket", viewingBarcode);
+      console.log("Archiving ticket", viewingBarcode.ticketNumber);
       archiveTicket(viewingBarcode.ticketNumber);
     }
   };

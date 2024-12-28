@@ -1,11 +1,19 @@
-import { BetDetails, getStatus, EventScores, TicketDetails, TicketDefinition, TicketSource, sanitizeString } from "./ticketTypes";
+import {
+  BetDetails,
+  getStatus,
+  EventScores,
+  TicketDetails,
+  TicketDefinition,
+  TicketSource,
+  sanitizeString,
+} from "./ticketTypes";
 
 // TODOv2 make some common protocol for DraftKingsDataV1 and DraftKingsDataV2
 export namespace DraftKingsDataV2 {
   export const isValidTicket = (ticket: TicketDefinition): boolean => {
-      if (ticket.dataSource !== TicketSource.DraftKings) return false;
-      return ticket.rawData?.bets?.length > 0;
-  }
+    if (ticket.dataSource !== TicketSource.DraftKings) return false;
+    return ticket.rawData?.bets?.length > 0;
+  };
 
   export const getTicketDetails = (ticketResponse: TicketResponse): TicketDetails => {
     let bets: BetDetails[] = [];
@@ -21,21 +29,25 @@ export namespace DraftKingsDataV2 {
             let betDetails = {
               betName: sanitizeString(selection.selectionName),
               eventName: sanitizeString(event.eventName),
-              betType: sanitizeString(selection.marketName, true),
+              betType: sanitizeString(selection.marketName),
               eventDate: new Date(event.eventDate),
               odds: Number(selection.selectionOdds),
               scores: getEventScores(event),
-              status: getStatus(selection.selectionStatus)
+              status: getStatus(selection.selectionStatus),
             };
             bets.push(betDetails);
 
-            searchStrings.concat([event.team1Name, event.team1Name])
-            if (betDetails.eventDate < earliestEventDate) { earliestEventDate = betDetails.eventDate; }
-            if (betDetails.eventDate > latestEventDate) { latestEventDate = betDetails.eventDate; }
-          };
-        };
-      };
-    };
+            searchStrings.concat([event.team1Name, event.team1Name]);
+            if (betDetails.eventDate < earliestEventDate) {
+              earliestEventDate = betDetails.eventDate;
+            }
+            if (betDetails.eventDate > latestEventDate) {
+              latestEventDate = betDetails.eventDate;
+            }
+          }
+        }
+      }
+    }
 
     let searchStringSet = new Set<String>(searchStrings);
 
@@ -48,18 +60,18 @@ export namespace DraftKingsDataV2 {
       betEventsStartDate: earliestEventDate,
       betEventsEndDate: latestEventDate,
       expiresDate: new Date(ticketResponse.expireDate),
-      searchStrings: Array.from(searchStringSet, s => s.toLowerCase()),
+      searchStrings: Array.from(searchStringSet, (s) => s.toLowerCase()),
       betshopName: ticketResponse.betshopName,
-      status: getStatus(ticketResponse.ticketStatus)
+      status: getStatus(ticketResponse.ticketStatus),
     };
     return ticket;
-  }
+  };
 
   const getEventScores = ({ team1Name, settleScore, team2Name }: Event): EventScores | undefined => {
     if (settleScore) {
       return { teamA: team1Name, scoreA: settleScore.homeScore, teamB: team2Name, scoreB: settleScore.awayScore };
     }
-  }
+  };
 
   export interface TicketResponse {
     ticketId: string;

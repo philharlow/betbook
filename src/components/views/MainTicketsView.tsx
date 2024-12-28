@@ -7,6 +7,7 @@ import { isSettled, TicketDefinition, TicketStatus, TimePeriod } from "../../dat
 import SearchBar from "../SearchBar";
 import Accordion from "../Accordion";
 import TicketTile from "../TicketTile";
+import { Top } from "./TicketDetailsView";
 
 const TableDiv = styled.div`
   width: 100%;
@@ -143,6 +144,7 @@ function MainTicketsView() {
       <FilterBar />
       {/* <PullToRefresh onRefresh={handleRefresh}> */}
       <Content>
+        <Top id="top" />
         <SearchBar />
 
         {/* Pending */}

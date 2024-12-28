@@ -1,18 +1,18 @@
-import create from 'zustand'
+import create from "zustand";
 
-const defaultDuration = 1500;
+const defaultDuration = 2000;
 
 interface ToastState {
-	toast: string;
-	toastDuration: number;
-	showToast: (toast: string, toastDuration?: number) => void;
+  toast: string;
+  toastDuration: number;
+  showToast: (toast: string, toastDuration?: number) => void;
 }
 
 export const useToastState = create<ToastState>((set, get) => ({
-	toast: "",
-	toastDuration: defaultDuration,
-	showToast: (toast: string, toastDuration?: number) => {
-		if (toast) console.log("showingToast", toast);
-		set({toast, toastDuration: toastDuration || defaultDuration})
-	},
+  toast: "",
+  toastDuration: defaultDuration,
+  showToast: (toast: string, toastDuration?: number) => {
+    if (toast) console.log("showingToast", toast);
+    set({ toast, toastDuration: toastDuration || defaultDuration });
+  },
 }));
