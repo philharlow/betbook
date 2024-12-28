@@ -10,7 +10,7 @@ import { BetDetails, TicketDefinition, TimePeriod } from "../../data/ticketTypes
 import TicketTile from "../TicketTile";
 import BetTile from "../BetTile";
 import { useDebouncedEffect } from "../reactUtils";
-import { TbArchive, TbBarcode, TbTrash } from "react-icons/tb";
+import { TbArchive, TbBarcode, TbRefresh, TbTrash } from "react-icons/tb";
 import { getRelativeDateDisplay } from "../../utils";
 
 const ViewTicketDiv = styled.div`
@@ -27,21 +27,12 @@ const Content = styled.div`
   width: 100%;
   align-items: center;
   gap: 10px;
-  padding: 15px;
+  padding: 0px 15px;
   padding-bottom: 50px;
   overflow-y: auto;
 `;
 
-// const TopBar = styled.div`
-//   background-color: var(--grey);
-//   font-size: var(--topbar-font-size);
-//   width: 100%;
-//   display: flex;
-//   justify-content: space-between;
-//   padding: 10px 15px;
-//   align-items: center;
-// `;
-
+let outlineThickness = 2;
 const IconButton = styled(Button)`
   padding: 10px 20px;
   display: flex;
@@ -52,30 +43,40 @@ const IconButton = styled(Button)`
   height: 100%;
   justify-content: center;
   gap: 10px;
+
+  background: transparent;
+  border: ${outlineThickness}px solid transparent;
+
   svg {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
   }
 `;
 
 const RemoveButton = styled(IconButton)`
-  background: var(--red);
+  color: var(--red);
+  border-color: var(--red);
 `;
 
-const RedeemButton = styled(IconButton)`
-  background: white;
-  color: black;
-`;
-
-let outlineThickness = 2;
-const ArchiveButton = styled(IconButton)`
-  background: var(--blue);
+const BarcodeButton = styled(IconButton)`
   color: white;
-  border: ${outlineThickness}px solid transparent;
+  border-color: white;
+`;
+
+const ArchiveButton = styled(IconButton)`
+  color: var(--blue);
+  border-color: var(--blue);
+
   &.archived {
-    background: unset;
-    border: ${outlineThickness}px solid var(--blue);
+    background: var(--blue);
+    color: white;
+    border-color: transparent;
   }
+`;
+
+const RefreshButton = styled(IconButton)`
+  color: var(--green);
+  border-color: var(--green);
 `;
 
 const ButtonRow = styled.div`
@@ -86,10 +87,6 @@ const ButtonRow = styled.div`
   gap: 15px;
   align-items: center;
 `;
-
-// const BackButton = styled(Button)`
-//   padding: 10px 14px;
-// `;
 
 const NotesField = styled.textarea`
   height: auto;
@@ -113,12 +110,19 @@ const DetailsDiv = styled.div`
   gap: 40px;
   width: 100%;
   line-height: 125%;
+  color: #888;
 `;
 
 const Debug = styled.div`
   opacity: 0.5;
   font-size: 12px;
   margin-top: 20px;
+`;
+
+const Title = styled.div`
+  font-size: 20px;
+  margin: 0;
+  color: #888;
 `;
 
 function TicketDetailsView() {
@@ -143,10 +147,6 @@ function TicketDetailsView() {
 
   useDebouncedEffect(saveNotes, notes, 1000);
 
-  // const goBack = () => {
-  //   navigate(-1);
-  // };
-
   useEffect(() => {
     const selectedTicket = tickets.find((t) => ticketNumber === t.ticketNumber);
     setTicket(selectedTicket);
@@ -159,7 +159,7 @@ function TicketDetailsView() {
     navigate("/");
   };
 
-  const redeemTicket = () => {
+  const showBarcode = () => {
     if (!ticket) return;
     setViewingBarcode(ticket);
   };
@@ -200,23 +200,15 @@ function TicketDetailsView() {
   );
   return (
     <ViewTicketDiv>
-      {/* <TopBar>
-        <BackButton onClick={goBack}>&lt;</BackButton>
-        {ticket.dataSource} Ticket
-        <span />
-      </TopBar> */}
       <PullToRefresh onRefresh={handleRefresh}>
         <Content>
+          <Title>{ticket.ticketDetails?.betshopName}</Title>
           <TicketTile ticket={ticket} />
-          {ticket.dataSource} Ticket
-          {/* <Title className={className}>
-            {title} {getOddsDisplay(odds)}
-          </Title> */}
           {getBetsAccordion(TimePeriod.Past)}
           {getBetsAccordion(TimePeriod.Current)}
           {getBetsAccordion(TimePeriod.Future)}
           <DetailsDiv>
-            Created: {ticket.createdDate.toLocaleString() ?? ""}
+            Created: {getRelativeDateDisplay(ticket.createdDate) ?? "--"}
             <br />
             Expires: {getRelativeDateDisplay(ticket.ticketDetails?.expiresDate)}
             <br />
@@ -226,18 +218,22 @@ function TicketDetailsView() {
               {notes}
             </NotesField>
             <ButtonRow>
-              <ArchiveButton onClick={onArchiveTicket} className={ticket.archivedDate ? "archived" : ""}>
-                <TbArchive />
-                {ticket.archivedDate ? "Unarchive" : "Archive"}
-              </ArchiveButton>
-              <RedeemButton onClick={redeemTicket}>
-                <TbBarcode />
-                View Barcode
-              </RedeemButton>
               <RemoveButton onClick={deleteTicket}>
                 <TbTrash />
                 Delete Ticket
               </RemoveButton>
+              <ArchiveButton onClick={onArchiveTicket} className={ticket.archivedDate ? "archived" : ""}>
+                <TbArchive />
+                {ticket.archivedDate ? "Unarchive" : "Archive"}
+              </ArchiveButton>
+              <BarcodeButton onClick={showBarcode}>
+                <TbBarcode />
+                View Barcode
+              </BarcodeButton>
+              <RefreshButton onClick={handleRefresh}>
+                <TbRefresh />
+                Refresh Ticket
+              </RefreshButton>
             </ButtonRow>
             <Debug>
               <br />

@@ -67,7 +67,7 @@ function TopBar() {
         <OffsetVersionDisplay />
       </Title>
 
-      {showBalance && <Balance positive={currentBalance > 0}>{toCurrencyFormat(currentBalance)}</Balance>}
+      {showBalance && <Balance positive={currentBalance >= 0}>{toCurrencyFormat(currentBalance)}</Balance>}
     </TopBarDiv>
   );
 }

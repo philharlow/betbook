@@ -1,4 +1,5 @@
 import React from "react";
+import { bindConsole } from "./store/consoleLogStore";
 import styled from "styled-components/macro";
 import ScanTicketModal from "./components/modals/ScanTicketModal";
 import StatsView from "./components/views/StatsView";
@@ -13,6 +14,8 @@ import ManuallyAddTicketModal from "./components/modals/ManuallyAddTicketModal";
 import MenuBar from "./components/MenuBar";
 import TopBar from "./components/TopBar";
 import UserView from "./components/views/UserView";
+
+bindConsole();
 
 const AppDiv = styled.div`
   position: absolute;

@@ -69,6 +69,11 @@ const TimeLabel = styled.div`
   font-size: 14px;
 `;
 
+const Odds = styled.div`
+  font-size: 16px;
+  font-weight: 600;
+`;
+
 interface Props {
   bet: BetDetails;
   className?: string;
@@ -102,9 +107,10 @@ function BetTile({ bet, className }: Props) {
           <Column style={{ flex: 1 }} className={className}>
             <Title>{getBetTitle(bet)}</Title>
             <SubTitle>{bet.eventName}</SubTitle>
+            <SubTitle>{bet.betType}</SubTitle>
           </Column>
           <RightColumn className={className}>
-            {!!bet.odds && <div>{getOddsDisplay(bet.odds)}</div>}
+            {!!bet.odds && <Odds>{getOddsDisplay(bet.odds)}</Odds>}
             {hasScore && (
               <GreyLabel>
                 {score1}
@@ -114,7 +120,6 @@ function BetTile({ bet, className }: Props) {
             )}
           </RightColumn>
         </ContentRow>
-        <SubTitle>{bet.betType}</SubTitle>
         <TimeLabel>{getRelativeDateDisplay(bet.eventDate)}</TimeLabel>
       </Content>
     </BetTileDiv>

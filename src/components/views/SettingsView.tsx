@@ -1,11 +1,18 @@
 import React from "react";
 import styled from "styled-components/macro";
-import { computeTicketDetails, sanitizeStrings, useTicketState } from "../../store/ticketStore";
+import {
+  computeTicketDetails,
+  importTickets,
+  LEGACY_TICKETS_ARRAY_KEY,
+  sanitizeStrings,
+  useTicketState,
+} from "../../store/ticketStore";
 import { useToastState } from "../../store/toastStore";
 import { Button } from "../../styles/GlobalStyles";
-import { localStorageGet, localStorageRemove, localStorageSet } from "../../LocalStorageManager";
-import { isSettled, TicketDb, TicketDbVersion, TICKETS_DB_KEY } from "../../data/ticketTypes";
+import { localStorageGet, localStorageRemove } from "../../LocalStorageManager";
+import { isSettled, TicketDb, TICKETS_DB_KEY } from "../../data/ticketTypes";
 import { DraftKingsDataV1 } from "../../data/DraftKingsDataV1";
+import { LogLevel, useConsoleLogState } from "../../store/consoleLogStore";
 
 const SettingsViewDiv = styled.div`
   background-color: var(--black);
@@ -22,11 +29,6 @@ const Content = styled.div`
   gap: 25px;
 `;
 
-const Warning = styled.div`
-  color: #cdcd24;
-  font-size: 10px;
-`;
-
 const Group = styled.div`
   background-color: #222;
   font-size: 24px;
@@ -39,19 +41,65 @@ const Group = styled.div`
   align-items: center;
 `;
 
-const SettingButton = styled(Button)<{ danger?: boolean }>`
+const SettingButton = styled(Button)<{ danger?: boolean; warning?: boolean }>`
   padding: 10px 20px;
   align-self: center;
-  color: ${(props) => (props.danger ? "red" : "unset")};
+  color: ${(props) => (props.danger ? "#e82d2d" : props.warning ? "#cdcd24" : "unset")};
 `;
 
 const Stat = styled.div``;
+
+const Row = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+`;
+
+const LogDiv = styled.div`
+  background-color: #222;
+  width: 100%;
+  font-size: 24px;
+  padding: 10px;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: center;
+  align-items: start;
+  overflow-y: auto;
+  height: 500px;
+`;
+
+const LogRow = styled.div`
+  display: flex;
+  gap: 5px;
+  font-size: 12px;
+  color: #777;
+`;
+
+const LogMessage = styled.div<{ level: LogLevel }>`
+  color: ${(p) => (p.level === LogLevel.Error ? "#e82d2d" : p.level === LogLevel.Warn ? "yellow" : "white")};
+  text-align: left;
+`;
+
+// Util to download file from data and mime type
+const downloadFile = (data: string, type: string, filename: string) => {
+  let a = window.document.createElement("a");
+  a.href = window.URL.createObjectURL(new Blob([data], { type }));
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
 
 function SettingsView() {
   const tickets = useTicketState((state) => state.tickets);
   const updateTicket = useTicketState((state) => state.updateTicket);
   const refreshTickets = useTicketState((state) => state.refreshTickets);
   const showToast = useToastState((state) => state.showToast);
+
+  const logMessages = useConsoleLogState((state) => state.logMessages);
+  const clearLogMessage = useConsoleLogState((state) => state.clearLogMessage);
 
   const onRefreshAll = () => {
     refreshTickets();
@@ -78,6 +126,7 @@ function SettingsView() {
   };
 
   const onImportData = () => {
+    if (!window.confirm("Importing data will overwrite all local ticket data.\rAre you sure?")) return;
     var input = window.document.createElement("input") as HTMLInputElement;
     input.type = "file";
     input.id = "input";
@@ -104,19 +153,15 @@ function SettingsView() {
 
     // Check if the file is a db or a ticket list
     let db = json as TicketDb;
-    let dbVersion = db.ticketsDbVersion;
-    if (dbVersion === undefined) {
+    let newTickets = db.tickets ?? [];
+    let importedVersion = db.ticketsDbVersion;
+    if (importedVersion === undefined) {
       // Legacy import
-      dbVersion = 1;
-      const tickets = json as DraftKingsDataV1.TicketResponse[];
-      db = {
-        ticketsDbVersion: TicketDbVersion,
-        tickets: tickets.map(DraftKingsDataV1.getTicketDefinition),
-      };
+      importedVersion = "legacy";
+      const v1Response = json as DraftKingsDataV1.TicketResponse[];
+      newTickets = v1Response.map(DraftKingsDataV1.getTicketDefinition);
     }
-    localStorageSet(TICKETS_DB_KEY, JSON.stringify(db));
-    showToast(`Imported ${db.tickets.length} tickets from v${dbVersion} data. Refreshing...`);
-    setTimeout(() => window.location.reload(), 1000);
+    importTickets(newTickets, importedVersion);
   };
 
   const onExportData = () => {
@@ -125,22 +170,40 @@ function SettingsView() {
     if (ticketStorage) {
       showToast(`Exporting ${tickets.length} tickets' data`);
       setTimeout(() => {
-        var a = window.document.createElement("a");
-        a.href = window.URL.createObjectURL(new Blob([ticketStorage!], { type: "application/json" }));
-        a.download = `BetBookData-${new Date().toISOString().substring(0, 10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        downloadFile(
+          ticketStorage!,
+          "application/json",
+          `BetBookData-${new Date().toISOString().substring(0, 10)}.json`
+        );
       }, 1000);
     }
   };
 
   const onEraseData = () => {
     if (window.confirm("Are you sure you want to wipe all local data?\rTHIS CANNOT BE UNDONE")) {
+      useTicketState.getState().setTickets([]);
       localStorageRemove(TICKETS_DB_KEY);
-      showToast(`Data wiped! Reloading...`);
-      setTimeout(() => window.location.reload(), 2000);
+      showToast(`Data wiped!`);
     }
+  };
+
+  const onEraseLegacyData = () => {
+    if (window.confirm("Are you sure you want to wipe all legacy data?\rTHIS CANNOT BE UNDONE")) {
+      localStorage.removeItem(LEGACY_TICKETS_ARRAY_KEY);
+      showToast(`Data wiped!`);
+    }
+  };
+
+  const exportLogMessages = () => {
+    showToast(`Exporting ${logMessages.length} log messages`);
+    setTimeout(() => {
+      let log = logMessages
+        .map(
+          (msg) => `${msg.timestamp.toLocaleTimeString().padStart(11, "0")} ${msg.level.padStart(5)}: ${msg.message}`
+        )
+        .join("\n");
+      downloadFile(log, "text/plain", `BetBookLog-${new Date().toLocaleString()}.txt`);
+    }, 1000);
   };
 
   return (
@@ -148,11 +211,15 @@ function SettingsView() {
       <Content>
         <Group>
           Import/Export Data
-          <Warning>(Warning: Importing will overwrite existing data)</Warning>
-          <SettingButton onClick={onImportData}>Import ticket data</SettingButton>
           <SettingButton onClick={onExportData}>Export ticket data</SettingButton>
+          <SettingButton warning onClick={onImportData}>
+            Import ticket data
+          </SettingButton>
           <SettingButton danger onClick={onEraseData}>
             Erase all ticket data
+          </SettingButton>
+          <SettingButton danger onClick={onEraseLegacyData}>
+            Erase legacy ticket data
           </SettingButton>
         </Group>
         <Stat>{tickets.length} total tickets</Stat>
@@ -163,7 +230,19 @@ function SettingsView() {
           <SettingButton onClick={onRefreshOpen}>Refresh Open Tickets</SettingButton>
           <SettingButton onClick={onClearRefreshing}>Clear All Refreshing Flags</SettingButton>
           <SettingButton onClick={onRecomputeAll}>Re-compute All Tickets</SettingButton>
+          <Row>
+            <SettingButton onClick={clearLogMessage}>Clear Log</SettingButton>
+            <SettingButton onClick={exportLogMessages}>Export Log</SettingButton>
+          </Row>
         </Group>
+        <LogDiv>
+          {logMessages.map((msg, i) => (
+            <LogRow key={i}>
+              {i}
+              <LogMessage level={msg.level}>{msg.message}</LogMessage>
+            </LogRow>
+          ))}
+        </LogDiv>
       </Content>
     </SettingsViewDiv>
   );

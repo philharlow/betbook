@@ -3,6 +3,8 @@ import styled from "styled-components/macro";
 import { useUIState } from "../store/uiStore";
 import Barcode from "react-jsbarcode";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { Button } from "../styles/GlobalStyles";
+import { useTicketState } from "../store/ticketStore";
 
 const BarcodeDiv = styled.div`
   position: absolute;
@@ -44,9 +46,27 @@ const Error = styled.div`
   align-content: center;
 `;
 
+const ArchiveButton = styled(Button)`
+  background: var(--blue);
+  color: white;
+  padding: 10px 20px;
+  border: 2px solid var(--blue);
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 30px;
+`;
+
 function BarcodePopup() {
   const viewingBarcode = useUIState((state) => state.viewingBarcode);
   const setViewingBarcode = useUIState((state) => state.setViewingBarcode);
+  const archiveTicket = useTicketState((state) => state.archiveTicket);
+
+  const onArchiveTicket = () => {
+    if (viewingBarcode) {
+      console.log("Archiving ticket", viewingBarcode);
+      archiveTicket(viewingBarcode.ticketNumber);
+    }
+  };
 
   if (!viewingBarcode) return null;
   return (
@@ -56,7 +76,8 @@ function BarcodePopup() {
         <BigBarcode value={viewingBarcode.ticketNumber} options={{ format: "ean13", flat: true }} />
       </ErrorBoundary>
       <Flex />
-      <CloseMessage>Tap anywhere to close</CloseMessage>
+      <ArchiveButton onClick={onArchiveTicket}>Archive and Close</ArchiveButton>
+      <CloseMessage>Tap anywhere else to close</CloseMessage>
     </BarcodeDiv>
   );
 }

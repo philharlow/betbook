@@ -61,12 +61,8 @@ export namespace DraftKingsDataV1 {
     let searchStringSet = new Set<String>(searchStrings);
     let wager = Number(ticketResponse.ticketResult.TicketCost);
     let totalOdds = Number(ticketResponse.ticketResult.TotalOdds);
-    const getOddsAsRatio = (odds: number) => {
-      if (odds < 0) return 100 / -odds;
-      return odds / 100;
-    }
-    let toWin = Number(ticketResponse.ticketResult.ToPay) || wager * getOddsAsRatio(totalOdds);
-    let toPay = wager + toWin;
+    let toWin = Number(ticketResponse.ticketResult.ToWin);
+    let toPay = Number(ticketResponse.ticketResult.ToPay);
 
     let ticket: TicketDetails = {
       wager,

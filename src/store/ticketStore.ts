@@ -42,8 +42,9 @@ export const sanitizeStrings = (obj: any) => {
 
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === "string") {
-      obj[key] = obj[key].replace("−", "-"); // Fix "heavy" minus returned from api
-      obj[key] = obj[key].replace("$", ""); // Remove any $ signs returned from api
+      obj[key] = obj[key].replaceAll("−", "-"); // Fix "heavy" minus returned from api
+      obj[key] = obj[key].replaceAll("–", "-"); // Fix "heavy" minus returned from api
+      obj[key] = obj[key].replaceAll("$", ""); // Remove any $ signs returned from api
     }
     if (typeof value === "object") {
       sanitizeStrings(value);
@@ -140,6 +141,18 @@ export const computeTicketDetails = (ticket: TicketDefinition) => {
       ticket.createdDate = new Date(ticketData.placedDate);
     }
   }
+  // Fix fup pay outs
+  if (ticket.ticketDetails) {
+    if (!ticket.ticketDetails.toPay || isNaN(ticket.ticketDetails.toPay)) {
+
+      let totalOdds = ticket.ticketDetails.totalOdds;
+      let oddsRatio = totalOdds / 100;
+      if (totalOdds < 0) oddsRatio = 100 / -totalOdds;
+
+      ticket.ticketDetails.toWin = ticket.ticketDetails.wager * oddsRatio;
+      ticket.ticketDetails.toPay = ticket.ticketDetails.wager + ticket.ticketDetails.toWin;
+    }
+  }
 }
 
 
@@ -154,17 +167,43 @@ const sortTickets = (tickets: TicketDefinition[]) => {
   );
 };
 
+export const LEGACY_TICKETS_ARRAY_KEY = "MBTB_tickets";
+const tryLegacyImport = () => {
+  const ticketsStr = localStorage.getItem(LEGACY_TICKETS_ARRAY_KEY);
+  if (!ticketsStr) return;
+  console.log("Found legacy DB, importing tickets");
+
+  const tickets = JSON.parse(ticketsStr) as DraftKingsDataV1.TicketResponse[];
+  console.log(`Found ${tickets.length} legacy tickets`);
+  const ticketDefs = tickets.map(DraftKingsDataV1.getTicketDefinition);
+  importTickets(ticketDefs, "legacy");
+  // localStorage.removeItem(legacyLSKey);
+}
+
+export const importTickets = (tickets: TicketDefinition[], version: string) => {
+  tickets.forEach(sanitizeResponse);
+  tickets.forEach(computeTicketDetails);
+  useTicketState.getState().setTickets(tickets);
+  useToastState.getState().showToast(`Imported ${tickets.length} tickets from ${version} data`);
+}
+
 const getTicketsFromStorage = () => {
   const ticketsStr = localStorageGet(TICKETS_DB_KEY);
-  if (!ticketsStr) return [];
+  if (!ticketsStr) {
+    setTimeout(tryLegacyImport, 100); // Wait for store to init
+    return [];
+  }
 
   const ticketDb = JSON.parse(ticketsStr) as TicketDb;
   if (!ticketDb) return [];
   if (ticketDb.ticketsDbVersion !== TicketDbVersion) {
-    console.error("Ticket db version mismatch", ticketDb.ticketsDbVersion);
+    console.error("Ticket db version mismatch", ticketDb.ticketsDbVersion, TicketDbVersion);
+    // TODOv2 handle version mismatch
     return [];
   }
 
+  // TODOv2 remove?
+  // Currently fixes up dates, as they are stored as strings
   for (let ticket of ticketDb.tickets) {
     computeTicketDetails(ticket);
   }
@@ -197,7 +236,7 @@ interface TicketState {
 }
 
 export const useTicketState = create<TicketState>((set, get) => ({
-  tickets: getTicketsFromStorage(),
+  tickets: [],
   setTickets: (tickets: TicketDefinition[]) => {
     sortTickets(tickets);
     let db = { ticketsDbVersion: TicketDbVersion, tickets };
@@ -243,3 +282,8 @@ export const useTicketState = create<TicketState>((set, get) => ({
     setTickets([...tickets]);
   },
 }));
+
+// Hack to wait for the console catcher to init
+setTimeout(() => {
+  useTicketState.getState().setTickets(getTicketsFromStorage());
+}, 10);

@@ -12,6 +12,7 @@ export const useToastState = create<ToastState>((set, get) => ({
 	toast: "",
 	toastDuration: defaultDuration,
 	showToast: (toast: string, toastDuration?: number) => {
+		if (toast) console.log("showingToast", toast);
 		set({toast, toastDuration: toastDuration || defaultDuration})
 	},
 }));

@@ -104,18 +104,16 @@ const getTicketTitle = (ticket: TicketDefinition) => {
   if (!ticket.ticketDetails) return "Loading...";
   let { bets } = ticket.ticketDetails;
   let title = bets[0].betName + " - " + bets[0].eventName;
-  if (bets.length > 1) title = `Parlay (${bets.length} pick)`;
+  if (bets.length > 1) title = `${bets.length} Pick Parlay`;
   return title;
 };
 
 const getTicketSubtitle = (ticket: TicketDefinition): string => {
-  if (!ticket.ticketDetails) return "Loading...";
+  if (!ticket.ticketDetails) return "";
 
   if (ticket.ticketDetails.bets.length === 1) {
     let bet = ticket.ticketDetails.bets[0];
     return bet.betType;
-    // let teams: string[] = getTeams(bet.eventName);
-    // return Array.from(teams.values()).join(", ");
   }
   const betsByType: { [key: string]: string[] } = {};
   for (const bet of ticket.ticketDetails.bets) {
@@ -140,6 +138,7 @@ function TicketTile({ ticket, clickable }: Props) {
   let { betEventsStartDate, betEventsEndDate } = ticket.ticketDetails ?? {};
 
   const showBothDates = betEventsStartDate?.getTime() !== betEventsEndDate?.getTime();
+  let timePeriod = getTicketTimePeriod(ticket.ticketDetails);
 
   return (
     <TicketTileDiv
@@ -188,7 +187,7 @@ function TicketTile({ ticket, clickable }: Props) {
           {showBothDates && getDateDisplay(betEventsStartDate) + " - " + getDateDisplay(betEventsEndDate)}
         </TimeLabel>
         {/*TODO do this better */}
-        {getTicketTimePeriod(ticket.ticketDetails) === TimePeriod.Current && <LiveIcon />}
+        {timePeriod === TimePeriod.Current && <LiveIcon />}
       </CellContent>
     </TicketTileDiv>
   );

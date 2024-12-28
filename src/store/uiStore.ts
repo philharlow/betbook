@@ -45,6 +45,8 @@ interface UIState {
   setStartingBalance: (startingBalance: number) => void;
   userName: string;
   setUserName: (userName: string) => void;
+  timePeriodsUpdatedAt: Date;
+  setTimePeriodsUpdatedAt: (timePeriodsUpdatedAt: Date) => void;
 }
 
 export const useUIState = create<UIState>((set, get) => ({
@@ -86,5 +88,9 @@ export const useUIState = create<UIState>((set, get) => ({
   setUserName: (userName: string) => {
     set({ userName });
     localStorageSet(USER_NAME_KEY, userName);
+  },
+  timePeriodsUpdatedAt: new Date(),
+  setTimePeriodsUpdatedAt: (timePeriodsUpdatedAt: Date) => {
+    set({ timePeriodsUpdatedAt });
   },
 }));

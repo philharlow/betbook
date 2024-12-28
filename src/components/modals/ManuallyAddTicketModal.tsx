@@ -56,7 +56,7 @@ function ManuallyAddTicketModal() {
     setValue(val);
   };
 
-  const addTicket = useCallback(
+  const addDraftkingsTicket = useCallback(
     (ticketNumber: string) => {
       const asNumber = parseInt(ticketNumber);
       if (asNumber && !isNaN(asNumber)) {
@@ -81,8 +81,8 @@ function ManuallyAddTicketModal() {
     [updateTicket, tickets, showToast]
   );
 
-  const onAddTicket = () => {
-    addTicket(value);
+  const onAddDraftkingsTicket = () => {
+    addDraftkingsTicket(value);
     setModalOpen(undefined);
   };
 
@@ -94,9 +94,9 @@ function ManuallyAddTicketModal() {
         Manually Add Ticket
         <CloseButton onClick={() => setModalOpen(undefined)}>X</CloseButton>
       </TopBar>
-      Ticket Number
-      <Input value={value} placeholder="Ticket number" onChange={handleChange} type="text" />
-      <AddTicketButton onClick={() => onAddTicket()}>Add Ticket</AddTicketButton>
+      Draftkings Ticket Number
+      <Input autoFocus value={value} placeholder="Ticket number" onChange={handleChange} type="text" />
+      <AddTicketButton onClick={() => onAddDraftkingsTicket()}>Add Ticket</AddTicketButton>
       {/* <hr />
       <ManuallyAddTicketFields /> */}
     </AddTicketDiv>

@@ -1,7 +1,7 @@
-export const TicketDbVersion = 2.0;
+export const TicketDbVersion = "v2.0";
 
 export interface TicketDb {
-    ticketsDbVersion: number
+    ticketsDbVersion: string
     tickets: TicketDefinition[]
 }
 
@@ -113,9 +113,9 @@ export const getTeams = (eventName: string): string[] => {
     teams.push(...eventName.split(" vs "));
   if (eventName.indexOf(" @ ") > -1)
     teams.push(...eventName.split(" @ "));
-  return teams; //.map((team) => cleanupTeamPrefix(team));
+  return teams;
 }
-
+/*
 export const cleanupTeamPrefix = (team: string): string => {
   // TODOv2 find a better way
   if (team.indexOf(" vs ") > -1) {
@@ -133,6 +133,7 @@ export const cleanupTeamPrefix = (team: string): string => {
   }
   return team;
 };
+*/
 
 export const replaceAll = (str: string, replace: { [key: string]: string }) => {
   for (let key of Object.keys(replace)) {
