@@ -1,98 +1,22 @@
 import create from "zustand";
 import { localStorageGet, localStorageSet } from "../LocalStorageManager";
-import { fetchTicketStatus } from "../ticketApi";
-import { useUIState } from "./uiStore";
+import { fetchTicketData } from "../ticketApi";
+import {
+  BetDetails,
+  isSettled,
+  TicketDb,
+  TicketDbVersion,
+  TicketDefinition,
+  TicketDetails,
+  TICKETS_DB_KEY,
+  TicketStatus,
+  TimePeriod,
+} from "../data/ticketTypes";
+import { DraftKingsDataV1 } from "../data/DraftKingsDataV1";
+import { DraftKingsDataV2 } from "../data/DraftKingsDataV2";
+import { useToastState } from "./toastStore";
 
-export enum TicketStatus {
-  Unknown = "Updating",
-  Error = "Error",
-  Opened = "Opened",
-  Lost = "Lost",
-  Draw = "Draw",
-  Won = "Won",
-}
-export const TicketStatuses = Object.values(TicketStatus);
-
-export const TICKETS_KEY = "tickets";
-
-export enum TimePeriod {
-  Past = "Past",
-  Current = "Current",
-  Future = "Future",
-}
-
-export const isSettled = (status: TicketStatus) => {
-  return (
-    status === TicketStatus.Won ||
-    status === TicketStatus.Lost ||
-    status === TicketStatus.Draw
-  );
-};
-
-export interface TicketRecord {
-  ticketNumber: string;
-  status: TicketStatus;
-  sportsbook: string;
-  refreshing: boolean;
-  ticketResult?: DraftkingsTicketResult;
-
-  archived?: boolean;
-  manuallyCreated?: TicketResult;
-}
-
-export interface TicketResult {
-  TicketCost: number;
-  ToPay: number;
-  ToWin: number;
-  TotalOdds: number;
-  Title: string;
-  SubTitle: string;
-  EventDate: Date;
-  TimePeriod: TimePeriod;
-  CreatedDate: Date;
-  ExpireDate: Date;
-  ArchivedDate?: Date;
-  searchStrings: string[];
-}
-
-export interface DraftkingsTicketResult {
-  BetShopName: string;
-  TicketCost: string;
-  ToPay: string;
-  ToWin: string;
-  TotalOdds: string;
-  CreatedDate: string;
-  ExpireDate: string;
-  Selections: SelectionResult[];
-  Status: TicketStatus;
-
-  // Calculated
-  calculated: TicketResult;
-}
-
-export interface SelectionResult {
-  EventDate: string;
-  EventName: string;
-  EventTypeName: string;
-  LineTypeName: string;
-  LeagueName: string;
-  Odds: string;
-  MatchScore1: string;
-  MatchScore2: string;
-  IsTeamSwapEnabled: boolean;
-  YourBetPrefix: string;
-  Yourbet: string;
-  Status: TicketStatus;
-
-  // Calculated
-  calculated: {
-    Teams: string[];
-    EventDate: Date;
-    TimePeriod: TimePeriod;
-  };
-}
-
-export const getStatusColor = (status: TicketStatus) => {
+export const getStatusColor = (status?: TicketStatus) => {
   if (status === TicketStatus.Opened) return "orange";
   if (status === TicketStatus.Lost) return "red";
   if (status === TicketStatus.Won) return "green";
@@ -100,23 +24,36 @@ export const getStatusColor = (status: TicketStatus) => {
   return "white";
 };
 
+export const getTicketTimePeriod = (ticketDetails?: TicketDetails) => {
+  if (!ticketDetails) return TimePeriod.Future;
+  return getTimePeriod(ticketDetails.betEventsStartDate, ticketDetails.status);
+};
+
+export const getBetTimePeriod = (betDetails?: BetDetails) => {
+  if (!betDetails) return TimePeriod.Future;
+  return getTimePeriod(betDetails.eventDate, betDetails.status);
+};
+
 const getTimePeriod = (eventDate: Date, ticketStatus: TicketStatus) => {
+  if (isSettled(ticketStatus)) return TimePeriod.Past;
   const now = new Date();
   const timePeriod = now > eventDate ? TimePeriod.Past : TimePeriod.Future;
-  if (timePeriod === TimePeriod.Past && ticketStatus === TicketStatus.Opened)
-    return TimePeriod.Current;
+  if (timePeriod === TimePeriod.Past && ticketStatus === TicketStatus.Opened) return TimePeriod.Current;
   return timePeriod;
 };
 
-export const sanitizeTicket = (ticketResult: DraftkingsTicketResult) => {
-  sanitizeStrings(ticketResult);
+export const sanitizeResponse = (data: any) => {
+  sanitizeStrings(data);
 };
 
 export const sanitizeStrings = (obj: any) => {
   if (!obj) return;
+
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === "string") {
-      obj[key] = value.replace("−", "-"); // Fix "heavy" minus returned from api
+      obj[key] = obj[key].replaceAll("−", "-"); // Fix "heavy" minus returned from api
+      obj[key] = obj[key].replaceAll("–", "-"); // Fix "heavy" minus returned from api
+      obj[key] = obj[key].replaceAll("$", ""); // Remove any $ signs returned from api
     }
     if (typeof value === "object") {
       sanitizeStrings(value);
@@ -124,126 +61,15 @@ export const sanitizeStrings = (obj: any) => {
   }
 };
 
-const cleanupTeamPrefix = (team: string) => {
-  const split = team.split(" ");
-  const prefix = split[0];
-  if (prefix.length <= 3 && prefix === prefix.toUpperCase()) {
-    return team.substring(prefix.length + 1);
-  }
-  return team;
-};
-
-export const calculateTicketValues = (ticketResult: DraftkingsTicketResult) => {
-  const selections = ticketResult.Selections;
-  const firstSelection = selections[0];
-  const searchStrings: string[] = [];
-
-  let earliestEventDate = new Date(firstSelection.EventDate);
-  const allTeams = new Set();
-  for (const selection of selections) {
-    if (selection.IsTeamSwapEnabled) {
-      const temp = selection.MatchScore1;
-      selection.MatchScore1 = selection.MatchScore2;
-      selection.MatchScore2 = temp;
-    }
-
-    let Teams: string[] = [];
-    if (selection.EventName.indexOf(" vs ") > -1)
-      Teams.push(...selection.EventName.split(" vs "));
-    if (selection.EventName.indexOf(" @ ") > -1)
-      Teams.push(...selection.EventName.split(" @ "));
-    Teams = Teams.map((team) => cleanupTeamPrefix(team));
-
-    const remove = ["Alternate", "Spread", "Yards", "Total"];
-    const replace: any = {
-      Moneyline: "ML",
-      "Touchdown Scorer": "TD",
-    };
-    let betPrefix = selection.YourBetPrefix;
-    // TODO dont be lazy
-    Object.entries(replace).forEach(
-      ([key, str]) => (betPrefix = betPrefix.replace(key, str as string))
-    );
-    const prefixSplit = betPrefix.split(" ");
-    const yourBetPrefix = prefixSplit
-      .filter((p) => !remove.includes(p))
-      .join(" ");
-    const yourBet =
-      cleanupTeamPrefix(
-        selection.Yourbet.split(" - ")[1] ?? selection.Yourbet
-      ) +
-      " " +
-      yourBetPrefix;
-    // Teams.push(yourBet);
-    if (selections.length > 1) {
-      allTeams.add(yourBet);
-    } else {
-      Teams.forEach((team) => allTeams.add(team));
-    }
-
-    const EventDate = new Date(selection.EventDate);
-    if (EventDate < earliestEventDate) earliestEventDate = EventDate;
-    const TimePeriod = getTimePeriod(EventDate, ticketResult.Status);
-
-    selection.calculated = {
-      Teams,
-      EventDate,
-      TimePeriod,
-    };
-    searchStrings.push(selection.EventName);
-    searchStrings.push(selection.YourBetPrefix);
-    searchStrings.push(selection.Yourbet);
-    searchStrings.push(selection.LeagueName);
-    searchStrings.push(...Teams);
-  }
-  const SubTitle = Array.from(allTeams.values()).join(", ");
-  searchStrings.push(SubTitle);
-
-  const yourBet = cleanupTeamPrefix(
-    firstSelection.Yourbet.split(" - ")[1] ?? firstSelection.Yourbet
-  );
-  let Title = firstSelection.YourBetPrefix + " - " + yourBet;
-  if (selections.length > 1) Title = `Parlay (${selections.length} pick)`;
-
-  const EventDate = earliestEventDate;
-  const TimePeriod = getTimePeriod(EventDate, ticketResult.Status);
-
-  ticketResult.calculated = {
-    Title,
-    SubTitle: SubTitle === yourBet ? "" : SubTitle,
-    EventDate,
-    TimePeriod,
-    TicketCost: parseFloat(ticketResult.TicketCost),
-    ToPay: parseFloat(ticketResult.ToPay),
-    ToWin: parseFloat(ticketResult.ToWin),
-    TotalOdds: parseFloat(ticketResult.TotalOdds),
-    CreatedDate: new Date(ticketResult.CreatedDate),
-    ExpireDate: new Date(ticketResult.ExpireDate),
-    searchStrings: searchStrings.map((s) => s.toLowerCase()),
-  };
-};
-
-export const filterTicketsBySearch = (
-  ticket: TicketRecord,
-  searchValue: string
-) => {
-  if (!ticket.ticketResult) return false;
+export const filterTicketsBySearch = (ticket: TicketDefinition, searchValue: string) => {
+  if (searchValue === "") return true;
+  if (!ticket.ticketDetails) return false;
   searchValue = searchValue.toLowerCase();
-  for (const searchString of ticket.ticketResult.calculated.searchStrings) {
+  for (const searchString of ticket.ticketDetails.searchStrings) {
     if (searchString.indexOf(searchValue) > -1) return true;
   }
   return false;
 };
-
-interface TicketState {
-  tickets: TicketRecord[];
-  setTickets: (tickets: TicketRecord[]) => void;
-  updateTicket: (ticket: TicketRecord) => void;
-  removeTicket: (ticketNumber: string) => void;
-  archiveTicket: (ticketNumber: string, archived?: boolean) => void;
-  refreshTicket: (ticket: TicketRecord) => void;
-  refreshTickets: (filter?: (ticket: TicketRecord) => boolean) => void;
-}
 
 // Refresh current tickets on focusing the app
 let lastRefreshed = Date.now();
@@ -251,19 +77,17 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState !== "visible") return;
   if (Date.now() - lastRefreshed > 60 * 1000) {
     console.log("focused, refreshing");
-    lastRefreshed = Date.now();
     // TODO force tickets to update their own timeperiod, then use that to update
     updateCurrentTickets();
   } else console.log("focused too soon", Date.now() - lastRefreshed);
 });
 
+// TODOv2
 export const updateCurrentTickets = () => {
+  lastRefreshed = Date.now();
   useTicketState.getState().refreshTickets((ticket) => {
-    if (ticket.ticketResult) {
-      const newTimePeriod = getTimePeriod(
-        ticket.ticketResult.calculated.EventDate,
-        ticket.status
-      );
+    if (ticket.ticketDetails) {
+      const newTimePeriod = getTicketTimePeriod(ticket.ticketDetails);
       if (newTimePeriod === TimePeriod.Current) return true;
     }
     return false;
@@ -272,109 +96,174 @@ export const updateCurrentTickets = () => {
 
 export const fetchUpdatedTicket = async (ticketNumber: string) => {
   const ticketState = useTicketState.getState();
-  const uiState = useUIState.getState();
-  const ticket = ticketState.tickets.find(
-    (t) => t.ticketNumber === ticketNumber
-  );
-  if (!ticket)
-    return console.warn(
-      "fetchUpdatedTicket() Could not find ticket",
-      ticketNumber
-    );
+  const useToast = useToastState.getState();
+  const existingTicket = ticketState.tickets.find((t) => t.ticketNumber === ticketNumber);
+  if (!existingTicket) return console.warn("fetchUpdatedTicket() Could not find ticket", ticketNumber);
 
-  ticket.refreshing = true;
-  uiState.setViewingTicket(ticket);
+  existingTicket.refreshing = true;
+  ticketState.updateTicket(existingTicket);
+  // uiState.setViewingTicket(existingTicket);
 
-  console.log("fetching ticket", ticket.ticketNumber);
-  const newTicket = await fetchTicketStatus(ticket.ticketNumber);
+  console.log("fetching ticket", existingTicket.ticketNumber);
+  const newTicketData = await fetchTicketData(existingTicket.ticketNumber);
+  console.log("newTicketData", newTicketData);
 
-  console.log("ticket response", newTicket?.ticketResult);
-  if (newTicket) {
-    useTicketState.getState().updateTicket(newTicket);
+  existingTicket.refreshing = false;
+  ticketState.updateTicket(existingTicket);
+
+  if (newTicketData) {
+    let newTicket = { ...existingTicket };
+    newTicket.rawData = newTicketData;
+    newTicket.refreshing = false;
+    computeTicketDetails(newTicket);
+    ticketState.updateTicket(newTicket);
+  } else {
+    useToast.showToast("Failed to get ticket data");
   }
 };
-const sortTickets = (tickets: TicketRecord[]) => {
-  tickets.sort((a, b) =>
-    a.ticketResult && b.ticketResult
-      ? b.ticketResult.calculated.EventDate.getTime() -
-        a.ticketResult.calculated.EventDate.getTime()
-      : 0
-  );
+
+export const computeTicketDetails = (ticket: TicketDefinition) => {
+  if (!ticket.rawData) return;
+
+  if (DraftKingsDataV1.isValidTicket(ticket)) {
+    let ticketData = ticket.rawData as DraftKingsDataV1.TicketResponse;
+    let ticketDetails = DraftKingsDataV1.getTicketDetails(ticketData);
+    if (ticketDetails) {
+      ticket.ticketDetails = ticketDetails;
+      ticket.createdDate = new Date(ticketData.ticketResult.CreatedDate);
+      ticket.archivedDate = ticketData.archived ? new Date() : undefined;
+    }
+  } else if (DraftKingsDataV2.isValidTicket(ticket)) {
+    let ticketData = ticket.rawData as DraftKingsDataV2.TicketResponse;
+    let ticketDetails = DraftKingsDataV2.getTicketDetails(ticketData);
+    if (ticketDetails) {
+      ticket.ticketDetails = ticketDetails;
+      ticket.createdDate = new Date(ticketData.placedDate);
+    }
+  }
+  // Fix fup pay outs
+  if (ticket.ticketDetails) {
+    if (!ticket.ticketDetails.toPay || isNaN(ticket.ticketDetails.toPay)) {
+      let totalOdds = ticket.ticketDetails.totalOdds;
+      let oddsRatio = totalOdds / 100;
+      if (totalOdds < 0) oddsRatio = 100 / -totalOdds;
+
+      ticket.ticketDetails.toWin = ticket.ticketDetails.wager * oddsRatio;
+      ticket.ticketDetails.toPay = ticket.ticketDetails.wager + ticket.ticketDetails.toWin;
+    }
+  }
+};
+
+// Sort tickets so that the most recent are at the top
+const sortTickets = (tickets: TicketDefinition[]) => {
+  tickets.sort((a, b) => {
+    return a.ticketDetails && b.ticketDetails
+      ? b.ticketDetails.betEventsStartDate.getTime() - a.ticketDetails.betEventsStartDate.getTime()
+      : 0;
+  });
+};
+
+export const LEGACY_TICKETS_ARRAY_KEY = "MBTB_tickets";
+const tryLegacyImport = () => {
+  const ticketsStr = localStorage.getItem(LEGACY_TICKETS_ARRAY_KEY);
+  if (!ticketsStr) return;
+  console.log("Found legacy DB, importing tickets");
+
+  const tickets = JSON.parse(ticketsStr) as DraftKingsDataV1.TicketResponse[];
+  console.log(`Found ${tickets.length} legacy tickets`);
+  const ticketDefs = tickets.map(DraftKingsDataV1.getTicketDefinition);
+  importTickets(ticketDefs, "legacy");
+  // localStorage.removeItem(legacyLSKey);
+};
+
+export const importTickets = (tickets: TicketDefinition[], version: string) => {
+  tickets.forEach(sanitizeResponse);
+  tickets.forEach(computeTicketDetails);
+  useTicketState.getState().setTickets(tickets);
+  useToastState.getState().showToast(`Imported ${tickets.length} tickets from ${version} data`);
 };
 
 const getTicketsFromStorage = () => {
-  const ticketsStr = localStorageGet(TICKETS_KEY);
-  if (!ticketsStr) return [];
-  const tickets = JSON.parse(ticketsStr) as TicketRecord[];
-  for (const ticket of tickets) {
-    if (typeof ticket.ticketNumber === "number")
-      ticket.ticketNumber = `${ticket.ticketNumber}`;
-    if (ticket.ticketResult) calculateTicketValues(ticket.ticketResult);
+  const ticketsStr = localStorageGet(TICKETS_DB_KEY);
+  if (!ticketsStr) {
+    setTimeout(tryLegacyImport, 100); // Wait for store to init
+    return [];
   }
-  sortTickets(tickets);
+
+  const ticketDb = JSON.parse(ticketsStr) as TicketDb;
+  if (!ticketDb) return [];
+  if (ticketDb.ticketsDbVersion !== TicketDbVersion) {
+    setTimeout(() => {
+      console.error("Ticket db version mismatch", ticketDb.ticketsDbVersion, TicketDbVersion);
+    }, 100); // Hack for the console store to init, yuck
+    // TODOv2 handle version mismatch
+    return [];
+  }
+
+  // TODOv2 remove?
+  // Currently fixes up dates, as they are stored as strings
+  for (let ticket of ticketDb.tickets) {
+    computeTicketDetails(ticket);
+  }
+
+  sortTickets(ticketDb.tickets);
 
   // Fetch updates
-  setTimeout(
-    () =>
-      tickets.forEach((ticket) => {
-        // Only update current bets
-        if (ticket.ticketResult?.calculated.TimePeriod === TimePeriod.Current)
-          fetchUpdatedTicket(ticket.ticketNumber);
-      }),
-    1
-  );
+  setTimeout(() => {
+    useTicketState
+      .getState()
+      .refreshTickets((ticket) => getTicketTimePeriod(ticket.ticketDetails) === TimePeriod.Current);
+  }, 100);
 
-  return tickets;
+  return ticketDb.tickets;
 };
+
+interface TicketState {
+  tickets: TicketDefinition[];
+  setTickets: (tickets: TicketDefinition[]) => void;
+  updateTicket: (ticket: TicketDefinition) => void;
+  removeTicket: (ticketNumber: string) => void;
+  archiveTicket: (ticketNumber: string, archived?: boolean) => void;
+  refreshTicket: (ticket: TicketDefinition) => void;
+  refreshTickets: (filter?: (ticket: TicketDefinition) => boolean) => void;
+}
 
 export const useTicketState = create<TicketState>((set, get) => ({
   tickets: getTicketsFromStorage(),
-  setTickets: (tickets: TicketRecord[]) => {
+  setTickets: (tickets: TicketDefinition[]) => {
     sortTickets(tickets);
-    localStorageSet(TICKETS_KEY, JSON.stringify(tickets));
+    let db = { ticketsDbVersion: TicketDbVersion, tickets };
+    localStorageSet(TICKETS_DB_KEY, JSON.stringify(db));
     set({ tickets });
   },
-  updateTicket: (ticket: TicketRecord) => {
+  updateTicket: (ticket: TicketDefinition) => {
     const tickets = [...get().tickets];
-    const existingTicketIndex = tickets.findIndex(
-      (t) => t.ticketNumber === ticket.ticketNumber
-    );
+    const existingTicketIndex = tickets.findIndex((t) => t.ticketNumber === ticket.ticketNumber);
     if (existingTicketIndex > -1) {
       ticket = { ...tickets[existingTicketIndex], ...ticket };
       tickets[existingTicketIndex] = ticket;
     } else tickets.push(ticket);
 
     get().setTickets(tickets);
-
-    // TODO fix this, this is bad
-    const uiState = useUIState.getState();
-    if (uiState.viewingTicket?.ticketNumber === ticket.ticketNumber)
-      uiState.setViewingTicket(ticket);
   },
   removeTicket: (ticketNumber: string) => {
-    const tickets = [...get().tickets].filter(
-      (t) => t.ticketNumber !== ticketNumber
-    );
+    const tickets = [...get().tickets].filter((t) => t.ticketNumber !== ticketNumber);
 
     get().setTickets(tickets);
   },
   archiveTicket: (ticketNumber: string, archived = true) => {
-    const existingTicket = get().tickets.find(
-      (t) => t.ticketNumber === ticketNumber
-    );
+    const existingTicket = get().tickets.find((t) => t.ticketNumber === ticketNumber);
     if (existingTicket) {
-      existingTicket.archived = archived;
+      existingTicket.archivedDate = archived ? new Date() : undefined;
       get().updateTicket(existingTicket);
     }
   },
-  refreshTicket: (ticket: TicketRecord) => {
+  refreshTicket: (ticket: TicketDefinition) => {
     fetchUpdatedTicket(ticket.ticketNumber);
   },
-  refreshTickets: (filter?: (ticket: TicketRecord) => boolean) => {
+  refreshTickets: (filter?: (ticket: TicketDefinition) => boolean) => {
     const { tickets, setTickets } = get();
-    tickets.forEach(
-      (t) => (!filter || filter(t)) && fetchUpdatedTicket(t.ticketNumber)
-    );
+    tickets.forEach((t) => (!filter || filter(t)) && fetchUpdatedTicket(t.ticketNumber));
     setTickets([...tickets]);
   },
 }));

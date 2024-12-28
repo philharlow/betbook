@@ -1,19 +1,21 @@
-import React from 'react';
-import styled from 'styled-components/macro';
-import AddTicketModal from './components/AddTicketModal';
-import StatsModal from './components/StatsModal';
-import MainTicketTable from './components/MainTicketTable';
-import Toast from './components/Toast';
-import VersionDisplay from './components/VersionDisplay';
-import ViewTicketModal from './components/ViewTicketModal';
-import { GlobalStyles } from './styles/GlobalStyles';
-import { HashRouter } from 'react-router-dom';
-import BarcodePopup from './components/BarcodePopup';
-import MenuPopup from './components/MenuPopup';
-import SettingsModal from './components/SettingsModal';
-import ManuallyAddTicketModal from './components/ManuallyAddTicketModal';
-import SearchTicketModal from './components/SearchTicketModal';
-import Router from './Router';
+import React from "react";
+import { bindConsole } from "./store/consoleLogStore";
+import styled from "styled-components/macro";
+import ScanTicketModal from "./components/modals/ScanTicketModal";
+import StatsView from "./components/views/StatsView";
+import MainTicketsView from "./components/views/MainTicketsView";
+import Toast from "./components/Toast";
+import TicketDetailsView from "./components/views/TicketDetailsView";
+import { GlobalStyles } from "./styles/GlobalStyles";
+import { HashRouter, Route, Routes } from "react-router-dom";
+import BarcodePopup from "./components/BarcodePopup";
+import SettingsView from "./components/views/SettingsView";
+import ManuallyAddTicketModal from "./components/modals/ManuallyAddTicketModal";
+import MenuBar from "./components/MenuBar";
+import TopBar from "./components/TopBar";
+import UserView from "./components/views/UserView";
+
+bindConsole();
 
 const AppDiv = styled.div`
   position: absolute;
@@ -26,26 +28,39 @@ const AppDiv = styled.div`
   overflow: hidden;
 `;
 
+const ScrollPane = styled.div`
+  flex: 1;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+`;
+
 const App = () => {
   return (
     <AppDiv>
+      <GlobalStyles />
+
       <HashRouter>
-        <Router />
-        <ViewTicketModal />
-        <GlobalStyles />
-        <SettingsModal />
-        <StatsModal />
-        <SearchTicketModal />
-        <MainTicketTable />
-        <AddTicketModal />
+        <TopBar />
+        <ScrollPane>
+          <Routes>
+            <Route index element={<MainTicketsView />} />
+            <Route path="/:ticketNumber" element={<TicketDetailsView />} />
+            <Route path="/stats" element={<StatsView />} />
+            <Route path="/settings" element={<SettingsView />} />
+            <Route path="/user" element={<UserView />} />
+          </Routes>
+        </ScrollPane>
+
+        <ScanTicketModal />
         <ManuallyAddTicketModal />
-        <MenuPopup />
         <BarcodePopup />
         <Toast />
-        <VersionDisplay />
+        <MenuBar />
       </HashRouter>
     </AppDiv>
   );
-}
+};
 
 export default App;

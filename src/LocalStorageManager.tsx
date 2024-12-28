@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const PREFIX = "MBTB_";
+const PREFIX = "BetBook_";
 
 export const localStorageGet = (key: string) => {
 	if (!key) return;

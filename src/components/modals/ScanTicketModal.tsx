@@ -1,15 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import styled from 'styled-components/macro';
-import {
-  fetchUpdatedTicket,
-  TicketRecord,
-  TicketStatus,
-  useTicketState,
-} from '../store/ticketStore';
-import QrScanner from 'qr-scanner';
-import { Modal, useUIState } from '../store/uiStore';
-import { Button } from '../styles/GlobalStyles';
-import { useToastState } from '../store/toastStore';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import styled from "styled-components/macro";
+import { fetchUpdatedTicket, useTicketState } from "../../store/ticketStore";
+import QrScanner from "qr-scanner";
+import { Modal, useUIState } from "../../store/uiStore";
+import { Button } from "../../styles/GlobalStyles";
+import { useToastState } from "../../store/toastStore";
+import { TicketDefinition, TicketSource } from "../../data/ticketTypes";
+import { useNavigate } from "react-router-dom";
 
 const AddTicketDiv = styled.div`
   position: absolute;
@@ -43,11 +40,10 @@ const VideoContainer = styled.div`
 
 const NotSecureWarning = styled.div`
   position: absolute;
-  top: 70%;
+  top: 50%;
   width: 100%;
   transform: translateY(-50%);
-  background: #dcdc5777;
-  color: #000;
+  color: #ffff00;
 `;
 
 const CameraLoading = styled.div`
@@ -77,44 +73,48 @@ const AddTicketButton = styled(Button)`
   font-size: 20px;
 `;
 
-
 let listening = false;
 let found: string[] = [];
 let qrScanner: QrScanner | undefined;
 
-function AddTicketModal() {
-  const modalOpen = useUIState(state => state.modalOpen);
-  const setModalOpen = useUIState(state => state.setModalOpen);
-  const tickets = useTicketState(state => state.tickets);
+function ScanTicketModal() {
+  const navigate = useNavigate();
+  const modalOpen = useUIState((state) => state.modalOpen);
+  const setModalOpen = useUIState((state) => state.setModalOpen);
+  const tickets = useTicketState((state) => state.tickets);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const updateTicket = useTicketState(state => state.updateTicket);
-  const showToast = useToastState(state => state.showToast);
+  const updateTicket = useTicketState((state) => state.updateTicket);
+  const showToast = useToastState((state) => state.showToast);
   const [isSecure, setIsSecure] = useState(false);
 
   const closeModal = () => {
     setModalOpen(undefined);
   };
 
-  const addTicket = useCallback((ticketNumber: string) => {
-    const asNumber = parseInt(ticketNumber);
-    if (asNumber && !isNaN(asNumber)) {
-      if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
-        showToast("Ticket already added");
+  const addTicket = useCallback(
+    (ticketNumber: string) => {
+      const asNumber = parseInt(ticketNumber);
+      if (asNumber && !isNaN(asNumber)) {
+        if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
+          showToast("Ticket already added");
+        } else {
+          const ticket: TicketDefinition = {
+            ticketNumber,
+            createdDate: new Date(),
+            dataSource: TicketSource.DraftKings,
+            refreshing: true,
+          };
+          updateTicket(ticket);
+          fetchUpdatedTicket(ticket.ticketNumber);
+          showToast("Ticket added!");
+          navigate("/");
+        }
       } else {
-        const ticket: TicketRecord = {
-          ticketNumber,
-          sportsbook: "DraftKings",
-          status: TicketStatus.Unknown,
-          refreshing: true,
-        };
-        updateTicket(ticket);
-        fetchUpdatedTicket(ticket.ticketNumber)
-        showToast("Ticket added!");
+        showToast("Ticket number invalid");
       }
-    } else {
-      showToast("Ticket number invalid");
-    }
-  }, [updateTicket, tickets, showToast]);
+    },
+    [updateTicket, tickets, showToast, navigate]
+  );
 
   const onManuallyAddTicket = () => {
     setModalOpen(Modal.ManuallyAddTicket);
@@ -133,18 +133,14 @@ function AddTicketModal() {
             // Show the qr code outline for a smidge
             setTimeout(() => addTicket(ticketNumber), 100);
           }
-        }
+        };
 
-        const scanner = new QrScanner(
-          videoRef.current,
-          result => handleResult(result.data),
-          {
-            highlightScanRegion: true,
-            highlightCodeOutline: true,
-          },
-        );
+        const scanner = new QrScanner(videoRef.current, (result) => handleResult(result.data), {
+          highlightScanRegion: true,
+          highlightCodeOutline: true,
+        });
         qrScanner = scanner;
-        console.log('created scanner', scanner);
+        console.log("created scanner", scanner);
         scanner.start();
         listening = true;
       }
@@ -161,7 +157,7 @@ function AddTicketModal() {
       qrScanner = undefined;
     }
   }, [modalOpen]);
-  // HACK to include addTicketModalOpen and settimeout. videoRef should be sufficient
+  // HACK to include ScanTicketModalOpen and settimeout. videoRef should be sufficient
 
   useEffect(() => {
     const secure = window.location.protocol === "https:";
@@ -173,20 +169,19 @@ function AddTicketModal() {
   return (
     <AddTicketDiv>
       <TopBar>
-        Add Ticket
+        Scan Ticket
         <CloseButton onClick={closeModal}>X</CloseButton>
       </TopBar>
-      <TicketEntry>
-        <AddTicketButton onClick={() => onManuallyAddTicket()}>Manually Add Ticket</AddTicketButton>
-      </TicketEntry>
-      or scan QR code
       <VideoContainer>
-        <CameraLoading>Camera loading...</CameraLoading>
+        {isSecure && <CameraLoading>Camera loading...</CameraLoading>}
         <VideoView ref={videoRef} disablePictureInPicture playsInline />
         {!isSecure && <NotSecureWarning>QR code reading disabled on http!</NotSecureWarning>}
       </VideoContainer>
+      <TicketEntry>
+        <AddTicketButton onClick={() => onManuallyAddTicket()}>Manually Add Ticket</AddTicketButton>
+      </TicketEntry>
     </AddTicketDiv>
   );
 }
 
-export default AddTicketModal;
+export default ScanTicketModal;

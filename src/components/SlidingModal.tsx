@@ -50,7 +50,7 @@ interface Props {
   children: JSX.Element | JSX.Element[];
 }
 
-function ViewTicketModal({ title, children } : Props) {
+function TicketDetailsView({ title, children } : Props) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   
@@ -74,4 +74,4 @@ function ViewTicketModal({ title, children } : Props) {
   );
 }
 
-export default ViewTicketModal;
+export default TicketDetailsView;

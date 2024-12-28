@@ -1,7 +1,7 @@
 # BetBook
 
 Single page webapp to collect bet tickets and keep them in one place for easy viewing.
-Uses localstorage to keep the ticket numbers, and a qrcode sanner to allow for easy addition of new tickets.
+Uses localstorage to keep the ticket numbers, and a qrcode scanner to allow for easy addition of new tickets.
 
 ## Available Scripts
 

@@ -34,3 +34,35 @@ export const getDateDisplay = (date?: Date) => {
   if (!date) return "";
   return `${getDateStr(date)} @ ${getTimeStr(date)}`;
 };
+
+// ie returns '12 days ago' or 'in 12 days'
+export const getRelativeDateDisplay = (date?: Date, includeDate = true) => {
+  if (!date || !date.getTime) return undefined;
+  const now = new Date();
+  try {
+    const msTilExpiration = date.getTime() - now.getTime();
+    const daysTilExpiration = Math.floor(Math.abs(msTilExpiration) / 1000 / 60 / 60 / 24);
+    const expiresInDaysStr = `${daysTilExpiration} day${daysTilExpiration === 1 ? "" : "s"}`;
+    const expiresInDays = msTilExpiration < 0 ? `${expiresInDaysStr} ago` : `in ${expiresInDaysStr}`;
+    if (!includeDate) return expiresInDays;
+    return `${getDateDisplay(date)} (${expiresInDays})`;
+  } catch(e) {
+    alert("hi" + e)
+  }
+};
+
+export const getCurrencyDisplay = (amount?: number) => {
+  if (!amount) return "--";
+  return `$${parseFloat(amount.toFixed(2))}`;
+};
+
+// Print takes in any number of arguments and prints them to the console
+export const print = (...args: any[]) => {
+  console.log(...args);
+};
+
+export const getOddsDisplay = (odds?: number) => {
+  if (!odds) return "--";
+  if (odds > 0) return "+" + odds;
+  return odds;
+};
