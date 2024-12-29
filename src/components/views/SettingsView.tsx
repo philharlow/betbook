@@ -247,7 +247,7 @@ function SettingsView() {
         <LogDiv>
           {logMessages.map((msg, i) => (
             <LogRow key={i}>
-              {i}
+              {i + 1}
               <LogMessage level={msg.level}>{msg.message}</LogMessage>
             </LogRow>
           ))}
