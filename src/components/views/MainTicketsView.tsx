@@ -117,10 +117,10 @@ function MainTicketsView() {
 
   const ticketsToShow = showArchivedTickets ? searchResults : unarchived;
 
-  const pendingTickets = ticketsToShow.filter((ticket) => ticket.ticketDetails === undefined);
+  const pendingTickets = ticketsToShow.filter((ticket) => !ticket.ticketDetails);
 
   const ticketsByTimePeriod = ticketsToShow.reduce((acc, ticket) => {
-    if (ticket.rawData === undefined) return acc;
+    if (ticket.ticketDetails === undefined) return acc; // Skip tickets without details
     const timePeriod = getTicketTimePeriod(ticket.ticketDetails);
     acc[timePeriod] = acc[timePeriod] ?? [];
     acc[timePeriod]!.push(ticket);

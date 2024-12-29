@@ -32,10 +32,12 @@ const tryJsonStringify = (obj: any) => {
 export const useConsoleLogState = create<ConsoleLogState>((set, get) => ({
   logMessages: [],
   addLogMessage: (message: any, level: LogLevel) => {
-    let messageString = message;
+    let messageString;
     if (Array.isArray(message)) {
       let msgArr = message.map(tryJsonStringify);
       messageString = msgArr.join(" ");
+    } else {
+      messageString = tryJsonStringify(message);
     }
     let newLog = {
       message: messageString,
@@ -71,25 +73,30 @@ export const bindConsole = () => {
 
   console.log = function (...args: any) {
     originalLog.apply(console, args);
+    // console.log("Console log", args);
     useConsoleLogState.getState().addLogMessage(args, LogLevel.Log);
   };
 
   console.warn = function (...args: any) {
     originalWarn.apply(console, args);
+    // console.log("Console warn", args);
     useConsoleLogState.getState().addLogMessage(args, LogLevel.Warn);
   };
 
   console.error = function (...args: any) {
     originalError.apply(console, args);
+    // console.log("Console error", args);
     useConsoleLogState.getState().addLogMessage(args, LogLevel.Error);
   };
 
   window.onerror = function (message, source, lineno, colno, error) {
+    // console.log("Window error", message, source, lineno, colno, error);
     useConsoleLogState.getState().addLogMessage(message, LogLevel.Error);
   };
 
   window.addEventListener("unhandledrejection", function (event) {
-    useConsoleLogState.getState().addLogMessage(event.reason, LogLevel.Error);
+    // console.log("Unhandled rejection", event.reason.message, typeof event.reason.stack);
+    useConsoleLogState.getState().addLogMessage([event.reason.message, event.reason.stack], LogLevel.Error);
   });
 
   console.log("BetBook starting up", "v" + pjson.version);

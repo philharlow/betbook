@@ -181,17 +181,20 @@ export const importTickets = (tickets: TicketDefinition[], version: string) => {
   tickets.forEach(computeTicketDetails);
   useTicketState.getState().setTickets(tickets);
   useToastState.getState().showToast(`Imported ${tickets.length} tickets from ${version} data`);
+
+  // Fetch any updates
+  setTimeout(() => {
+    useTicketState.getState().refreshTickets((ticket) => !ticket.rawData || !ticket.ticketDetails);
+  }, 100);
 };
 
 const getTicketsFromStorage = () => {
-  const ticketsStr = localStorageGet(TICKETS_DB_KEY);
-  if (!ticketsStr) {
+  const ticketsStr = localStorageGet(TICKETS_DB_KEY) ?? "null";
+  const ticketDb = JSON.parse(ticketsStr) as TicketDb;
+  if (!ticketDb || (ticketDb.tickets?.length ?? 0) === 0) {
     setTimeout(tryLegacyImport, 100); // Wait for store to init
     return [];
   }
-
-  const ticketDb = JSON.parse(ticketsStr) as TicketDb;
-  if (!ticketDb) return [];
   if (ticketDb.ticketsDbVersion !== TicketDbVersion) {
     setTimeout(() => {
       console.error("Ticket db version mismatch", ticketDb.ticketsDbVersion, TicketDbVersion);
