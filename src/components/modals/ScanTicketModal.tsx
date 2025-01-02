@@ -63,6 +63,8 @@ const TicketEntry = styled.div`
   display: flex;
   flex-direction: row;
   gap: 10px;
+  position: absolute;
+  bottom: 20px;
 `;
 
 const CloseButton = styled(Button)`
