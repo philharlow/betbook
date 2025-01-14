@@ -26,23 +26,33 @@ const Content = styled.div`
   flex-direction: column;
   width: 100%;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   padding: 0px 15px;
   padding-bottom: 50px;
   overflow-y: auto;
 `;
 
+const ButtonRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-around;
+  gap: 10px;
+  align-items: center;
+`;
+
 let outlineThickness = 2;
 const IconButton = styled(Button)`
-  padding: 10px 20px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   flex: 1;
   box-sizing: border-box;
-  height: 100%;
+  height: 70px;
   justify-content: center;
-  gap: 10px;
+  gap: 5px;
+  font-size: 10px;
 
   background: transparent;
   border: ${outlineThickness}px solid transparent;
@@ -79,15 +89,6 @@ const RefreshButton = styled(IconButton)`
   border-color: var(--green);
 `;
 
-const ButtonRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  justify-content: space-around;
-  gap: 15px;
-  align-items: center;
-`;
-
 const NotesField = styled.textarea`
   height: auto;
   font-size: 14px;
@@ -116,7 +117,6 @@ const DetailsDiv = styled.div`
 const Debug = styled.div`
   opacity: 0.5;
   font-size: 12px;
-  margin-top: 20px;
 `;
 
 const Title = styled.div`
@@ -209,6 +209,26 @@ function TicketDetailsView() {
           <Top id="top" />
           <Title>{ticket.ticketDetails?.betshopName}</Title>
           <TicketTile ticket={ticket} />
+
+          <ButtonRow>
+            <RemoveButton onClick={deleteTicket}>
+              <TbTrash />
+              Delete Ticket
+            </RemoveButton>
+            <RefreshButton onClick={handleRefresh}>
+              <TbRefresh />
+              Refresh Ticket
+            </RefreshButton>
+            <ArchiveButton onClick={onArchiveTicket} className={ticket.archivedDate ? "archived" : ""}>
+              <TbArchive />
+              {ticket.archivedDate ? "Unarchive" : "Archive"}
+            </ArchiveButton>
+            <BarcodeButton onClick={showBarcode}>
+              <TbBarcode />
+              View Barcode
+            </BarcodeButton>
+          </ButtonRow>
+
           {getBetsAccordion(TimePeriod.Past)}
           {getBetsAccordion(TimePeriod.Current)}
           {getBetsAccordion(TimePeriod.Future)}
@@ -218,30 +238,10 @@ function TicketDetailsView() {
             Expires: {getRelativeDateDisplay(ticket.ticketDetails?.expiresDate)}
             <br />
             Archived: {getRelativeDateDisplay(ticket.archivedDate) ?? "No"}
-            <br />
             <NotesField placeholder="Notes" value={notes} rows={3} onChange={(e) => setNotes(e.target.value)}>
               {notes}
             </NotesField>
-            <ButtonRow>
-              <RemoveButton onClick={deleteTicket}>
-                <TbTrash />
-                Delete Ticket
-              </RemoveButton>
-              <RefreshButton onClick={handleRefresh}>
-                <TbRefresh />
-                Refresh Ticket
-              </RefreshButton>
-              <ArchiveButton onClick={onArchiveTicket} className={ticket.archivedDate ? "archived" : ""}>
-                <TbArchive />
-                {ticket.archivedDate ? "Unarchive" : "Archive"}
-              </ArchiveButton>
-              <BarcodeButton onClick={showBarcode}>
-                <TbBarcode />
-                View Barcode
-              </BarcodeButton>
-            </ButtonRow>
             <Debug>
-              <br />
               Ticket # {ticket.ticketNumber}
               <br />
               <Button onClick={() => console.log(ticket)}>Trace ticket data</Button>

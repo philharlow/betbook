@@ -44,10 +44,21 @@ const InputRow = styled.div`
   font-size: 12px;
 `;
 
+const BalanceInput = styled.div`
+  font-size: 20px;
+`;
+
 const SettingButton = styled(Button)<{ danger?: boolean }>`
   padding: 10px 20px;
-  align-self: center;
+  align-self: end;
   color: ${(props) => (props.danger ? "red" : "unset")};
+`;
+
+const Input = styled.input`
+  font-size: 20px;
+  border-radius: 10px;
+  padding: 5px;
+  width: 150px;
 `;
 
 function UserView() {
@@ -73,7 +84,7 @@ function UserView() {
         <Group>
           User Name
           <InputRow>
-            <input type="text" value={userNameInput} onChange={(e) => setUserNameInput(e.target.value)} />
+            <Input type="text" value={userNameInput} onChange={(e) => setUserNameInput(e.target.value)} />
             <SettingButton onClick={saveUserName}>Save</SettingButton>
           </InputRow>
         </Group>
@@ -90,14 +101,14 @@ function UserView() {
           <InputRow>
             <div>
               Starting Balance
-              <div>
+              <BalanceInput>
                 $
-                <input
+                <Input
                   type="number"
                   value={startingBalanceInput}
                   onChange={(e) => setStartingBalanceInput(e.target.value)}
                 />
-              </div>
+              </BalanceInput>
             </div>
             <SettingButton onClick={saveStartingBalance}>Save</SettingButton>
           </InputRow>

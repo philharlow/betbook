@@ -31,11 +31,6 @@ const SportsBook = styled.div`
   color: #333;
 `;
 
-const CloseMessage = styled.div`
-  color: #333;
-  padding-bottom: 10px;
-`;
-
 const Flex = styled.div`
   flex: 1;
 `;
@@ -68,16 +63,20 @@ function BarcodePopup() {
     }
   };
 
+  const close = () => {
+    setViewingBarcode(undefined);
+  };
+
   if (!viewingBarcode) return null;
   return (
-    <BarcodeDiv onClick={() => setViewingBarcode(undefined)}>
+    <BarcodeDiv onClick={close}>
       <SportsBook>{viewingBarcode.ticketDetails?.betshopName}</SportsBook>
       <ErrorBoundary errorDisplay={<Error>Barcode error</Error>}>
         <BigBarcode value={viewingBarcode.ticketNumber} options={{ format: "ean13", flat: true }} />
       </ErrorBoundary>
       <Flex />
-      <ArchiveButton onClick={onArchiveTicket}>Archive and Close</ArchiveButton>
-      <CloseMessage>Tap anywhere else to close</CloseMessage>
+      {viewingBarcode.archivedDate && <ArchiveButton onClick={close}>Tap anywhere to close</ArchiveButton>}
+      {!viewingBarcode.archivedDate && <ArchiveButton onClick={onArchiveTicket}>Archive and Close</ArchiveButton>}
     </BarcodeDiv>
   );
 }

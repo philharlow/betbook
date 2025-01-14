@@ -1,8 +1,9 @@
 import React from "react";
 import styled from "styled-components/macro";
-import { getStatusColor } from "../store/ticketStore";
+import { getBetTimePeriod, getStatusColor } from "../store/ticketStore";
 import { getOddsDisplay, getRelativeDateDisplay } from "../utils";
-import { BetDetails, sanitizeString } from "../data/ticketTypes";
+import { BetDetails, sanitizeString, TimePeriod } from "../data/ticketTypes";
+import LiveIcon from "./LiveIcon";
 
 const BetTileDiv = styled.div`
   width: 100%;
@@ -67,6 +68,10 @@ const ContentRow = styled.div`
 const TimeLabel = styled.div`
   color: #ccc;
   font-size: 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
 `;
 
 const Odds = styled.div`
@@ -91,6 +96,7 @@ function BetTile({ bet, className }: Props) {
   const hasScore = bet.scores !== undefined;
   const score1 = `${bet.scores?.teamA} : ${bet.scores?.scoreA}`;
   const score2 = `${bet.scores?.teamB} : ${bet.scores?.scoreB}`;
+  const timePeriod = getBetTimePeriod(bet);
 
   return (
     <BetTileDiv>
@@ -120,7 +126,12 @@ function BetTile({ bet, className }: Props) {
             )}
           </RightColumn>
         </ContentRow>
-        <TimeLabel>{getRelativeDateDisplay(bet.eventDate)}</TimeLabel>
+        <TimeLabel>
+          {getRelativeDateDisplay(bet.eventDate)}
+
+          {/*TODO do this better */}
+          {timePeriod === TimePeriod.Current && <LiveIcon />}
+        </TimeLabel>
       </Content>
     </BetTileDiv>
   );

@@ -30,17 +30,25 @@ const TopBar = styled.div`
   align-items: center;
 `;
 
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`;
+
 const CloseButton = styled(Button)`
   padding: 10px 14px;
 `;
 
 const AddTicketButton = styled(Button)`
   font-size: 20px;
+  padding: 10px 20px;
 `;
 
 const Input = styled.input`
-  font-size: 20px;
+  font-size: 26px;
   border-radius: 10px;
+  padding: 5px;
 `;
 
 function ManuallyAddTicketModal() {
@@ -94,9 +102,11 @@ function ManuallyAddTicketModal() {
         Manually Add Ticket
         <CloseButton onClick={() => setModalOpen(undefined)}>X</CloseButton>
       </TopBar>
-      Draftkings Ticket Number
-      <Input autoFocus value={value} placeholder="Ticket number" onChange={handleChange} type="text" />
-      <AddTicketButton onClick={() => onAddDraftkingsTicket()}>Add Ticket</AddTicketButton>
+      <Content>
+        Draftkings Ticket Number
+        <Input autoFocus value={value} placeholder="Ticket number" onChange={handleChange} type="text" />
+        <AddTicketButton onClick={() => onAddDraftkingsTicket()}>Add Ticket</AddTicketButton>
+      </Content>
       {/* <hr />
       <ManuallyAddTicketFields /> */}
     </AddTicketDiv>

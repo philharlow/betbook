@@ -73,10 +73,40 @@ const SearchQueryBar = styled.div`
   text-align: center;
 `;
 
+const ChartContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
 const ChartDiv = styled.div`
   width: 100%;
   height: 300px;
 `;
+
+const ChartButtons = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+`;
+
+const SeriesButton = styled(Button)<{ selected: boolean }>`
+  border: 2px solid ${({ selected }) => (selected ? "white" : "transparent")};
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding: 5px 10px;
+  align-items: center;
+`;
+
+const SeriesDot = styled.div<{ color: string }>`
+  background: ${({ color }) => color};
+  width: 10px;
+  height: 10px;
+  border-radius: 10px;
+`;
+
+const chartColorPalette = ["var(--green)", "var(--blue)", "#cd56fc"];
 
 interface StatGroup {
   name: string;
@@ -124,6 +154,7 @@ type DailyValue = {
 type DailyValueSeries = {
   label: string;
   data: DailyValue[];
+  color: string;
 };
 
 function StatsView() {
@@ -133,6 +164,7 @@ function StatsView() {
   const [filteredTickets, setFilteredTickets] = useState<TicketDefinition[]>([]);
   const [customTimeSpan, setCustomTimeSpan] = useState<CustomTimeSpan | null>(null);
   const [customTimeInputOpen, setCustomTimeInputOpen] = useState(false);
+  const [hiddenSeries, setHiddenSeries] = useState<string[]>([]);
   const scrollRef = useScrollRestoration("StatsView");
 
   useEffect(() => {
@@ -201,14 +233,16 @@ function StatsView() {
     []
   );
 
-  const data: DailyValueSeries[] = useMemo(() => {
+  const allData: DailyValueSeries[] = useMemo(() => {
     let profitLoss: DailyValueSeries = {
       label: "Profit/Loss",
       data: [],
+      color: "",
     };
     let wagered: DailyValueSeries = {
       label: "Amount Wagered",
       data: [],
+      color: "",
     };
     let currentWagered = 0;
     let currentProfit = 0;
@@ -224,14 +258,29 @@ function StatsView() {
       wagered.data.push({ date, value: currentWagered });
     }
 
-    return [profitLoss, wagered];
+    let series = [profitLoss, wagered];
+    series = series.map((s, i) => ({ ...s, color: chartColorPalette[i] }));
+    return series;
   }, [filteredTickets]);
-  // console.log("data", data);
+
+  const data: DailyValueSeries[] = useMemo(() => {
+    const series = allData.filter((s) => !hiddenSeries.includes(s.label));
+    return series;
+  }, [allData, hiddenSeries]);
+
+  const toggleSeries = (seriesLabel: string) => {
+    console.log("toggling", seriesLabel);
+    const hidden = hiddenSeries.includes(seriesLabel);
+    if (hidden) {
+      setHiddenSeries(hiddenSeries.filter((s) => s !== seriesLabel));
+    } else {
+      setHiddenSeries([...hiddenSeries, seriesLabel]);
+    }
+  };
 
   const getSeriesStyle = useCallback((series: Series<DailyValue>) => {
-    let colorPalette = ["var(--green)", "var(--blue)", "#cd56fc"];
     return {
-      color: colorPalette[series.index],
+      color: chartColorPalette[series.index],
     };
   }, []);
 
@@ -262,6 +311,13 @@ function StatsView() {
       ],
     },
     {
+      name: "Current profit/loss",
+      stats: [
+        ["Current $ profit/loss", toCurrencyFormat(totalReceived - totalSettledWagers)],
+        ["Current % profit/loss", toPercentFormat(totalReceived / totalSettledWagers - 1)],
+      ],
+    },
+    {
       name: "$ Totals",
       stats: [
         ["Total Open Wagers", toCurrencyFormat(totalOpenWagers)],
@@ -271,13 +327,6 @@ function StatsView() {
         ["Total Winning Payouts", toCurrencyFormat(totalWon)],
         ["Total Drawing Payouts", toCurrencyFormat(totalDrawn)],
         ["Un-archived Payouts", toCurrencyFormat(nonArchivedPay)],
-      ],
-    },
-    {
-      name: "Current profit/loss",
-      stats: [
-        ["Current $ profit/loss", toCurrencyFormat(totalReceived - totalSettledWagers)],
-        ["Current % profit/loss", toPercentFormat(totalReceived / totalSettledWagers - 1)],
       ],
     },
     {
@@ -307,7 +356,8 @@ function StatsView() {
     if (!ticket.ticketDetails) break;
     if (ticket.ticketDetails?.totalOdds > (bestOddsWin.ticketDetails?.totalOdds ?? 0)) bestOddsWin = ticket;
     if (ticket.ticketDetails?.toPay > (bestPayWin.ticketDetails?.toPay ?? 0)) bestPayWin = ticket;
-    if (ticket.ticketDetails?.bets.length > (bestPayWin.ticketDetails?.bets.length ?? 0)) mostParlayLegsWin = ticket;
+    if (ticket.ticketDetails?.bets.length > (mostParlayLegsWin?.ticketDetails?.bets.length ?? 0))
+      mostParlayLegsWin = ticket;
   }
   const ticketsToShow: [string, TicketDefinition][] = [];
   if (bestOddsWin) ticketsToShow.push(["Best Odds Win", bestOddsWin]);
@@ -344,17 +394,31 @@ function StatsView() {
         ))}
         {hasChartData && (
           <Accordion label="Chart">
-            <ChartDiv>
-              <Chart
-                options={{
-                  data,
-                  primaryAxis,
-                  secondaryAxes,
-                  dark: true,
-                  getSeriesStyle: getSeriesStyle,
-                }}
-              />
-            </ChartDiv>
+            <ChartContent>
+              <ChartDiv>
+                <Chart
+                  options={{
+                    data,
+                    primaryAxis,
+                    secondaryAxes,
+                    dark: true,
+                    getSeriesStyle: getSeriesStyle,
+                  }}
+                />
+              </ChartDiv>
+              <ChartButtons>
+                {allData.map((series, i) => (
+                  <SeriesButton
+                    key={i}
+                    onClick={() => toggleSeries(series.label)}
+                    selected={!hiddenSeries.includes(series.label)}
+                  >
+                    <SeriesDot color={series.color} />
+                    {series.label}
+                  </SeriesButton>
+                ))}
+              </ChartButtons>
+            </ChartContent>
           </Accordion>
         )}
       </Content>
@@ -391,7 +455,7 @@ const CustomTimeInputDiv = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 20px;
   padding: 30px;
   font-size: 20px;
 `;
@@ -400,10 +464,18 @@ const CustomTimeInputRow = styled.div`
   display: flex;
   flex-direction: row;
   gap: 15px;
+  align-items: center;
 `;
 
 const CustomTimeInputButton = styled(Button)`
-  padding: 10px;
+  font-size: 22px;
+  padding: 20px 30px;
+`;
+
+const Input = styled.input`
+  font-size: 22px;
+  border-radius: 10px;
+  padding: 5px;
 `;
 
 function CustomTimeInputModal({ customTimeSpan, setCustomTimeSpan, setCustomTimeInputOpen }: CustomTimeInputProps) {
@@ -459,11 +531,11 @@ function CustomTimeInputModal({ customTimeSpan, setCustomTimeSpan, setCustomTime
         </CustomTimeInputRow>
         <CustomTimeInputRow>
           Start Date
-          <input type="date" onChange={handleStartChange} value={start.toISOString().substring(0, 10)} />
+          <Input type="date" onChange={handleStartChange} value={start.toISOString().substring(0, 10)} />
         </CustomTimeInputRow>
         <CustomTimeInputRow>
           End Date
-          <input type="date" onChange={handleEndChange} value={end.toISOString().substring(0, 10)} />
+          <Input type="date" onChange={handleEndChange} value={end.toISOString().substring(0, 10)} />
         </CustomTimeInputRow>
         <CustomTimeInputButton onClick={handleSetTimeSpan}>Set Time Span</CustomTimeInputButton>
         <CustomTimeInputButton onClick={() => setCustomTimeInputOpen(false)}>Cancel</CustomTimeInputButton>
