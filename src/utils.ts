@@ -38,8 +38,9 @@ export const getRelativeDateDisplay = (date?: Date, includeDate = true) => {
   let suffix = "";
   const now = new Date();
   const msTilExpiration = date.getTime() - now.getTime();
+  const hoursTilExpiration = Math.abs(msTilExpiration) / 1000 / 60 / 60;
   const daysTilExpiration = Math.floor(Math.abs(msTilExpiration) / 1000 / 60 / 60 / 24);
-  if (Math.abs(daysTilExpiration) <= 1) {
+  if (hoursTilExpiration <= 24) {
     const expiresInHours = Math.floor(Math.abs(msTilExpiration) / 1000 / 60 / 60);
     const expiresInMinutes = Math.floor(Math.abs(msTilExpiration) / 1000 / 60) - expiresInHours * 60;
     const expiresInStr = `${expiresInHours}h:${expiresInMinutes}m`;
