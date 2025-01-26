@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components/macro";
-import { getStatusColor, getTicketTimePeriod } from "../store/ticketStore";
-import { getCurrencyDisplay, getDateDisplay, getOddsDisplay, getRelativeDateDisplay } from "../utils";
+import { getBetTimePeriod, getStatusColor } from "../store/ticketStore";
+import { getCurrencyDisplay, getDateRangeDisplay, getOddsDisplay } from "../utils";
 import LiveIcon from "./LiveIcon";
 import { sanitizeString, TicketDefinition, TimePeriod } from "../data/ticketTypes";
 
@@ -137,8 +137,7 @@ function TicketTile({ ticket, clickable }: Props) {
 
   let { betEventsStartDate, betEventsEndDate } = ticket.ticketDetails ?? {};
 
-  const showBothDates = betEventsStartDate?.getTime() !== betEventsEndDate?.getTime();
-  let timePeriod = getTicketTimePeriod(ticket.ticketDetails);
+  let isLive = ticket.ticketDetails?.bets.some((b) => getBetTimePeriod(b) === TimePeriod.Current);
 
   return (
     <TicketTileDiv
@@ -182,12 +181,8 @@ function TicketTile({ ticket, clickable }: Props) {
         </InfoCol>
       </Info>
       <CellContent className={className}>
-        <TimeLabel>
-          {!showBothDates && getRelativeDateDisplay(betEventsStartDate)}
-          {showBothDates && getDateDisplay(betEventsStartDate) + " - " + getDateDisplay(betEventsEndDate)}
-        </TimeLabel>
-        {/*TODO do this better */}
-        {timePeriod === TimePeriod.Current && <LiveIcon />}
+        <TimeLabel>{getDateRangeDisplay(betEventsStartDate, betEventsEndDate)}</TimeLabel>
+        {isLive && <LiveIcon />}
       </CellContent>
     </TicketTileDiv>
   );

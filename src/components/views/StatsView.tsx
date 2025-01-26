@@ -106,7 +106,16 @@ const SeriesDot = styled.div<{ color: string }>`
   border-radius: 10px;
 `;
 
-const chartColorPalette = ["var(--green)", "var(--blue)", "#cd56fc"];
+enum SeriesType {
+  ProfitLoss = "Profit/Loss",
+  Wagered = "Amount Wagered",
+  WinPercentage = "Win Percentage",
+}
+const chartColorPalette = {
+  [SeriesType.ProfitLoss]: "var(--green)",
+  [SeriesType.Wagered]: "var(--blue)",
+  [SeriesType.WinPercentage]: "#cd56fc",
+};
 
 interface StatGroup {
   name: string;
@@ -152,7 +161,7 @@ type DailyValue = {
 };
 
 type DailyValueSeries = {
-  label: string;
+  label: SeriesType;
   data: DailyValue[];
   color: string;
 };
@@ -235,17 +244,24 @@ function StatsView() {
 
   const allData: DailyValueSeries[] = useMemo(() => {
     let profitLoss: DailyValueSeries = {
-      label: "Profit/Loss",
+      label: SeriesType.ProfitLoss,
       data: [],
       color: "",
     };
     let wagered: DailyValueSeries = {
-      label: "Amount Wagered",
+      label: SeriesType.Wagered,
+      data: [],
+      color: "",
+    };
+    let winPercentage: DailyValueSeries = {
+      label: SeriesType.WinPercentage,
       data: [],
       color: "",
     };
     let currentWagered = 0;
     let currentProfit = 0;
+    let currentWinningTickets = 0;
+    let currentSettledTickets = 0;
     let reversedTickets = filteredTickets.slice().reverse();
     for (const ticket of reversedTickets) {
       if (!ticket.ticketDetails) continue;
@@ -256,10 +272,14 @@ function StatsView() {
       const date = ticket.ticketDetails.betEventsStartDate;
       profitLoss.data.push({ date, value: currentProfit });
       wagered.data.push({ date, value: currentWagered });
+      if (isSettled(ticket.ticketDetails.status)) {
+        currentSettledTickets++;
+        if (ticket.ticketDetails.status === TicketStatus.Won) currentWinningTickets++;
+        winPercentage.data.push({ date, value: (currentWinningTickets / currentSettledTickets) * 100 });
+      }
     }
 
-    let series = [profitLoss, wagered];
-    series = series.map((s, i) => ({ ...s, color: chartColorPalette[i] }));
+    let series = [profitLoss, wagered, winPercentage];
     return series;
   }, [filteredTickets]);
 
@@ -280,7 +300,7 @@ function StatsView() {
 
   const getSeriesStyle = useCallback((series: Series<DailyValue>) => {
     return {
-      color: chartColorPalette[series.index],
+      color: chartColorPalette[series.label as SeriesType],
     };
   }, []);
 
@@ -392,10 +412,10 @@ function StatsView() {
             {ticket && <TicketTile ticket={ticket} clickable />}
           </Accordion>
         ))}
-        {hasChartData && (
-          <Accordion label="Chart">
-            <ChartContent>
-              <ChartDiv>
+        <Accordion label="Chart">
+          <ChartContent>
+            <ChartDiv>
+              {hasChartData && (
                 <Chart
                   options={{
                     data,
@@ -405,22 +425,22 @@ function StatsView() {
                     getSeriesStyle: getSeriesStyle,
                   }}
                 />
-              </ChartDiv>
-              <ChartButtons>
-                {allData.map((series, i) => (
-                  <SeriesButton
-                    key={i}
-                    onClick={() => toggleSeries(series.label)}
-                    selected={!hiddenSeries.includes(series.label)}
-                  >
-                    <SeriesDot color={series.color} />
-                    {series.label}
-                  </SeriesButton>
-                ))}
-              </ChartButtons>
-            </ChartContent>
-          </Accordion>
-        )}
+              )}
+            </ChartDiv>
+            <ChartButtons>
+              {allData.map((series, i) => (
+                <SeriesButton
+                  key={i}
+                  onClick={() => toggleSeries(series.label)}
+                  selected={!hiddenSeries.includes(series.label)}
+                >
+                  <SeriesDot color={chartColorPalette[series.label as SeriesType]} />
+                  {series.label}
+                </SeriesButton>
+              ))}
+            </ChartButtons>
+          </ChartContent>
+        </Accordion>
       </Content>
       {customTimeInputOpen && (
         <CustomTimeInputModal

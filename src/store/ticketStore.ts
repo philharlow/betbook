@@ -73,13 +73,15 @@ export const filterTicketsBySearch = (ticket: TicketDefinition, searchValue: str
 
 // Refresh current tickets on focusing the app
 let lastRefreshed = Date.now();
+const refreshThreshold = 60 * 1000; // 1 minute
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState !== "visible") return;
-  if (Date.now() - lastRefreshed > 60 * 1000) {
-    console.log("focused, refreshing");
-    // TODO force tickets to update their own timeperiod, then use that to update
-    updateCurrentTickets();
-  } else console.log("focused too soon", Date.now() - lastRefreshed);
+  const timeSinceLastRefresh = Date.now() - lastRefreshed;
+  const shouldRefresh = timeSinceLastRefresh > refreshThreshold;
+  console.log(shouldRefresh ? "focused, refreshing" : "focused too soon", {
+    refreshed: `${timeSinceLastRefresh / 1000}s ago`,
+  });
+  if (shouldRefresh) updateCurrentTickets();
 });
 
 // TODOv2

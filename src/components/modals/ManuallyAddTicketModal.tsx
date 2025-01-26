@@ -57,20 +57,20 @@ function ManuallyAddTicketModal() {
   const tickets = useTicketState((state) => state.tickets);
   const updateTicket = useTicketState((state) => state.updateTicket);
   const showToast = useToastState((state) => state.showToast);
-  const [value, setValue] = useState("");
+  const [inputValue, setInputValue] = useState("");
 
   const handleChange = (e: any) => {
     const val = e.target.value;
-    setValue(val);
+    setInputValue(val);
   };
 
   const addDraftkingsTicket = useCallback(
     (ticketNumber: string) => {
       const asNumber = parseInt(ticketNumber);
       if (asNumber && !isNaN(asNumber)) {
-        setValue("");
         if (tickets.find((ticket) => ticket.ticketNumber === ticketNumber)) {
           showToast("Ticket already added");
+          setInputValue("");
         } else {
           const ticket: TicketDefinition = {
             ticketNumber,
@@ -81,6 +81,7 @@ function ManuallyAddTicketModal() {
           updateTicket(ticket);
           fetchUpdatedTicket(ticket.ticketNumber);
           showToast("Ticket added!");
+          setInputValue("");
         }
       } else {
         showToast("Ticket number invalid");
@@ -90,8 +91,8 @@ function ManuallyAddTicketModal() {
   );
 
   const onAddDraftkingsTicket = () => {
-    addDraftkingsTicket(value);
-    setModalOpen(undefined);
+    addDraftkingsTicket(inputValue);
+    //setModalOpen(undefined);
   };
 
   if (modalOpen !== Modal.ManuallyAddTicket) return null;
@@ -104,7 +105,7 @@ function ManuallyAddTicketModal() {
       </TopBar>
       <Content>
         Draftkings Ticket Number
-        <Input autoFocus value={value} placeholder="Ticket number" onChange={handleChange} type="text" />
+        <Input autoFocus value={inputValue} placeholder="Ticket number" onChange={handleChange} type="text" />
         <AddTicketButton onClick={() => onAddDraftkingsTicket()}>Add Ticket</AddTicketButton>
       </Content>
       {/* <hr />

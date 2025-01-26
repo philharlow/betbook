@@ -54,6 +54,17 @@ export const getRelativeDateDisplay = (date?: Date, includeDate = true) => {
   return `${getDateDisplay(date)} (${suffix})`;
 };
 
+export const getDateRangeDisplay = (startDate?: Date, endDate?: Date) => {
+  if (!startDate || !endDate) return "";
+  // Same time, show only start date
+  if (startDate.getTime() === endDate.getTime()) return getRelativeDateDisplay(startDate);
+  // Same Day, only show time for end date
+  if (new Date(startDate).setHours(0, 0, 0, 0) === new Date(endDate).setHours(0, 0, 0, 0))
+    return getDateDisplay(startDate) + " - " + getTimeStr(endDate);
+  //Show both times
+  return `${getDateDisplay(startDate)} - ${getDateDisplay(endDate)}`;
+};
+
 export const getCurrencyDisplay = (amount?: number) => {
   if (!amount) return "--";
   return `$${amount.toFixed(2)}`;

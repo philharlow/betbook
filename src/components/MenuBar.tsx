@@ -42,7 +42,7 @@ const MenuOption = styled.div<MenuButtonProps>`
 
 const AddOption = styled(MenuOption)`
   border: 2px solid #868686;
-  margin-top: -10px;
+  margin-top: -15px;
 `;
 
 function MenuBar() {
